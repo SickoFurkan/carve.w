@@ -148,16 +148,24 @@ export function AppSidebar() {
       role="navigation"
     >
       <nav className="flex-1 px-2 py-4 overflow-y-auto">
-        {groups.map((group) => (
-          <div key={group.label} className="mb-4">
-            {/* Group label - only show when hovered */}
-            {isHovered && (
-              <div className="px-3 mb-2">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  {group.label}
-                </span>
+        {groups.map((group, groupIndex) => (
+          <div key={group.label} className="mb-3">
+            {/* Group label with dash - always visible */}
+            <div className="mb-1.5 flex items-center px-3">
+              {/* Dash - centered like icons */}
+              <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                <span className="text-xs font-semibold text-gray-400">—</span>
               </div>
-            )}
+              {/* Label text - only show when hovered */}
+              <span
+                className={cn(
+                  "ml-3 text-xs font-semibold text-gray-400 uppercase tracking-wider transition-opacity duration-500",
+                  isHovered ? "opacity-100" : "opacity-0"
+                )}
+              >
+                {group.label}
+              </span>
+            </div>
 
             {/* Group items */}
             {group.items.map((item) => {
@@ -169,7 +177,7 @@ export function AppSidebar() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "group h-10 flex items-center rounded-lg px-3 py-2 mb-1 text-sm font-medium transition-all",
+                    "group h-9 flex items-center rounded-lg px-3 py-1.5 mb-0.5 text-sm font-medium transition-all",
                     isActive
                       ? "bg-gray-100 text-black shadow-sm"
                       : "text-gray-600 hover:bg-gray-50 hover:text-black"
@@ -181,11 +189,14 @@ export function AppSidebar() {
                       isActive ? "text-black" : "text-gray-500 group-hover:text-black"
                     )}
                   />
-                  {isHovered && (
-                    <span className="ml-3 truncate transition-opacity duration-200">
-                      {item.title}
-                    </span>
-                  )}
+                  <span
+                    className={cn(
+                      "ml-3 truncate transition-opacity duration-500",
+                      isHovered ? "opacity-100" : "opacity-0"
+                    )}
+                  >
+                    {item.title}
+                  </span>
                 </Link>
               );
             })}
