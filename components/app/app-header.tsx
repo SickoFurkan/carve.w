@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 
 interface AppHeaderProps {
   className?: string;
@@ -24,7 +25,7 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        'grid grid-cols-3 items-center h-16 px-4 sm:px-6 lg:px-8',
+        'grid grid-cols-3 items-center h-16 pl-0 pr-4 sm:pl-4 sm:pr-6 lg:pl-4 lg:pr-8',
         'bg-[#ececf1]/95 backdrop-blur-sm',
         'border-b border-gray-200/20',
         'w-full',
@@ -33,23 +34,15 @@ export function AppHeader({
       role="banner"
     >
       {/* Logo Section */}
-      <Link href="/" className="flex items-center gap-2 justify-self-start">
-        <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-          <svg
-            className="w-5 h-5 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-        <span className="text-xl font-bold">Carve</span>
+      <Link href="/" className="flex items-center justify-self-start">
+        <Image
+          src="/carvewikilogo.png"
+          alt="Carve Wiki Logo"
+          width={180}
+          height={60}
+          className="h-14 w-auto object-contain"
+          priority
+        />
       </Link>
 
       {/* Navigation Section */}
