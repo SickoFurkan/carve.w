@@ -69,9 +69,9 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen max-h-screen overflow-hidden">
       {/* Left Column - Form (50%) */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white overflow-y-auto max-h-screen">
         <div className="w-full max-w-md space-y-6">
           {/* Logo */}
           <div>
@@ -269,13 +269,14 @@ export default function SignupPage() {
       </div>
 
       {/* Right Column - Image (50%) */}
-      <div className="hidden lg:block lg:w-1/2 relative h-full">
+      <div className="hidden lg:block lg:w-1/2 relative h-screen max-h-screen overflow-hidden">
         <Image
           src="/loginscreen.png"
           alt="Carve Fitness"
           fill
           className="object-cover object-center"
           priority
+          sizes="50vw"
         />
       </div>
     </div>

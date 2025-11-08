@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppShell, AppBody, AppContent } from "@/components/app/app-shell";
 import { AppHeader } from "@/components/app/app-header";
 import { AppSidebar } from "@/components/app/app-sidebar";
+import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,11 +21,24 @@ export const metadata: Metadata = {
   description: "Evidence-based information on nutrition, fitness, and health. Track your progress with personalized dashboards.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let profile = null;
+  if (user) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    profile = data;
+  }
+
   return (
     <html lang="en">
       <body
@@ -33,7 +47,12 @@ export default function RootLayout({
         <div className="min-h-screen bg-[#ececf1]">
           {/* Fixed header */}
           <div className="fixed top-0 left-0 right-0 z-50">
-            <AppHeader isAuthenticated={false} />
+            <AppHeader
+              isAuthenticated={!!user}
+              userEmail={user?.email}
+              userName={profile?.display_name || profile?.username || undefined}
+              userAvatar={profile?.avatar_image_url || undefined}
+            />
           </div>
 
           {/* Main content with padding */}
