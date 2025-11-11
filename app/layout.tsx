@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppShell, AppBody, AppContent } from "@/components/app/app-shell";
+import { AppShell, AppBody } from "@/components/app/app-shell";
 import { AppHeader } from "@/components/app/app-header";
-import { AppSidebar } from "@/components/app/app-sidebar";
 import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
@@ -69,10 +68,7 @@ export default async function RootLayout({
           <div className="fixed top-16 left-0 right-2 bottom-2 md:right-2 md:bottom-2 lg:right-3 lg:bottom-3">
             <AppShell>
               <AppBody>
-                <AppSidebar />
-                <AppContent padded={false}>
-                  {children}
-                </AppContent>
+                {children}
               </AppBody>
             </AppShell>
           </div>
