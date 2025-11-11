@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createBuildClient } from '@/lib/supabase/server';
 import { ArticleLayout } from '@/components/wiki/ArticleLayout';
 import { ViewTracker } from '@/components/wiki/ViewTracker';
 
@@ -103,7 +103,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
 // Generate static params for all published articles (ISR)
 export async function generateStaticParams() {
-  const supabase = await createClient();
+  const supabase = createBuildClient();
 
   const { data: articles } = await supabase
     .from('wiki_articles')
