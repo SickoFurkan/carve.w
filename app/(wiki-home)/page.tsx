@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SearchBar } from "@/components/wiki/SearchBar";
 import { PopularToday } from "@/components/wiki/PopularToday";
 import { createClient } from "@/lib/supabase/server";
+import { GlobalSearch } from "@/components/search/global-search";
 
 // Get article counts for each category
 async function getCategoryCounts() {
@@ -82,9 +83,22 @@ export default async function WikiPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Hero Search Section */}
+        <section className="py-20 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Your Health & Fitness Knowledge Base
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Search articles, find users, explore rankings
+            </p>
+            <GlobalSearch variant="large" autoFocus />
+          </div>
+        </section>
+
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-zinc-900 mb-4">Carve Wiki</h1>
+          <h2 className="text-5xl font-bold text-zinc-900 mb-4">Carve Wiki</h2>
           <p className="text-xl text-zinc-600 mb-2">
             Evidence-based fitness encyclopedia
           </p>
