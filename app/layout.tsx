@@ -41,6 +41,16 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        {/* Plausible Analytics - Privacy-first, no cookies */}
+        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
+          <script
+            defer
+            data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+            src="https://plausible.io/js/script.js"
+          />
+        )}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#ececf1]`}
       >
