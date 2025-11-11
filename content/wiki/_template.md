@@ -1,20 +1,20 @@
 ---
 title: "Article Title Here"
-category: "nutrition"  # Options: nutrition, exercise-science, physiology, training-methods, psychology, injury-health
-tags: ["tag1", "tag2", "tag3"]  # 3-5 relevant tags
-evidence_rating: "well-established"  # Options: well-established, emerging-research, expert-consensus
-author: "Your Name"
-reviewers: []  # Optional: ["Expert Name 1", "Expert Name 2"]
-related: []  # Optional: ["article-slug-1", "article-slug-2"]
-created_at: "2025-01-11"
-updated_at: "2025-01-11"
+category: "nutrition"  # Options: nutrition | exercise-science | physiology | training-methods | psychology | injury-health
+tags: ["tag1", "tag2", "tag3"]  # 3-5 relevant tags for discoverability
+evidence_rating: "well-established"  # Options: well-established | emerging-research | expert-consensus
+author: "Carve Wiki Team"
+reviewers: []  # Optional: ["Expert Name with Credentials"]
+related: []  # Optional: ["article-slug-1", "article-slug-2"] (without .md extension)
+created_at: "2025-01-11"  # Use YYYY-MM-DD format
+updated_at: "2025-01-11"  # Update this when making significant changes
 ---
 
 # Article Title Here
 
 ## Summary
 
-Write a 2-3 sentence overview of the article. This should give readers a quick understanding of what the article covers and why it matters. Keep it concise and engaging.
+Write a 2-4 sentence overview that captures the main topic and its importance. This summary appears in search results and category listings, so make it informative and compelling. Focus on what readers will learn and why it matters for their fitness journey.
 
 ## Table of Contents
 
@@ -82,8 +82,44 @@ Address widespread misconceptions about the topic:
 5. Author, M. N. (Year). Review article title. *Journal Name*, volume(issue), pages. https://doi.org/xx.xxxx/xxxxx
 6. Author, O. P., et al. (Year). Research study title. *Journal Name*, volume(issue), pages. https://doi.org/xx.xxxx/xxxxx
 
+**Citation Guidelines:**
+- Aim for 5-10 citations minimum (more for complex topics)
+- Prefer peer-reviewed journal articles and meta-analyses
+- Include recent research (last 10-15 years preferred)
+- Use "et al." for papers with >2 authors
+- Include DOIs or URLs when available
+
 ## Related Articles
 
 - [Related Article Title 1](/wiki/category/article-slug-1)
 - [Related Article Title 2](/wiki/category/article-slug-2)
 - [Related Article Title 3](/wiki/category/article-slug-3)
+
+---
+
+## Writing Guidelines
+
+**Article Length:** 1,500-2,500 words (minimum 1,200 words)
+
+**Evidence Ratings:**
+- **well-established**: Strong peer-reviewed consensus with meta-analyses
+- **emerging-research**: Promising findings, needs more study
+- **expert-consensus**: Based on practitioner experience
+
+**Style:**
+- Evidence-based: Support all claims with citations
+- Accessible: Explain jargon, use clear language
+- Practical: Balance theory with actionable advice
+- Engaging: Use examples and relatable scenarios
+
+**Quality Checklist:**
+- [ ] All frontmatter fields completed
+- [ ] Summary is 2-4 sentences
+- [ ] Table of contents matches section headings
+- [ ] Every factual claim cited (^1, ^2, etc.)
+- [ ] Sources section has full references
+- [ ] 5-10+ citations total
+- [ ] 2-4 related articles linked
+- [ ] Word count 1,500-2,500
+- [ ] Practical applications included
+- [ ] Common myths addressed

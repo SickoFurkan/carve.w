@@ -59,7 +59,12 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
         const subFiles = await findMarkdownFiles(fullPath);
         files.push(...subFiles);
       }
-    } else if (entry.isFile() && entry.name.endsWith('.md') && !entry.name.startsWith('_')) {
+    } else if (
+      entry.isFile() &&
+      entry.name.endsWith('.md') &&
+      !entry.name.startsWith('_') &&
+      entry.name.toLowerCase() !== 'readme.md'
+    ) {
       files.push(fullPath);
     }
   }
