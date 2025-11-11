@@ -1,0 +1,20 @@
+{
+  "nav": {
+    "wiki": "Wiki",
+    "dashboard": "Dashboard",
+    "hiscores": "Hiscores",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "search": {
+    "placeholder": "Search everything...",
+    "placeholderLarge": "Search articles, users, rankings...",
+    "noResults": "No results for \"{query}\"",
+    "wikiArticles": "Wiki Articles",
+    "users": "Users",
+    "viewAllHiscores": "View all in Hiscores"
+  },
+  "common": {
+    "loading": "Loading..."
+  }
+}

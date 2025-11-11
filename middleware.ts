@@ -1,39 +1,21 @@
-import { type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
+import createMiddleware from 'next-intl/middleware';
 
-export async function middleware(request: NextRequest) {
-  const { response, user } = await updateSession(request)
+export default createMiddleware({
+  // A list of all locales that are supported
+  locales: ['en', 'nl'],
 
-  const pathname = request.nextUrl.pathname
+  // Used when no locale matches
+  defaultLocale: 'en',
 
-  // Protected routes - require authentication
-  if (pathname.startsWith('/dashboard')) {
-    if (!user) {
-      const redirectUrl = new URL('/login', request.url)
-      redirectUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(redirectUrl)
-    }
-  }
-
-  // Auth routes - redirect to dashboard if already logged in
-  if (pathname.startsWith('/login') || pathname.startsWith('/signup')) {
-    if (user) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-  }
-
-  return response
-}
+  // Automatically detect locale from browser
+  localeDetection: true,
+});
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
-}
+  // Match all pathnames except for
+  // - /api (API routes)
+  // - /_next (Next.js internals)
+  // - /_vercel (Vercel internals)
+  // - /static (static files)
+  matcher: ['/((?!api|_next|_vercel|static|.*\\..*).*)']
+};
