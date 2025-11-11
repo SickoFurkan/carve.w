@@ -1,513 +1,605 @@
 # Carve Landing Page: Task Checklist
 
-**Last Updated: 2025-01-10**
+**Last Updated: 2025-01-11**
 
-Track your progress through the implementation phases. Mark tasks complete as you go!
+Track your progress through the implementation releases. Mark tasks complete as you go!
 
 ---
 
-## Phase 1: Waitlist System & Data Infrastructure
+## How to Use This Checklist
 
-### 1.1 Create Waitlist Database
-- [ ] Create migration: `waitlist` table
-  - [ ] Fields: id (uuid), email (text unique), created_at, source, notified (boolean)
-  - [ ] Index on email
-  - [ ] Index on created_at DESC
-- [ ] Create RLS policies:
-  - [ ] Public INSERT (anyone can join)
-  - [ ] Admin-only SELECT
+### Priority Labels
+- **MUST**: Critical for release, blocks shipping
+- **SHOULD**: Important but can be deferred to next release
+- **COULD**: Nice-to-have, future enhancement
+
+### Release Strategy
+Ship in **3 iterative releases** instead of one monolithic MVP:
+1. **Release 1** (Week 1-2): Lean MVP → Waitlist only
+2. **Release 2** (Week 3): Social Proof → Add hiscores widget
+3. **Release 3** (Week 4-5): Showcase → Feature sections + demo
+
+---
+
+## ⚡ Release 1: Lean MVP (MUST Have)
+
+**Goal**: Get a functional waitlist live ASAP
+**Timeline**: Week 1-2 (10-15 hours)
+
+### R1.1: Enhanced Waitlist Database [MUST]
+- [ ] Create migration file: `YYYYMMDDHHMMSS_create_waitlist.sql`
+- [ ] Add waitlist table with all fields:
+  - [ ] id, email, created_at, source
+  - [ ] consent_given, consent_version, consent_timestamp
+  - [ ] verification_token, verified_at
+  - [ ] notified, deleted_at, opt_out_reason
+  - [ ] ip_address, user_agent
+- [ ] Create indexes:
+  - [ ] idx_waitlist_email
+  - [ ] idx_waitlist_verification (WHERE verified_at IS NULL)
+  - [ ] idx_waitlist_verified (WHERE verified_at IS NOT NULL)
+- [ ] Add constraint: email_verified_check
+- [ ] Enable RLS
+- [ ] Create policies:
+  - [ ] "Anyone can join waitlist" (INSERT)
+  - [ ] "Only service role can read" (SELECT)
 - [ ] Run migration
-- [ ] Test: Can insert email, duplicates prevented
+- [ ] Test: Can insert email, token generated, uniqueness enforced
 
-### 1.2 Add Public Profile Flag to Users
-- [ ] Create migration: Add `show_on_leaderboard` column to profiles
-  - [ ] Type: boolean
-  - [ ] Default: true (opt-out model)
-- [ ] Add index on show_on_leaderboard
-- [ ] Run migration
-- [ ] Test: Column exists, defaults to true for new users
+---
 
-### 1.3 Create Hiscores Data Queries
-- [ ] Create function: `get_global_leaderboard(limit_count, timeframe)`
-  - [ ] Join user_stats + profiles
-  - [ ] Filter: show_on_leaderboard = true
-  - [ ] Order: level DESC, total_xp DESC
-  - [ ] Return: rank, username, avatar_url, level, total_xp, current_streak
-- [ ] Create function: `get_live_activity_feed(limit_count)`
-  - [ ] Query activity_feed
-  - [ ] Filter: type IN ('pr', 'level_up', 'achievement'), show_on_leaderboard = true
-  - [ ] Order: created_at DESC
-  - [ ] Return: username, avatar_url, activity_type, activity_data, created_at
-- [ ] Create function: `get_workouts_leaderboard(timeframe, limit_count)`
-  - [ ] Count workouts per user in timeframe
-  - [ ] Order by count DESC
-  - [ ] Return: rank, username, avatar_url, workout_count
-- [ ] Create function: `get_streaks_leaderboard(limit_count)`
-  - [ ] Order by current_streak DESC
-  - [ ] Return: rank, username, avatar_url, current_streak
-- [ ] Create function: `get_prs_leaderboard(exercise_type, limit_count)` (for later)
-  - [ ] Query exercises where is_pr = true
-  - [ ] Group by user, exercise_name
-  - [ ] Order by weight DESC
-- [ ] Run migration
-- [ ] Test: All functions return correct data, respect privacy flags
+### R1.2: Install Dependencies [MUST]
+- [ ] Run: `pnpm add zod`
+- [ ] Run: `pnpm add @marsidev/react-turnstile`
+- [ ] Verify no conflicts
+- [ ] Test: Import works in components
 
-### 1.4 Create Waitlist API Route
+---
+
+### R1.3: Waitlist API Route (Multi-Layer Protection) [MUST]
 - [ ] Create `app/api/waitlist/route.ts`
-- [ ] Install dependency: `pnpm add zod`
-- [ ] Create email validation schema (zod)
-- [ ] POST handler:
-  - [ ] Validate email format
-  - [ ] Check if email already exists
-  - [ ] Insert to waitlist table with source
-  - [ ] Return success or error (duplicate/invalid)
-- [ ] Add rate limiting (max 3 per IP per hour - simple check)
-- [ ] Test: Valid email accepted, invalid rejected, duplicates prevented
+- [ ] Add disposable email domain list
+- [ ] Create Zod schema:
+  - [ ] Email validation
+  - [ ] Turnstile token required
+  - [ ] Consent checkbox required (literal true)
+  - [ ] Source enum
+- [ ] POST handler implementation:
+  - [ ] Layer 1: Verify Turnstile with Cloudflare API
+  - [ ] Layer 2: Insert to waitlist table
+  - [ ] Layer 3: Send verification email (stub for now)
+  - [ ] Layer 4: Track analytics event (commented)
+  - [ ] Error handling: duplicates (409), invalid (400), server (500)
+- [ ] Create `app/api/waitlist/verify/route.ts`
+- [ ] GET handler:
+  - [ ] Validate token param
+  - [ ] Update verified_at + consent_given
+  - [ ] Only verify once (WHERE verified_at IS NULL)
+  - [ ] Redirect to /?verify=success or /?verify=error
+- [ ] Add env variables to `.env.local`:
+  - [ ] NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  - [ ] TURNSTILE_SECRET_KEY
+- [ ] Test: Valid email accepted
+- [ ] Test: Disposable email blocked
+- [ ] Test: Duplicate email returns 409
+- [ ] Test: Bot verification works
+- [ ] Test: Verification link updates database
 
 ---
 
-## Phase 2: Landing Page Hero & Structure
+### R1.4: Waitlist Form Component [MUST]
+- [ ] Create `components/landing/WaitlistForm.tsx`
+- [ ] Import Turnstile component
+- [ ] Add form state: idle | loading | success | error
+- [ ] Add fields: email, consent checkbox, turnstile token
+- [ ] Handle submit:
+  - [ ] POST to /api/waitlist
+  - [ ] Show loading state
+  - [ ] Handle success (show success message)
+  - [ ] Handle errors (show error message)
+- [ ] Success state UI:
+  - [ ] Green background
+  - [ ] "Check your inbox" message
+- [ ] Form validation:
+  - [ ] Email required
+  - [ ] Consent required
+  - [ ] Turnstile token required
+- [ ] Consent checkbox with link to /privacy
+- [ ] Test all states (idle, loading, success, error)
+- [ ] Test: Form submits correctly
+- [ ] Test: Success message shows after submit
+- [ ] Test: Error messages display
 
-### 2.1 Update Navigation for Landing Page
-- [ ] Update `components/app/app-header.tsx` (or create landing-specific nav)
-- [ ] Navigation items: Logo, Wiki, Dashboard, Hiscores, Sign In
-- [ ] Highlight current page
-- [ ] Mobile: Hamburger menu
-- [ ] Test: Nav works on all pages, responsive
+---
 
-### 2.2 Build Hero Section Component
+### R1.5: Hero Section Component [MUST]
 - [ ] Create `components/landing/HeroSection.tsx`
 - [ ] Layout: Full viewport height, centered
-- [ ] Content:
-  - [ ] Logo/brand name
+- [ ] Left column:
   - [ ] Headline: "Track Everything. Level Up. Win."
-  - [ ] Subheadline: 2-sentence pitch
-  - [ ] Primary CTA button (will connect in 2.3)
-  - [ ] Secondary link: "Try Demo Dashboard"
-  - [ ] App mockup/screenshot placeholder
-  - [ ] Scroll indicator (animated down arrow)
-- [ ] Styling: Clean, modern, #ececf1 background
-- [ ] Responsive: Stack on mobile, smaller headline
-- [ ] Test: Hero displays, looks professional
+  - [ ] Subheadline (2 sentences)
+  - [ ] WaitlistForm component
+  - [ ] Social proof: "Join X athletes waiting"
+- [ ] Right column:
+  - [ ] App mockup placeholder (aspect-[9/19])
+  - [ ] TODO comment to replace with screenshot
+- [ ] Scroll indicator (animated arrow)
+- [ ] Responsive:
+  - [ ] Desktop: 2 columns
+  - [ ] Mobile: Stacked, smaller headline
+- [ ] Test: Hero displays correctly
+- [ ] Test: Responsive on mobile (375px)
+- [ ] Test: Scroll indicator animates
 
-### 2.3 Build Waitlist Form Component
-- [ ] Create `components/landing/WaitlistForm.tsx`
-- [ ] Email input with validation
-- [ ] Submit button: "Join Waitlist" or "Get Early Access"
-- [ ] States:
-  - [ ] Idle: Empty form
-  - [ ] Loading: Spinner on button
-  - [ ] Success: "You're on the list! Check your email."
-  - [ ] Error: "Already signed up" or "Invalid email"
-- [ ] Client-side validation (email format)
-- [ ] POST to `/api/waitlist`
-- [ ] Track source: 'hero', 'footer', etc.
-- [ ] Test: All states work, validates email, calls API
+---
 
-### 2.4 Replace Current Homepage
+### R1.6: Update Homepage [MUST]
 - [ ] Update `app/page.tsx`
-- [ ] Remove placeholder hero and features
+- [ ] Remove old placeholder content
 - [ ] Add HeroSection component
-- [ ] Add scroll container for future sections
-- [ ] Update page metadata:
+- [ ] Update metadata:
   - [ ] Title: "Carve - Track Workouts. Level Up. Win."
-  - [ ] Description: Marketing pitch (2 sentences)
-  - [ ] OG tags
-- [ ] Test: New homepage displays, metadata correct
+  - [ ] Description: Marketing pitch
+  - [ ] OpenGraph tags
+- [ ] Add TODO for og:image
+- [ ] Test: New homepage displays
+- [ ] Test: Metadata appears in page source
+- [ ] Test: No console errors
 
 ---
 
-## Phase 3: Live Hiscores Widget
+### R1.7: Privacy Policy & Terms Pages [MUST]
+- [ ] Create `app/privacy/page.tsx`
+- [ ] Add metadata (title)
+- [ ] Content sections:
+  - [ ] 1. Information We Collect
+  - [ ] 2. How We Use Your Information
+  - [ ] 3. Data Retention
+  - [ ] 4. Your Rights (GDPR)
+  - [ ] Contact email
+- [ ] Create `app/terms/page.tsx`
+- [ ] Add metadata (title)
+- [ ] Basic terms content (TODO for full terms)
+- [ ] Test: /privacy loads
+- [ ] Test: /terms loads
+- [ ] Test: Links from waitlist form work
+- [ ] Test: Prose styling applied
 
-### 3.1 Build Hiscores Widget Component
+---
+
+### R1.8: Analytics Setup [MUST]
+- [ ] Sign up for Plausible Analytics
+- [ ] Add domain: carve.wiki
+- [ ] Create `lib/analytics.ts`
+- [ ] Export `track` function
+- [ ] Update `app/layout.tsx`:
+  - [ ] Add Plausible script tag
+  - [ ] data-domain="carve.wiki"
+- [ ] Add window.plausible type declaration
+- [ ] Test: Plausible script loads
+- [ ] Test: Events can be tracked
+- [ ] Test: Dashboard shows events
+
+---
+
+### Release 1 Acceptance Criteria (Ship Checklist)
+- [ ] Landing page live at carve.wiki
+- [ ] Waitlist form accepts emails
+- [ ] Double opt-in flow works end-to-end
+- [ ] Privacy policy accessible
+- [ ] Terms accessible
+- [ ] Mobile responsive (test on 375px)
+- [ ] Lighthouse performance >90
+- [ ] Lighthouse SEO >90
+- [ ] No console errors
+- [ ] Analytics tracking waitlist signups
+
+**Estimated Effort**: 10-15 hours
+
+---
+
+## 🏆 Release 2: Social Proof (SHOULD Have)
+
+**Goal**: Add live hiscores widget for social proof
+**Timeline**: Week 3 (8-12 hours)
+
+### R2.1: Add Leaderboard Consent Column [SHOULD]
+- [ ] Create migration: `YYYYMMDDHHMMSS_add_leaderboard_consent.sql`
+- [ ] ALTER TABLE profiles ADD COLUMN leaderboard_consent_at TIMESTAMPTZ
+- [ ] Create index: idx_profiles_leaderboard_consent
+- [ ] Decide: Grandfather existing users (TRUE) or require opt-in (NULL)?
+- [ ] Run migration
+- [ ] Test: Column exists
+- [ ] Test: Index created
+
+---
+
+### R2.2: Create Leaderboard Query Functions [SHOULD]
+- [ ] Create migration: `YYYYMMDDHHMMSS_create_leaderboard_functions.sql`
+- [ ] Create function: get_global_leaderboard(limit_count INT)
+  - [ ] Returns: rank, username, avatar_url, level, total_xp, current_streak
+  - [ ] Joins: user_stats + profiles
+  - [ ] Filters:
+    - [ ] show_on_leaderboard = TRUE
+    - [ ] leaderboard_consent_at IS NOT NULL
+    - [ ] deleted_at IS NULL
+  - [ ] Order: level DESC, total_xp DESC, created_at ASC (tiebreaker)
+  - [ ] ROW_NUMBER() for rank
+- [ ] Create function: get_live_activity_feed(limit_count INT)
+  - [ ] Returns: username, avatar_url, activity_type, activity_data, created_at
+  - [ ] Joins: activity_feed + profiles
+  - [ ] Filters:
+    - [ ] show_on_leaderboard = TRUE
+    - [ ] leaderboard_consent_at IS NOT NULL
+    - [ ] activity_type IN ('pr', 'level_up', 'achievement')
+    - [ ] is_public = TRUE
+  - [ ] Order: created_at DESC
+- [ ] Run migration
+- [ ] Test both functions with sample data
+- [ ] Test: Respect consent flags
+- [ ] Run EXPLAIN ANALYZE (ensure <100ms)
+
+---
+
+### R2.3: Leaderboard API Route (with Caching) [SHOULD]
+- [ ] Create `app/api/leaderboard/route.ts`
+- [ ] GET handler:
+  - [ ] Parse limit query param (default 5)
+  - [ ] Call supabase.rpc('get_global_leaderboard')
+  - [ ] Error handling
+  - [ ] Return JSON with caching headers:
+    - [ ] Cache-Control: s-maxage=30, stale-while-revalidate=60
+- [ ] Test: API returns data
+- [ ] Test: Limit parameter works
+- [ ] Test: Caching headers present
+- [ ] Test: Error handling (if DB down)
+
+---
+
+### R2.4: Hiscores Widget Component [SHOULD]
 - [ ] Create `components/landing/HiscoresWidget.tsx`
-- [ ] Layout: Full-width section, 2-column grid (desktop)
-- [ ] Header: "See Who's Winning Right Now"
-- [ ] Left column: Top 5 Global Rankings
-  - [ ] Fetch from `get_global_leaderboard(5, 'all_time')`
-  - [ ] Display: Rank #, avatar (or placeholder), username, level, XP
-  - [ ] Card styling: Border, hover effect
-- [ ] Right column: Live Activity Feed
-  - [ ] Fetch from `get_live_activity_feed(20)`
-  - [ ] Auto-scrolling list (smooth CSS animation)
-  - [ ] Items: Avatar, "@username just hit PR on Bench (120kg)"
-  - [ ] Time ago: "2m ago", "1h ago"
-- [ ] Footer: Link to "/hiscores" → "View Full Leaderboards"
-- [ ] Mobile: Stack columns (rankings first, then feed)
-- [ ] Test: Widget displays data, looks good
-
-### 3.2 Implement Real-Time Updates
-- [ ] Make component client-side ('use client')
-- [ ] useEffect: Fetch data every 30 seconds
-- [ ] Smooth transition when data updates (no flash)
-- [ ] Fallback: Show static data if fetch fails
-- [ ] Loading state on initial load
-- [ ] Test: Updates without page refresh, smooth transitions
-
-### 3.3 Add to Landing Page
-- [ ] Add HiscoresWidget to `app/page.tsx` below Hero
-- [ ] Section spacing: Generous padding
-- [ ] Background: Light gray or white (contrast with Hero)
-- [ ] Test: Widget integrated into homepage
+- [ ] Add type: LeaderboardEntry
+- [ ] Add DEMO_USERS constant (2-3 seed users)
+- [ ] Component props: initialData (SSR)
+- [ ] State: data (from initialData), isLoading
+- [ ] useEffect:
+  - [ ] Fetch /api/leaderboard?limit=5
+  - [ ] Update every 30s (setInterval)
+  - [ ] Cleanup interval
+- [ ] Empty state handling:
+  - [ ] If data.length === 0: Show "Be the First Champion"
+  - [ ] If data.length < 5: Merge with DEMO_USERS, label as "Demo"
+- [ ] Render:
+  - [ ] Section header: "See Who's Winning Right Now"
+  - [ ] Left: Top 5 list (cards)
+    - [ ] Rank #, avatar, username, level, XP
+    - [ ] #1 gets gold background
+    - [ ] Demo users get opacity-60 + "Demo" label
+  - [ ] Right: Activity feed (placeholder for now)
+  - [ ] Footer link: "View Full Leaderboards →" to /hiscores
+- [ ] Test: Widget displays top 5
+- [ ] Test: Empty state shows
+- [ ] Test: Seed data merges correctly
+- [ ] Test: Polling works (30s)
+- [ ] Test: No flash on initial load (SSR data)
 
 ---
 
-## Phase 4: Feature Showcase Sections
-
-### 4.1 Build Feature Card Component
-- [ ] Create `components/landing/FeatureCard.tsx`
-- [ ] Props: icon (lucide or emoji), title, description, screenshot (optional)
-- [ ] Layout: Icon top, title, description, screenshot bottom
-- [ ] Styling: Card with border, hover lift effect
-- [ ] Responsive: Full width on mobile
-- [ ] Test: Renders correctly with sample data
-
-### 4.2 Build Core Features Section
-- [ ] Create section in `app/page.tsx` after Hiscores
-- [ ] Header: "Everything You Need to Track"
-- [ ] Subheader: Optional tagline
-- [ ] 3 FeatureCard components in grid:
-  1. **Workout Tracking**
-     - [ ] Icon: 💪 or Dumbbell lucide icon
-     - [ ] Title: "Log Every Rep"
-     - [ ] Description: "Track sets, reps, weight. See progress. Beat PRs."
-     - [ ] Screenshot: Workout logging mockup (create or placeholder)
-  2. **Nutrition Tracking**
-     - [ ] Icon: 🍎 or Apple lucide icon
-     - [ ] Title: "Fuel Your Gains"
-     - [ ] Description: "Log meals with macros. Hit protein goals. Build consistency."
-     - [ ] Screenshot: Meal logging mockup
-  3. **Progress Analytics**
-     - [ ] Icon: 📊 or BarChart lucide icon
-     - [ ] Title: "Watch Yourself Grow"
-     - [ ] Description: "Charts, graphs, trends. See what's working."
-     - [ ] Screenshot: Analytics/charts mockup
-- [ ] Grid: 3 columns desktop, 1 column mobile
-- [ ] Test: Section displays, cards responsive
-
-### 4.3 Build Gamification Section
-- [ ] Create section after Features
-- [ ] Header: "Fitness Meets Gaming"
-- [ ] Subheader: "Turn workouts into XP. Level up like an RPG."
-- [ ] Content blocks:
-  - [ ] Level progression visual (Level 1 → Level 50 with XP bar)
-  - [ ] "How It Works" explainer (5 steps):
-    1. Complete workout → Earn 50 XP
-    2. Log meals → Earn 10 XP
-    3. Hit PRs → Earn 100 XP bonus
-    4. Build streaks → 2x multiplier at 30 days
-    5. Level up → Unlock achievements
-  - [ ] Achievement Wall (grid of 6-9 badges)
-    - [ ] Use lucide icons: Trophy, Star, Flame, Crown, Medal, Award, Zap, Shield, Target
-    - [ ] Label each: "First Workout", "Week Warrior", "Level 10", etc.
-    - [ ] Color-coded: Bronze/Silver/Gold gradient
-- [ ] Background: Dark (#2d2d2d) for contrast
-- [ ] Button (optional): "See All Achievements"
-- [ ] Test: Section looks gamified, visually appealing
-
-### 4.4 Build Social Features Section
-- [ ] Create section after Gamification
-- [ ] Header: "Train With Friends"
-- [ ] Layout: 2-column (image left, text right)
-- [ ] Left: Screenshot of activity feed (mockup)
-- [ ] Right: Feature list bullets
-  - [ ] "Add friends, follow their progress"
-  - [ ] "See PRs and achievements in your feed"
-  - [ ] "Compete on leaderboards"
-  - [ ] "React and comment on workouts"
-  - [ ] "Stay motivated together"
-- [ ] Optional: Testimonial quote
-- [ ] Mobile: Stack image above text
-- [ ] Test: Section displays, friendly vibe
+### R2.5: Update Homepage with Hiscores Widget [SHOULD]
+- [ ] Update `app/page.tsx`
+- [ ] Make HomePage async
+- [ ] Fetch initial leaderboard data:
+  - [ ] await fetch('/api/leaderboard?limit=5')
+  - [ ] { next: { revalidate: 30 } } for ISR
+  - [ ] .catch(() => []) for error handling
+- [ ] Pass initialData to HiscoresWidget
+- [ ] Add widget after HeroSection
+- [ ] Test: SSR data loads
+- [ ] Test: ISR revalidates every 30s
+- [ ] Test: Widget displays below hero
 
 ---
 
-## Phase 5: Demo Mode for Dashboard
+### Release 2 Acceptance Criteria (Ship v1.1)
+- [ ] Hiscores widget shows live data
+- [ ] SSR initial data (no flash)
+- [ ] Client polls every 30s
+- [ ] Edge caching working (check response headers)
+- [ ] Empty states graceful (tested with 0 users)
+- [ ] Seed data shows if <5 users
+- [ ] All queries respect leaderboard_consent_at
+- [ ] API response time <100ms
+- [ ] No layout shift on updates
 
-### 5.1 Create Demo Data Generator
+**Estimated Effort**: 8-12 hours
+
+---
+
+## 🎨 Release 3: Showcase + Demo (SHOULD Have)
+
+**Goal**: Full feature showcase and interactive demo
+**Timeline**: Week 4-5 (12-16 hours)
+
+### R3.1: Demo Data Generator [SHOULD]
 - [ ] Create `lib/demo/sample-data.ts`
-- [ ] Export function: `getDemoData()`
-- [ ] Generate sample data:
-  - [ ] User profile: "Demo User", Level 15, 2500 XP
-  - [ ] user_stats: 42 workouts, 89 meals, 7-day streak
+- [ ] Export function: getDemoData()
+- [ ] Generate realistic data:
+  - [ ] profile: username, avatar_url, level, total_xp
+  - [ ] stats: workouts_count, meals_count, current_streak, max_streak
   - [ ] workouts: 10 sample workouts (varied exercises, last 30 days)
-  - [ ] exercises: 3-5 per workout (realistic sets/reps/weight)
+  - [ ] exercises: 3-5 per workout (sets, reps, weight)
   - [ ] meals: 20 sample meals (varied times, macros)
-  - [ ] achievements: 5 unlocked (First Workout, Week Warrior, Level 10, etc.)
-  - [ ] activity_feed: 15 sample activities (PRs, level-ups, achievements)
-- [ ] Data structure matches real schema
+  - [ ] achievements: 5 unlocked badges
+  - [ ] activityFeed: 15 sample activities (PRs, level-ups)
+- [ ] Test: Data structure matches real schema
 - [ ] Test: Data looks realistic
 
-### 5.2 Update Dashboard to Support Demo Mode
-- [ ] Update `app/(protected)/dashboard/page.tsx`
-- [ ] Check if user is logged in: `const user = await getCurrentUser()`
-- [ ] If user exists:
-  - [ ] Fetch real data from Supabase
-- [ ] If user is null:
-  - [ ] Load demo data: `const data = getDemoData()`
-- [ ] Pass data to dashboard components (ensure they accept props)
-- [ ] Test: Dashboard works for both logged-in and non-logged-in states
+---
 
-### 5.3 Build Demo Banner Component
+### R3.2: Demo Route [SHOULD]
+- [ ] Create `app/demo/page.tsx`
+- [ ] Import getDemoData
+- [ ] Import DemoBanner, DashboardLayout
+- [ ] Add metadata:
+  - [ ] title: "Demo Dashboard - Carve"
+  - [ ] robots: "noindex"
+- [ ] Component:
+  - [ ] Call getDemoData()
+  - [ ] Render DemoBanner
+  - [ ] Render DashboardLayout with data + mode="demo"
+- [ ] Test: /demo loads
+- [ ] Test: No auth errors
+- [ ] Test: Demo data renders
+
+---
+
+### R3.3: Demo Banner Component [SHOULD]
 - [ ] Create `components/dashboard/DemoBanner.tsx`
-- [ ] Sticky banner at top of dashboard content
-- [ ] Content: "You're viewing demo data - Sign up to track for real"
-- [ ] CTA button: "Create Account" → links to /signup
-- [ ] Dismiss button: X (stores in localStorage: 'demo-banner-dismissed')
-- [ ] Styling: Subtle yellow/orange background, not overwhelming
-- [ ] Only show when: not logged in AND banner not dismissed
-- [ ] Test: Banner displays only in demo mode, dismisses correctly
-
-### 5.4 Add Demo CTA Throughout Dashboard
-- [ ] Add "Create Account" / "Sign Up" buttons:
-  - [ ] In DemoBanner
-  - [ ] In navigation (replace "Log Out" with "Sign Up")
-  - [ ] In empty states (e.g., "Log your first real workout")
-- [ ] All link to `/signup` or trigger signup modal
-- [ ] Test: CTAs visible but not intrusive
-
-### 5.5 Test Demo Mode Fully Interactive
-- [ ] Navigate to `/dashboard` without logging in
-- [ ] Verify:
-  - [ ] Demo banner displays
-  - [ ] Profile header shows demo user (Level 15, 2500 XP)
-  - [ ] Stats cards show sample data
-  - [ ] Workout history displays 10 sample workouts
-  - [ ] Charts render (if implemented)
-  - [ ] Achievement badges show 5 unlocked
-  - [ ] Social feed shows sample activity
-  - [ ] Navigation works (can click around)
-- [ ] Optional: Test "fake logging" (save to localStorage)
-- [ ] Test: Demo feels like real dashboard
+- [ ] Client component ('use client')
+- [ ] State: dismissed (from localStorage)
+- [ ] useEffect: Check localStorage on mount
+- [ ] handleDismiss: Set localStorage, update state
+- [ ] Render:
+  - [ ] Sticky top-0 z-50
+  - [ ] Yellow background (bg-yellow-50)
+  - [ ] Message: "Demo Mode: You're viewing sample data"
+  - [ ] Link: "Sign up to track for real"
+  - [ ] X button to dismiss
+- [ ] Return null if dismissed
+- [ ] Test: Banner shows in demo
+- [ ] Test: Dismiss button works
+- [ ] Test: Persists across page refreshes
 
 ---
 
-## Phase 6: Full Hiscores Page
-
-### 6.1 Create Hiscores Page Structure
-- [ ] Create `app/hiscores/page.tsx`
-- [ ] Layout: Use AppShell or custom full-page layout
-- [ ] Header: "Global Leaderboards"
-- [ ] Subtext: "See who's dominating. Join to compete."
-- [ ] Add sections:
-  - [ ] Tabs component (to be built)
-  - [ ] Filters component (to be built)
-  - [ ] Leaderboard table (to be built)
-  - [ ] Live activity feed (sidebar or bottom)
-  - [ ] CTA: "Want to see your name here? Join Waitlist"
-- [ ] Metadata: Title, description, OG tags
-- [ ] Test: Page renders skeleton
-
-### 6.2 Build Leaderboard Tabs Component
-- [ ] Create `components/hiscores/LeaderboardTabs.tsx`
-- [ ] Tabs:
-  - [ ] Overall (Level/XP) - default
-  - [ ] Workouts (Total logged)
-  - [ ] Streaks (Longest active)
-  - [ ] PRs (by exercise) - has dropdown: Bench, Squat, Deadlift, etc.
-- [ ] Use URL query params: ?tab=overall
-- [ ] Active tab styling
-- [ ] Mobile: Dropdown select instead of tabs
-- [ ] onClick: Update URL, trigger data refetch
-- [ ] Test: Tabs switch, URL updates
-
-### 6.3 Build Filters Component
-- [ ] Create `components/hiscores/Filters.tsx`
-- [ ] Filters:
-  - [ ] Timeframe: All Time, This Month, This Week (default: All Time)
-  - [ ] Optional (future): Gender, Age Group
-- [ ] Dropdown or button group
-- [ ] Update URL query params: ?timeframe=week
-- [ ] Test: Filters update, URL reflects state
-
-### 6.4 Build Leaderboard Table Component
-- [ ] Create `components/hiscores/LeaderboardTable.tsx`
-- [ ] Columns: Rank, Avatar, Username, Level, XP, Streak, Action (optional: View Profile)
-- [ ] Rows: Display top 50 users
+### R3.4: Feature Card Component [SHOULD]
+- [ ] Create `components/landing/FeatureCard.tsx`
+- [ ] Props: icon (LucideIcon), title, description, screenshot (optional)
+- [ ] Layout:
+  - [ ] Icon at top (w-12 h-12)
+  - [ ] Title (text-xl font-semibold)
+  - [ ] Description (text-gray-600)
+  - [ ] Screenshot placeholder (if provided)
 - [ ] Styling:
-  - [ ] Alternating row colors (zebra stripes)
-  - [ ] Hover effect on rows
-  - [ ] Top 3: Special styling (gold/silver/bronze background or border)
-- [ ] Avatar: Show image or placeholder
-- [ ] Username: Link to user profile (future)
-- [ ] Mobile: Hide less important columns (e.g., Streak), show on expand
-- [ ] Test: Table displays data, top 3 highlighted
-
-### 6.5 Integrate Data Queries
-- [ ] Fetch data based on active tab + filters
-- [ ] Overall tab:
-  - [ ] Call `get_global_leaderboard(50, timeframe)`
-- [ ] Workouts tab:
-  - [ ] Call `get_workouts_leaderboard(timeframe, 50)`
-- [ ] Streaks tab:
-  - [ ] Call `get_streaks_leaderboard(50)`
-- [ ] PRs tab:
-  - [ ] Call `get_prs_leaderboard(exercise_type, 50)`
-  - [ ] (Create this function if not exists)
-- [ ] Loading states (skeleton or spinner)
-- [ ] Error handling (show error message if query fails)
-- [ ] Empty state (if no users on leaderboard)
-- [ ] Test: Data loads for all tabs/filters, handles errors
-
-### 6.6 Add Live Activity Feed
-- [ ] Reuse activity feed from HiscoresWidget
-- [ ] Display in sidebar (desktop) or bottom (mobile)
-- [ ] Header: "Recent Achievements"
-- [ ] Auto-refresh every 30 seconds
-- [ ] Test: Activity feed displays, updates
-
-### 6.7 Add Metadata & SEO
-- [ ] Page metadata:
-  - [ ] Title: "Carve Leaderboards - See Top Fitness Athletes"
-  - [ ] Description: "Global fitness leaderboards. See who's crushing PRs, hitting streaks, and leveling up."
-  - [ ] OG tags (image: screenshot of leaderboard)
-- [ ] Add canonical URL
-- [ ] Test: Metadata appears in page source
+  - [ ] White background, border
+  - [ ] hover:shadow-lg transition
+  - [ ] Padding p-6
+- [ ] Test: Renders with props
+- [ ] Test: Hover effect works
 
 ---
 
-## Phase 7: Polish & Conversion Optimization
+### R3.5: Feature Sections on Homepage [SHOULD]
+- [ ] Update `app/page.tsx`
+- [ ] Import Lucide icons: Dumbbell, Apple, BarChart3
+- [ ] Import FeatureCard
+- [ ] Add section after HiscoresWidget:
+  - [ ] Section bg-gray-50, py-16
+  - [ ] Header: "Everything You Need to Track"
+  - [ ] Grid: 3 columns (desktop), 1 column (mobile)
+  - [ ] 3 FeatureCards:
+    1. Dumbbell: "Log Every Rep" (tracking)
+    2. Apple: "Fuel Your Gains" (nutrition)
+    3. BarChart3: "Watch Yourself Grow" (analytics)
+- [ ] Test: 3 cards display
+- [ ] Test: Grid responsive
+- [ ] Test: Icons render
 
-### 7.1 Mobile Optimization
-- [ ] Test landing page on mobile (375px, 768px, 1024px):
-  - [ ] Hero: Stack vertically, smaller headline, CTA full-width
-  - [ ] Hiscores widget: Stack columns (rankings first, feed second)
-  - [ ] Features: Single column grid
-  - [ ] Gamification: Adjust dark section padding, smaller fonts
-  - [ ] Social: Stack image/text, full-width
-- [ ] Test `/hiscores` page on mobile:
-  - [ ] Tabs → Dropdown select
-  - [ ] Table: Horizontal scroll or hide columns, show on row tap
-  - [ ] Filters: Stack vertically, dropdowns full-width
-  - [ ] Activity feed: Below table on mobile
-- [ ] Test demo dashboard on mobile (should already be responsive)
-- [ ] Fix any layout issues
-- [ ] Test: All pages work well on 375px+ devices
+---
 
-### 7.2 Add App Screenshots/Mockups
-- [ ] Create or obtain app mockups:
-  - [ ] Hero: iPhone mockup with dashboard screenshot
-  - [ ] Workout Tracking feature: Workout logging screen
-  - [ ] Nutrition Tracking feature: Meal logging screen
-  - [ ] Progress Analytics feature: Charts/graphs screen
-  - [ ] Social section: Activity feed screen
-- [ ] Optimize images:
-  - [ ] Use next/image component
-  - [ ] WebP format
-  - [ ] Responsive sizes
-  - [ ] Lazy loading (below fold)
-- [ ] Add subtle shadows, 3D tilt effects (optional)
-- [ ] Test: Images load fast, look professional
+### R3.6: Update DashboardLayout to Accept Data Prop [SHOULD]
+- [ ] Update `components/dashboard/DashboardLayout.tsx`
+- [ ] Add props: data (any), mode ('live' | 'demo')
+- [ ] Pass data to child components (no DB fetching)
+- [ ] Ensure components accept data as props
+- [ ] Test: Works with real data (mode='live')
+- [ ] Test: Works with demo data (mode='demo')
+- [ ] Test: No DB calls when mode='demo'
 
-### 7.3 Implement Environment-Based CTA
-- [ ] Create environment variable: `NEXT_PUBLIC_APP_STATUS`
-  - [ ] Add to `.env.local`: NEXT_PUBLIC_APP_STATUS=waitlist
-  - [ ] Values: 'waitlist' | 'live'
-- [ ] Update CTA components:
-  - [ ] If 'waitlist': Show WaitlistForm ("Join Waitlist")
-  - [ ] If 'live': Show App Store + Play Store buttons
-- [ ] Test both modes:
-  - [ ] Set to 'waitlist': Waitlist form shows
-  - [ ] Set to 'live': Store links show
-- [ ] Document switch process in README
-- [ ] Test: Easy toggle between modes
+---
 
-### 7.4 Add Social Proof Elements
-- [ ] Waitlist count:
-  - [ ] Query: `SELECT COUNT(*) FROM waitlist`
-  - [ ] Display: "Join 1,247 people on the waitlist"
-  - [ ] Update dynamically (cache for 1 hour)
-  - [ ] Location: Final CTA section
-- [ ] Testimonials (optional, if have beta users):
-  - [ ] Create section after Social
-  - [ ] 2-3 short quotes
-  - [ ] Include: Quote, username, level, avatar
-- [ ] Trust badges (optional):
-  - [ ] "Featured on Product Hunt" (when applicable)
-  - [ ] "4.9★ Beta Reviews" (if have reviews)
-  - [ ] Location: Footer or near CTA
-- [ ] Test: Social proof displays, count updates
+### Release 3 Acceptance Criteria (Ship v1.2)
+- [ ] Feature sections tell compelling story
+- [ ] `/demo` route works independently
+- [ ] Demo banner displays and dismisses
+- [ ] Demo data renders in dashboard components
+- [ ] No auth errors on demo route
+- [ ] 3 feature cards responsive
+- [ ] Professional visual hierarchy
+- [ ] All CTAs point to /signup or waitlist
+- [ ] Mobile tested (375px+)
 
-### 7.5 Performance Optimization
-- [ ] Code split landing page:
-  - [ ] Use next/dynamic for below-fold components
-  - [ ] Lazy load Gamification, Social, Final CTA sections
-- [ ] Optimize images:
-  - [ ] Convert to WebP
-  - [ ] Serve responsive sizes (srcset)
-  - [ ] Use blur placeholders
-- [ ] Prefetch critical links:
-  - [ ] Prefetch /hiscores
-  - [ ] Prefetch /dashboard
-- [ ] Cache hiscores data:
-  - [ ] stale-while-revalidate (1 minute)
+**Estimated Effort**: 12-16 hours
+
+---
+
+## 🚀 Post-MVP: Future Releases (COULD Have)
+
+**Timeline**: Week 6+ (as needed)
+
+### Full Hiscores Page [COULD]
+- [ ] Create `app/hiscores/page.tsx`
+- [ ] Multiple tabs: Overall, Workouts, Streaks, PRs
+- [ ] Timeframe filters: All Time, Month (rolling 30d), Week (rolling 7d)
+- [ ] Leaderboard table (top 50, pagination)
+- [ ] Full activity feed sidebar
+- [ ] Mobile: Tabs become dropdown
+- [ ] Test all tabs + filters
+
+**Estimated Effort**: 20+ hours
+
+---
+
+### Gamification Showcase Section [COULD]
+- [ ] Level progression visual (1 → 50)
+- [ ] Achievement wall grid (9 badges)
+- [ ] "How It Works" explainer (5 steps)
+- [ ] XP formula teaser
+- [ ] Dark background (#2d2d2d)
+
+**Estimated Effort**: 8-12 hours
+
+---
+
+### Performance Optimization [COULD]
+- [ ] Code splitting: next/dynamic for below-fold
+- [ ] Image optimization: WebP, responsive sizes
+- [ ] Lazy load sections with react-intersection-observer
+- [ ] Prefetch /hiscores and /demo links
 - [ ] Run Lighthouse audit
-- [ ] Fix performance issues (target: >90 score)
-- [ ] Test: Page loads <1s, smooth scroll
+- [ ] Fix issues (target >95 performance)
 
-### 7.6 SEO & Metadata
-- [ ] Landing page metadata:
-  - [ ] Title: "Carve - Track Workouts. Level Up. Win."
-  - [ ] Description: "The fitness app that gamifies your progress. Track PRs, earn XP, compete with friends."
-  - [ ] OG image: Hero screenshot
-  - [ ] Twitter card
-- [ ] Generate sitemap:
-  - [ ] Include: /, /hiscores, /wiki, /dashboard
-  - [ ] Create `app/sitemap.ts`
-- [ ] Create/update robots.txt:
-  - [ ] Allow all
-  - [ ] Point to sitemap
-- [ ] Add structured data (schema.org):
-  - [ ] WebSite schema
-  - [ ] Organization schema
-  - [ ] (Future) SoftwareApplication schema when app live
-- [ ] Run Lighthouse SEO audit
-- [ ] Test: SEO score >90
-
-### 7.7 Analytics & Tracking
-- [ ] Choose analytics tool: Google Analytics 4, Plausible, or Mixpanel
-- [ ] Install tracking code
-- [ ] Set up key events:
-  - [ ] Waitlist signup (conversion event)
-  - [ ] Demo dashboard visit
-  - [ ] Hiscores page visit
-  - [ ] CTA clicks (all buttons)
-  - [ ] Section visibility (scroll tracking)
-- [ ] Privacy compliance:
-  - [ ] Cookie banner if using GA4
-  - [ ] Or use privacy-friendly (Plausible = no cookie banner needed)
-- [ ] Test: Events fire correctly, dashboard shows data
+**Estimated Effort**: 6-10 hours
 
 ---
 
-## Quick Reference: Task Counts
+### Advanced Leaderboard Functions [COULD]
+- [ ] get_workouts_leaderboard(timeframe, limit)
+- [ ] get_streaks_leaderboard(limit)
+- [ ] get_prs_leaderboard(exercise_type, limit)
+- [ ] Add indexes for each query
+- [ ] Test performance with 10k+ users
 
-- **Phase 1**: 12 tasks (Waitlist & Data Infrastructure)
-- **Phase 2**: 11 tasks (Hero & Structure)
-- **Phase 3**: 9 tasks (Hiscores Widget)
-- **Phase 4**: 15 tasks (Feature Sections)
-- **Phase 5**: 13 tasks (Demo Mode)
-- **Phase 6**: 18 tasks (Full Hiscores Page)
-- **Phase 7**: 21 tasks (Polish & Optimization)
+**Estimated Effort**: 6-8 hours
 
-**Total**: 99 tasks
+---
+
+### A/B Testing Framework [COULD]
+- [ ] Choose tool (PostHog, Vercel)
+- [ ] Test variant headlines
+- [ ] Test CTA button text
+- [ ] Track conversion rates
+- [ ] Document winning variants
+
+**Estimated Effort**: 4-6 hours
+
+---
+
+### Testimonials Section [COULD]
+- [ ] Collect beta user quotes
+- [ ] Create TestimonialCard component
+- [ ] Add after Social Features section
+- [ ] 2-3 quotes with avatar, username, level
+
+**Estimated Effort**: 3-4 hours
 
 ---
 
 ## Progress Tracking
 
-**Phase 1**: ☐ 0/12 tasks complete
-**Phase 2**: ☐ 0/11 tasks complete
-**Phase 3**: ☐ 0/9 tasks complete
-**Phase 4**: ☐ 0/15 tasks complete
-**Phase 5**: ☐ 0/13 tasks complete
-**Phase 6**: ☐ 0/18 tasks complete
-**Phase 7**: ☐ 0/21 tasks complete
+### Release 1: Lean MVP
+**Status**: ☐ Not Started
+**Tasks**: 0/47 complete
+**Estimated**: 10-15 hours
+**Priority**: MUST HAVE (blocks all other releases)
 
-**Overall**: ☐ 0/99 tasks complete (0%)
+### Release 2: Social Proof
+**Status**: ☐ Not Started
+**Tasks**: 0/17 complete
+**Estimated**: 8-12 hours
+**Priority**: SHOULD HAVE (major value add)
+
+### Release 3: Showcase + Demo
+**Status**: ☐ Not Started
+**Tasks**: 0/14 complete
+**Estimated**: 12-16 hours
+**Priority**: SHOULD HAVE (completes vision)
+
+### Post-MVP Features
+**Status**: ☐ Not Started
+**Tasks**: 0/18+ complete
+**Estimated**: 40+ hours
+**Priority**: COULD HAVE (future enhancements)
 
 ---
 
-**Timeline Estimate**: 4-5 weeks (moderate pace, part-time ~20hr/week)
+## Timeline Summary
+
+**Realistic Part-Time Schedule** (20hr/week):
+
+| Week | Release | Tasks | Hours | Ship? |
+|------|---------|-------|-------|-------|
+| 1-2 | Release 1: Lean MVP | 47 | 10-15 | ✅ SHIP |
+| 3 | Release 2: Social Proof | 17 | 8-12 | ✅ SHIP v1.1 |
+| 4-5 | Release 3: Showcase | 14 | 12-16 | ✅ SHIP v1.2 |
+| 6+ | Post-MVP | TBD | 40+ | Future |
+
+**Total for 3 Releases**: 30-43 hours
+
+---
+
+## Daily Checklist (Use During Development)
+
+**Before Starting Each Day**:
+- [ ] Review current release goals
+- [ ] Check which tasks are in progress
+- [ ] Estimate hours for today's work
+
+**During Development**:
+- [ ] Mark tasks as completed immediately (don't batch)
+- [ ] Test each task as you complete it
+- [ ] Commit frequently with clear messages
+- [ ] Update this checklist in real-time
+
+**End of Day**:
+- [ ] Count completed tasks
+- [ ] Update progress percentages
+- [ ] Commit all changes
+- [ ] Plan tomorrow's tasks
+
+---
+
+## Acceptance Testing Checklist
+
+### Before Shipping Release 1
+- [ ] Waitlist form works on Chrome, Firefox, Safari
+- [ ] Mobile tested on iOS Safari, Android Chrome
+- [ ] Double opt-in flow tested end-to-end
+- [ ] Privacy policy reviewed (legal?)
+- [ ] Analytics tracking verified
+- [ ] Lighthouse scores >90 (performance + SEO)
+- [ ] No console errors or warnings
+- [ ] Git committed, pushed
+- [ ] Deployed to production
+- [ ] Smoke test on live site
+
+### Before Shipping Release 2
+- [ ] Hiscores widget displays real data
+- [ ] Empty states tested (0 users, <5 users)
+- [ ] Polling verified (30s interval)
+- [ ] Cache headers verified (check Network tab)
+- [ ] Consent flags enforced (test with/without consent)
+- [ ] Mobile responsive
+- [ ] No performance regression (Lighthouse)
+
+### Before Shipping Release 3
+- [ ] `/demo` route tested without login
+- [ ] Demo banner dismisses
+- [ ] Feature cards look professional
+- [ ] All screenshots/mockups high quality
+- [ ] CTAs all work (link to correct pages)
+- [ ] Mobile tested thoroughly
+
+---
 
 **End of Task Checklist**
