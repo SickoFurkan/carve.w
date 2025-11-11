@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { GlobalSearch } from '@/components/search/global-search';
 
 interface AppHeaderProps {
   className?: string;
@@ -128,6 +129,7 @@ export function AppHeader({
 
       {/* User Actions Section (Right) */}
       <div className="flex items-center gap-3 justify-self-end">
+        <GlobalSearch variant="compact" className="mr-4" />
         {isAuthenticated ? (
           <div className="relative" ref={dropdownRef}>
             {/* Avatar Button */}
