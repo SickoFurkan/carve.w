@@ -59,9 +59,10 @@ export function AppHeader({
   };
 
   const navItems = [
-    { label: 'Carve', href: '/', showIcon: true },
-    { label: 'Wiki', href: '/wiki', showIcon: false },
+    { label: 'Wiki', href: '/', showIcon: false },
+    { label: 'Carve', href: '/carve', showIcon: true },
     { label: 'Dashboard', href: '/dashboard', showIcon: false },
+    { label: 'Hiscores', href: '/hiscores', showIcon: false },
   ];
 
   return (
@@ -87,7 +88,7 @@ export function AppHeader({
         />
       </Link>
 
-      {/* Navigation Section */}
+      {/* Navigation Section (Center) */}
       <nav className="flex items-center justify-center justify-self-center">
         <div className="flex items-center gap-8">
           {navItems.map((item) => {
@@ -125,7 +126,7 @@ export function AppHeader({
         </div>
       </nav>
 
-      {/* User Actions Section */}
+      {/* User Actions Section (Right) */}
       <div className="flex items-center gap-3 justify-self-end">
         {isAuthenticated ? (
           <div className="relative" ref={dropdownRef}>
