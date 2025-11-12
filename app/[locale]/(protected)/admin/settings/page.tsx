@@ -1,101 +1,222 @@
+'use client';
+
+import { useState } from 'react';
+import { SettingsNav } from '@/components/admin/settings-nav';
+import { SettingsSection } from '@/components/admin/settings-section';
+import { SettingItem } from '@/components/admin/setting-item';
+import { SettingsSaveButton } from '@/components/admin/settings-save-button';
+import { useScrollSpy } from '@/hooks/use-scroll-spy';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+const SECTION_IDS = [
+  'general',
+  'users',
+  'content',
+  'notifications',
+  'security',
+  'integrations',
+  'advanced',
+];
+
 export default function AdminSettingsPage() {
+  const activeSection = useScrollSpy(SECTION_IDS);
+
+  // Form state
+  const [siteName, setSiteName] = useState('Carve Wiki');
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [xpPerWorkout, setXpPerWorkout] = useState('50');
+  const [xpPerMeal, setXpPerMeal] = useState('10');
+  const [weeklyResetDay, setWeeklyResetDay] = useState('1');
+
+  const handleNavigate = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 24; // 6 * 4px (space-y-6)
+      const top = element.offsetTop - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  };
+
+  const handleSaveGeneral = async () => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Saving general settings:', { siteName, maintenanceMode });
+  };
+
+  const handleSaveXP = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Saving XP settings:', { xpPerWorkout, xpPerMeal });
+  };
+
+  const handleSaveLeaderboard = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Saving leaderboard settings:', { weeklyResetDay });
+  };
+
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
-        <div className="border-b border-gray-200 pb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Site Settings</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Configure site-wide settings and preferences
-          </p>
-        </div>
+    <div className="grid grid-cols-[250px_1fr] h-full">
+      {/* Left Navigation */}
+      <SettingsNav
+        activeSection={activeSection}
+        onNavigate={handleNavigate}
+      />
 
-        <div className="grid gap-6">
+      {/* Right Content */}
+      <div className="overflow-y-auto">
+        <div className="p-6 max-w-4xl space-y-6">
           {/* General Settings */}
-          <section className="rounded border border-gray-200 bg-white p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">General Settings</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Site Name</h3>
-                  <p className="text-sm text-gray-600">The name displayed in the header</p>
-                </div>
-                <input
-                  type="text"
-                  defaultValue="Carve Wiki"
-                  className="rounded border border-gray-300 px-3 py-2 w-64"
-                />
-              </div>
+          <SettingsSection
+            id="general"
+            title="General"
+            description="Configure site-wide settings and preferences"
+          >
+            <SettingItem
+              label="Site Name"
+              description="The name displayed in the header"
+              htmlFor="site-name"
+            >
+              <Input
+                id="site-name"
+                type="text"
+                value={siteName}
+                onChange={(e) => setSiteName(e.target.value)}
+                className="w-64"
+              />
+            </SettingItem>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Maintenance Mode</h3>
-                  <p className="text-sm text-gray-600">Enable to show maintenance page</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            </div>
-          </section>
+            <SettingItem
+              label="Maintenance Mode"
+              description="Enable to show maintenance page to users"
+              htmlFor="maintenance-mode"
+            >
+              <Switch
+                id="maintenance-mode"
+                checked={maintenanceMode}
+                onCheckedChange={setMaintenanceMode}
+              />
+            </SettingItem>
 
-          {/* XP Settings */}
-          <section className="rounded border border-gray-200 bg-white p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">XP & Gamification</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">XP per Workout</h3>
-                  <p className="text-sm text-gray-600">Base XP earned per workout</p>
-                </div>
-                <input
-                  type="number"
-                  defaultValue="50"
-                  className="rounded border border-gray-300 px-3 py-2 w-32"
-                />
-              </div>
+            <SettingsSaveButton onSave={handleSaveGeneral} />
+          </SettingsSection>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">XP per Meal</h3>
-                  <p className="text-sm text-gray-600">Base XP earned per logged meal</p>
-                </div>
-                <input
-                  type="number"
-                  defaultValue="10"
-                  className="rounded border border-gray-300 px-3 py-2 w-32"
-                />
-              </div>
-            </div>
-          </section>
+          {/* Users & Roles */}
+          <SettingsSection
+            id="users"
+            title="Users & Roles"
+            description="Manage user permissions and roles"
+          >
+            <p className="text-sm text-gray-600">
+              User management settings coming soon...
+            </p>
+          </SettingsSection>
 
-          {/* Leaderboard Settings */}
-          <section className="rounded border border-gray-200 bg-white p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Leaderboard Settings</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Weekly Reset Day</h3>
-                  <p className="text-sm text-gray-600">Day of week to reset leaderboard</p>
-                </div>
-                <select className="rounded border border-gray-300 px-3 py-2 w-64">
-                  <option value="1">Monday</option>
-                  <option value="0">Sunday</option>
-                  <option value="6">Saturday</option>
-                </select>
-              </div>
-            </div>
-          </section>
+          {/* Content Settings */}
+          <SettingsSection
+            id="content"
+            title="Content"
+            description="Configure content moderation and wiki settings"
+          >
+            <p className="text-sm text-gray-600">
+              Content settings coming soon...
+            </p>
+          </SettingsSection>
 
-          {/* Save Button */}
-          <div className="flex justify-end gap-4 pt-4">
-            <button className="px-6 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">
-              Reset
-            </button>
-            <button className="px-6 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
-              Save Changes
-            </button>
-          </div>
+          {/* Notifications */}
+          <SettingsSection
+            id="notifications"
+            title="Notifications"
+            description="Configure email and notification preferences"
+          >
+            <p className="text-sm text-gray-600">
+              Notification settings coming soon...
+            </p>
+          </SettingsSection>
+
+          {/* Security */}
+          <SettingsSection
+            id="security"
+            title="Security"
+            description="Authentication and privacy settings"
+          >
+            <p className="text-sm text-gray-600">
+              Security settings coming soon...
+            </p>
+          </SettingsSection>
+
+          {/* Integrations */}
+          <SettingsSection
+            id="integrations"
+            title="Integrations"
+            description="Third-party services and API configurations"
+          >
+            <SettingItem
+              label="XP per Workout"
+              description="Base XP earned per completed workout"
+              htmlFor="xp-workout"
+            >
+              <Input
+                id="xp-workout"
+                type="number"
+                value={xpPerWorkout}
+                onChange={(e) => setXpPerWorkout(e.target.value)}
+                className="w-32"
+              />
+            </SettingItem>
+
+            <SettingItem
+              label="XP per Meal"
+              description="Base XP earned per logged meal"
+              htmlFor="xp-meal"
+            >
+              <Input
+                id="xp-meal"
+                type="number"
+                value={xpPerMeal}
+                onChange={(e) => setXpPerMeal(e.target.value)}
+                className="w-32"
+              />
+            </SettingItem>
+
+            <SettingsSaveButton onSave={handleSaveXP} />
+          </SettingsSection>
+
+          {/* Advanced */}
+          <SettingsSection
+            id="advanced"
+            title="Advanced"
+            description="System settings and danger zone"
+          >
+            <SettingItem
+              label="Weekly Reset Day"
+              description="Day of the week to reset leaderboards"
+              htmlFor="reset-day"
+            >
+              <Select value={weeklyResetDay} onValueChange={setWeeklyResetDay}>
+                <SelectTrigger className="w-64" id="reset-day">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Monday</SelectItem>
+                  <SelectItem value="2">Tuesday</SelectItem>
+                  <SelectItem value="3">Wednesday</SelectItem>
+                  <SelectItem value="4">Thursday</SelectItem>
+                  <SelectItem value="5">Friday</SelectItem>
+                  <SelectItem value="6">Saturday</SelectItem>
+                  <SelectItem value="0">Sunday</SelectItem>
+                </SelectContent>
+              </Select>
+            </SettingItem>
+
+            <SettingsSaveButton onSave={handleSaveLeaderboard} />
+          </SettingsSection>
         </div>
       </div>
     </div>
