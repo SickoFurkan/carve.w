@@ -1,17 +1,9 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-
 export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
+  // Note: The login page at /dashboard/login will handle auth check client-side
+  // All other dashboard pages have their own auth checks
   return <>{children}</>
 }

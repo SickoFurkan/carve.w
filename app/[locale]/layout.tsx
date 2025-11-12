@@ -44,6 +44,7 @@ export default async function LocaleLayout({
         userEmail={user?.email}
         userName={profile?.display_name || profile?.username || undefined}
         userAvatar={profile?.avatar_image_url || undefined}
+        userRole={profile?.role || undefined}
       >
         {children}
       </LayoutWrapper>
