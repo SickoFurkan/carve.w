@@ -6,7 +6,25 @@ const AppleIcon = () => null;
 const DumbbellIcon = () => null;
 const UserIcon = () => null;
 const SettingsIcon = () => null;
+const LoginIcon = () => null;
 
+// Navigation for non-authenticated users (only login link)
+export const loginNavigationGroups = [
+  {
+    label: 'ACCOUNT',
+    icon: UserIcon,
+    items: [
+      {
+        title: "Login",
+        href: "/dashboard/login",
+        icon: LoginIcon,
+        description: "Sign in to your account"
+      }
+    ]
+  }
+];
+
+// Full navigation for authenticated users
 export const dashboardNavigationGroups = [
   {
     label: 'OVERVIEW',

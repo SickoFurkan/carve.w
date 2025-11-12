@@ -1,12 +1,18 @@
 "use client";
 
 import { BaseSidebar } from "./base-sidebar";
-import { dashboardNavigationGroups } from "@/lib/navigation/dashboard-navigation";
+import { dashboardNavigationGroups, loginNavigationGroups } from "@/lib/navigation/dashboard-navigation";
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+  isAuthenticated?: boolean;
+}
+
+export function DashboardSidebar({ isAuthenticated = false }: DashboardSidebarProps) {
+  const navigationGroups = isAuthenticated ? dashboardNavigationGroups : loginNavigationGroups;
+
   return (
     <BaseSidebar
-      navigationGroups={dashboardNavigationGroups}
+      navigationGroups={navigationGroups}
       ariaLabel="Dashboard navigation"
     />
   );
