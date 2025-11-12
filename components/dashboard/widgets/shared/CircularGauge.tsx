@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState, useEffect } from "react";
 
 interface CircularGaugeProps {
   value: number;
@@ -9,6 +9,7 @@ interface CircularGaugeProps {
 }
 
 export function CircularGauge({ value, max, size = 120 }: CircularGaugeProps) {
+  const [mounted, setMounted] = useState(false);
   const gradientId = useId();
   const percentage = Math.min((value / max) * 100, 100);
   const radius = (size - 16) / 2;
@@ -22,6 +23,28 @@ export function CircularGauge({ value, max, size = 120 }: CircularGaugeProps) {
   const numLines = 12;
   const lineLength = 8;
   const lineDistance = radius + 4;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    // Return simple placeholder during SSR
+    return (
+      <div className="relative" style={{ width: size, height: size }}>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[#1a1a1a]">
+              {Math.round(percentage)}%
+            </div>
+            <div className="text-xs text-[#6b7280]">
+              {value.toLocaleString('en-US')}/{max.toLocaleString('en-US')}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -89,7 +112,7 @@ export function CircularGauge({ value, max, size = 120 }: CircularGaugeProps) {
             {Math.round(percentage)}%
           </div>
           <div className="text-xs text-[#6b7280]">
-            {value.toLocaleString()}/{max.toLocaleString()}
+            {value.toLocaleString('en-US')}/{max.toLocaleString('en-US')}
           </div>
         </div>
       </div>
