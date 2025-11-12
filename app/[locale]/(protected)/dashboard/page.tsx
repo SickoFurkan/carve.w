@@ -5,7 +5,9 @@ import { TodayActivityHero } from "@/components/dashboard/widgets/TodayActivityH
 import { QuickStat } from "@/components/dashboard/widgets/QuickStat";
 import { ActivityHeatmap } from "@/components/dashboard/widgets/ActivityHeatmap";
 import { NutritionSnapshot } from "@/components/dashboard/widgets/NutritionSnapshot";
-import { WidgetCard } from "@/components/dashboard/widgets/shared";
+import { WeeklySchedule } from "@/components/dashboard/widgets/WeeklySchedule";
+import { AchievementProgress } from "@/components/dashboard/widgets/AchievementProgress";
+import { FriendLeaderboard } from "@/components/dashboard/widgets/FriendLeaderboard";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -139,11 +141,70 @@ export default async function DashboardPage() {
   // For now, using a placeholder value
   const waterLiters = 0;
 
-  // Calculate today's metrics (temporary simple calculation)
-  // TODO: In Phase 2, fetch actual workouts and calculate properly
-  const caloriesBurned = 0; // Will calculate from workouts
-  const activeMinutes = 0; // Will calculate from workouts
-  const xpEarned = 0; // Will fetch from today's activities
+  // Get start of current week (Monday)
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+  endOfWeek.setHours(23, 59, 59, 999);
+
+  // Fetch workout plans for this week
+  const { data: weekPlans } = await supabase
+    .from("workout_plans")
+    .select("date, workout_type, status")
+    .eq("user_id", user.id)
+    .gte("date", startOfWeek.toISOString().split("T")[0])
+    .lte("date", endOfWeek.toISOString().split("T")[0]);
+
+  // Fetch actual workouts this week
+  const { data: weekWorkouts } = await supabase
+    .from("workouts")
+    .select("created_at")
+    .eq("user_id", user.id)
+    .gte("created_at", startOfWeek.toISOString())
+    .lte("created_at", endOfWeek.toISOString());
+
+  // Build week data
+  const weekData = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(startOfWeek);
+    date.setDate(date.getDate() + i);
+    const dateStr = date.toISOString().split("T")[0];
+
+    // Find plan for this day
+    const plan = weekPlans?.find(p => p.date === dateStr);
+
+    // Check if workout was completed
+    const hasWorkout = weekWorkouts?.some(w =>
+      w.created_at.startsWith(dateStr)
+    );
+
+    return {
+      date: dateStr,
+      dayOfWeek: date.toLocaleDateString("en-US", { weekday: "long" }),
+      dayNum: date.getDate(),
+      workoutType: plan?.workout_type || null,
+      status: hasWorkout ? "completed" : (plan?.status || null),
+      isToday: dateStr === today.toISOString().split("T")[0],
+    };
+  });
+
+  // Calculate today's metrics
+  // Count completed workouts today
+  const todayWorkoutsCount = weekWorkouts?.filter(w =>
+    w.created_at.startsWith(todayStr)
+  ).length || 0;
+
+  // Simple placeholder calculation until we have actual workout duration data
+  // Average: 45 minutes per workout, 300 calories per workout
+  const activeMinutes = todayWorkoutsCount * 45;
+  const caloriesBurned = todayWorkoutsCount * 300;
+
+  // Calculate today's XP from workouts and meals
+  const todayXp = weeklyXpData.find(d => d.isToday)?.xp || 0;
+  const xpEarned = todayXp;
+
   const streakMultiplier = stats?.current_workout_streak
     ? stats.current_workout_streak >= 30 ? 2.0
     : stats.current_workout_streak >= 14 ? 1.5
@@ -151,6 +212,48 @@ export default async function DashboardPage() {
     : stats.current_workout_streak >= 3 ? 1.1
     : 1.0
     : 1.0;
+
+  // Mock achievement data (TODO: Replace with real data from achievements system)
+  const recentUnlocks = [
+    { code: "first_workout", name: "First Workout", description: "Complete your first workout", tier: "bronze" as const, unlockedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { code: "early_bird", name: "Early Bird", description: "Complete a morning workout", tier: "bronze" as const, unlockedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() }
+  ];
+  const inProgress = [
+    { code: "century_club", name: "Century Club", description: "Complete 100 workouts", progress: 87, max: 100 },
+    { code: "protein_master", name: "Protein Master", description: "Hit protein goal 50 times", progress: 42, max: 50 }
+  ];
+
+  // Fetch weekly leaderboard data
+  interface LeaderboardDbResponse {
+    user_id: string;
+    username: string;
+    display_name: string;
+    level: number;
+    weekly_xp: number;
+    rank: number;
+    is_current_user: boolean;
+  }
+
+  const { data: leaderboardRaw } = await supabase.rpc("get_weekly_friend_leaderboard", {
+    requesting_user_id: user.id,
+    limit_count: 5,
+  });
+
+  // Transform leaderboard data
+  const leaderboardData = (leaderboardRaw || []).map((entry: LeaderboardDbResponse) => ({
+    userId: entry.user_id,
+    username: entry.username,
+    displayName: entry.display_name,
+    level: entry.level,
+    weeklyXp: entry.weekly_xp,
+    rank: entry.rank,
+    isCurrentUser: entry.is_current_user,
+  }));
+
+  // Calculate days until reset (next Monday)
+  const nextMonday = new Date(today);
+  nextMonday.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7 || 7));
+  const daysUntilReset = Math.ceil((nextMonday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
   return (
     <DashboardGrid>
@@ -174,15 +277,12 @@ export default async function DashboardPage() {
       />
 
       <MiddleRow>
-        <WidgetCard>
-          <h3 className="text-xl font-semibold text-[#1a1a1a]">Weekly Schedule</h3>
-          <p className="mt-2 text-sm text-[#6b7280]">Widget coming in Phase 3</p>
-        </WidgetCard>
+        <WeeklySchedule weekData={weekData} />
 
-        <WidgetCard>
-          <h3 className="text-xl font-semibold text-[#1a1a1a]">Sleep & Recovery</h3>
-          <p className="mt-2 text-sm text-[#6b7280]">Optional - Phase 5</p>
-        </WidgetCard>
+        <AchievementProgress
+          recentUnlock={recentUnlocks[0]}
+          inProgress={inProgress}
+        />
 
         <NutritionSnapshot
           caloriesConsumed={caloriesConsumed}
@@ -195,12 +295,7 @@ export default async function DashboardPage() {
 
       <BottomRow
         heatmap={<ActivityHeatmap data={heatmapData} />}
-        leaderboard={
-          <WidgetCard>
-            <h3 className="text-xl font-semibold text-[#1a1a1a]">Friend Leaderboard</h3>
-            <p className="mt-2 text-sm text-[#6b7280]">Widget coming in Phase 4</p>
-          </WidgetCard>
-        }
+        leaderboard={<FriendLeaderboard entries={leaderboardData} daysUntilReset={daysUntilReset} />}
       />
     </DashboardGrid>
   );
