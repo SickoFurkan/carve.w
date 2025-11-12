@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { DashboardGrid, TopRow, MiddleRow, BottomRow } from "@/components/dashboard/DashboardGrid";
+import { DashboardGrid, TopRow, BottomRow } from "@/components/dashboard/DashboardGrid";
 import { TodayActivityHero } from "@/components/dashboard/widgets/TodayActivityHero";
 import { QuickStat } from "@/components/dashboard/widgets/QuickStat";
 import { ActivityHeatmap } from "@/components/dashboard/widgets/ActivityHeatmap";
@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/dashboard/login");
   }
 
   // Fetch user stats
@@ -282,35 +282,29 @@ export default async function DashboardPage() {
         }
       />
 
-      <MiddleRow>
-        <Suspense key="schedule-suspense" fallback={<WidgetSkeleton variant="light" height="medium" />}>
-          <WeeklySchedule weekData={weekData} />
-        </Suspense>
-
-        <Suspense key="achievements-suspense" fallback={<WidgetSkeleton variant="light" height="tall" />}>
-          <AchievementProgress
-            recentUnlock={recentUnlocks[0]}
-            inProgress={inProgress}
-          />
-        </Suspense>
-
-        <Suspense key="nutrition-suspense" fallback={<WidgetSkeleton variant="light" height="medium" />}>
-          <NutritionSnapshot
-            caloriesConsumed={caloriesConsumed}
-            caloriesGoal={userGoals?.daily_calories || 2200}
-            proteinPercent={proteinPercent}
-            waterLiters={waterLiters}
-            waterGoal={userGoals?.daily_water_l || 2.5}
-          />
-        </Suspense>
-      </MiddleRow>
-
       <BottomRow
         heatmap={
           <Suspense key="heatmap-suspense" fallback={<WidgetSkeleton variant="light" height="medium" />}>
             <ActivityHeatmap data={heatmapData} />
           </Suspense>
         }
+        schedule={
+          <Suspense key="schedule-suspense" fallback={<WidgetSkeleton variant="light" height="medium" />}>
+            <WeeklySchedule weekData={weekData} />
+          </Suspense>
+        }
+        nutrition={
+          <Suspense key="nutrition-suspense" fallback={<WidgetSkeleton variant="light" height="medium" />}>
+            <NutritionSnapshot
+              caloriesConsumed={caloriesConsumed}
+              caloriesGoal={userGoals?.daily_calories || 2200}
+              proteinPercent={proteinPercent}
+              waterLiters={waterLiters}
+              waterGoal={userGoals?.daily_water_l || 2.5}
+            />
+          </Suspense>
+        }
+        achievements={null}
         leaderboard={
           <Suspense key="leaderboard-suspense" fallback={<WidgetSkeleton variant="light" height="tall" />}>
             <FriendLeaderboard entries={leaderboardData} daysUntilReset={daysUntilReset} />
