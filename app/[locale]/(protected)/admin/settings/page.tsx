@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { SettingsNav } from '@/components/admin/settings-nav';
+import { SettingsMobileNav } from '@/components/admin/settings-mobile-nav';
 import { SettingsSection } from '@/components/admin/settings-section';
 import { SettingItem } from '@/components/admin/setting-item';
 import { SettingsSaveButton } from '@/components/admin/settings-save-button';
@@ -60,12 +61,20 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="grid grid-cols-[250px_1fr] h-full">
-      {/* Left Navigation */}
-      <SettingsNav
+    <div className="h-full lg:grid lg:grid-cols-[250px_1fr]">
+      {/* Mobile Navigation */}
+      <SettingsMobileNav
         activeSection={activeSection}
         onNavigate={handleNavigate}
       />
+
+      {/* Desktop Left Navigation */}
+      <div className="hidden lg:block">
+        <SettingsNav
+          activeSection={activeSection}
+          onNavigate={handleNavigate}
+        />
+      </div>
 
       {/* Right Content */}
       <div className="overflow-y-auto">
