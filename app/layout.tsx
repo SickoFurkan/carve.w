@@ -4,6 +4,8 @@ import "./globals.css";
 import { AppShell, AppBody } from "@/components/app/app-shell";
 import { AppHeader } from "@/components/app/app-header";
 import { createClient } from "@/lib/supabase/server";
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,8 +40,12 @@ export default async function RootLayout({
     profile = data;
   }
 
+  // Get locale and messages for next-intl
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <head>
         {/* Plausible Analytics - Privacy-first, no cookies */}
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
@@ -53,26 +59,28 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#ececf1]`}
       >
-        <div className="min-h-screen bg-[#ececf1]">
-          {/* Fixed header */}
-          <div className="fixed top-0 left-0 right-0 z-50">
-            <AppHeader
-              isAuthenticated={!!user}
-              userEmail={user?.email}
-              userName={profile?.display_name || profile?.username || undefined}
-              userAvatar={profile?.avatar_image_url || undefined}
-            />
-          </div>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <div className="min-h-screen bg-[#ececf1]">
+            {/* Fixed header */}
+            <div className="fixed top-0 left-0 right-0 z-50">
+              <AppHeader
+                isAuthenticated={!!user}
+                userEmail={user?.email}
+                userName={profile?.display_name || profile?.username || undefined}
+                userAvatar={profile?.avatar_image_url || undefined}
+              />
+            </div>
 
-          {/* Main content with padding */}
-          <div className="fixed top-16 left-0 right-2 bottom-2 md:right-2 md:bottom-2 lg:right-3 lg:bottom-3">
-            <AppShell>
-              <AppBody>
-                {children}
-              </AppBody>
-            </AppShell>
+            {/* Main content with padding */}
+            <div className="fixed top-16 left-0 right-2 bottom-2 md:right-2 md:bottom-2 lg:right-3 lg:bottom-3">
+              <AppShell>
+                <AppBody>
+                  {children}
+                </AppBody>
+              </AppShell>
+            </div>
           </div>
-        </div>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
