@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { AppShell, AppBody } from "@/components/app/app-shell";
-import { AppHeader } from "@/components/app/app-header";
+import { LayoutWrapper } from '@/components/app/layout-wrapper';
 import { createClient } from "@/lib/supabase/server";
 
 const locales = ['en', 'nl'];
@@ -40,26 +39,14 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <div className="min-h-screen bg-[#ececf1]">
-        {/* Fixed header */}
-        <div className="fixed top-0 left-0 right-0 z-50">
-          <AppHeader
-            isAuthenticated={!!user}
-            userEmail={user?.email}
-            userName={profile?.display_name || profile?.username || undefined}
-            userAvatar={profile?.avatar_image_url || undefined}
-          />
-        </div>
-
-        {/* Main content with padding */}
-        <div className="fixed top-16 left-0 right-2 bottom-2 md:right-2 md:bottom-2 lg:right-3 lg:bottom-3">
-          <AppShell>
-            <AppBody>
-              {children}
-            </AppBody>
-          </AppShell>
-        </div>
-      </div>
+      <LayoutWrapper
+        isAuthenticated={!!user}
+        userEmail={user?.email}
+        userName={profile?.display_name || profile?.username || undefined}
+        userAvatar={profile?.avatar_image_url || undefined}
+      >
+        {children}
+      </LayoutWrapper>
     </NextIntlClientProvider>
   );
 }

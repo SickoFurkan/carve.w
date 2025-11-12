@@ -49,6 +49,27 @@ function LoginForm() {
       {/* Left Column - Form (50%) */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white overflow-y-auto max-h-screen">
         <div className="w-full max-w-md space-y-6">
+          {/* Back to home button */}
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to home
+          </Link>
+
           {/* Logo */}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Carve</h1>
@@ -250,14 +271,16 @@ function LoginForm() {
 
       {/* Right Column - Image (50%) */}
       <div className="hidden lg:block lg:w-1/2 relative h-screen max-h-screen overflow-hidden">
-        <Image
-          src="/loginscreen.png"
-          alt="Carve Fitness"
-          fill
-          className="object-cover object-center"
-          priority
-          sizes="50vw"
-        />
+        <div className="absolute inset-4 rounded-2xl overflow-hidden">
+          <Image
+            src="/loginscreen.png"
+            alt="Carve Fitness"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="50vw"
+          />
+        </div>
       </div>
     </div>
   )
