@@ -64,9 +64,9 @@ export function AppHeader({
 
   const navItems = [
     { label: t('wiki'), href: '/', showIcon: false },
-    { label: t('carve'), href: '/carve', showIcon: true },
-    { label: t('dashboard'), href: '/dashboard', showIcon: false },
     { label: t('hiscores'), href: '/hiscores', showIcon: false },
+    { label: t('dashboard'), href: '/dashboard', showIcon: false },
+    { label: t('carve'), href: '/carve', showIcon: true },
   ];
 
   return (
@@ -108,6 +108,7 @@ export function AppHeader({
                     : 'text-gray-500 hover:text-black'
                 )}
               >
+                {item.label}
                 {item.showIcon && (
                   <svg
                     className="w-4 h-4"
@@ -123,7 +124,6 @@ export function AppHeader({
                     />
                   </svg>
                 )}
-                {item.label}
               </Link>
             );
           })}

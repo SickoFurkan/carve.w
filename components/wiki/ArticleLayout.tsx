@@ -4,6 +4,9 @@ import { EvidenceRating } from './EvidenceRating';
 import { TableOfContents } from './TableOfContents';
 import { SourcesList } from './SourcesList';
 import { RelatedArticles } from './RelatedArticles';
+import { CitationEnhancer } from './CitationEnhancer';
+import { ExpertReviewBadge } from './ExpertReviewBadge';
+import { UpdateAlert } from './UpdateAlert';
 
 interface Article {
   slug: string;
@@ -15,6 +18,7 @@ interface Article {
   reviewers?: string[];
   summary: string;
   view_count: number;
+  needs_update?: boolean;
   created_at: string;
   updated_at: string;
   content_html: string;
@@ -96,6 +100,18 @@ export function ArticleLayout({ article, citations, html, category }: ArticleLay
               )}
             </header>
 
+            {/* Update Alert (if article needs review) */}
+            {article.needs_update && (
+              <UpdateAlert />
+            )}
+
+            {/* Expert Review Badge */}
+            {article.reviewers && article.reviewers.length > 0 && (
+              <div className="mb-6">
+                <ExpertReviewBadge reviewers={article.reviewers} />
+              </div>
+            )}
+
             {/* Article Summary */}
             {article.summary && (
               <div className="mb-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
@@ -118,6 +134,9 @@ export function ArticleLayout({ article, citations, html, category }: ArticleLay
                 prose-pre:bg-zinc-900 prose-pre:text-zinc-100"
               dangerouslySetInnerHTML={{ __html: html }}
             />
+
+            {/* Citation Hover Previews (Client-side enhancement) */}
+            <CitationEnhancer citations={citations} />
 
             {/* Sources */}
             {citations.length > 0 && (

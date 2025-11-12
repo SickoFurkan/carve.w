@@ -24,7 +24,7 @@ export function DemoBanner() {
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <p className="text-sm text-yellow-900">
           <strong>Demo Mode:</strong> You're viewing sample data.{' '}
-          <a href="/" className="underline font-semibold">
+          <a href="/carve" className="underline font-semibold">
             Join waitlist to track for real
           </a>
         </p>

@@ -1,6 +1,7 @@
 "use client";
 
-import { LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { LucideIcon, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ interface StatCardProps {
     isPositive: boolean;
   };
   className?: string;
+  learnMoreHref?: string; // Optional link to wiki article
 }
 
 export function StatCard({
@@ -23,6 +25,7 @@ export function StatCard({
   description,
   trend,
   className,
+  learnMoreHref,
 }: StatCardProps) {
   return (
     <Card className={cn("relative overflow-hidden", className)}>
@@ -63,6 +66,17 @@ export function StatCard({
               </span>
               <span className="text-muted-foreground">from last week</span>
             </div>
+          )}
+
+          {/* Learn More Link */}
+          {learnMoreHref && (
+            <Link
+              href={learnMoreHref}
+              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors mt-1"
+            >
+              <ExternalLink className="h-3 w-3" />
+              <span>Learn more</span>
+            </Link>
           )}
         </div>
       </CardContent>

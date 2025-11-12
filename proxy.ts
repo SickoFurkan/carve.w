@@ -9,6 +9,9 @@ export default createMiddleware({
 
   // Automatically detect locale from browser
   localeDetection: true,
+
+  // Only prefix non-default locales
+  localePrefix: 'as-needed',
 });
 
 export const config = {

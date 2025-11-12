@@ -68,7 +68,7 @@ export default function HiscoresPage() {
   }, [leaderboardType]);
 
   return (
-    <div className="min-h-screen bg-[#ececf1] py-12 px-4">
+    <div className="min-h-screen bg-white py-12 px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">

@@ -28,6 +28,7 @@ export function StatsGrid({
         value={`${currentStreak} days`}
         icon={Flame}
         description={`Best: ${longestStreak} days`}
+        learnMoreHref="/psychology/habit-formation"
       />
 
       {/* Total Workouts */}
@@ -36,6 +37,7 @@ export function StatsGrid({
         value={totalWorkouts}
         icon={Dumbbell}
         description="All time"
+        learnMoreHref="/exercise-science/progressive-overload"
       />
 
       {/* This Week */}
@@ -44,6 +46,7 @@ export function StatsGrid({
         value={workoutsThisWeek}
         icon={Activity}
         description="Workouts logged"
+        learnMoreHref="/training-methods/strength-training-basics"
       />
 
       {/* Level */}

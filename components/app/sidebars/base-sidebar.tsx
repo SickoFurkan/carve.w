@@ -60,7 +60,7 @@ export function BaseSidebar({ navigationGroups, ariaLabel }: BaseSidebarProps) {
             {/* Group items */}
             {group.items.map((item) => {
               const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-              const IconComponent = iconMap[item.icon.name];
+              const IconComponent = iconMap[item.icon?.name] || iconMap['HomeIcon'];
 
               return (
                 <Link
@@ -73,12 +73,14 @@ export function BaseSidebar({ navigationGroups, ariaLabel }: BaseSidebarProps) {
                       : "text-gray-600 hover:bg-gray-50 hover:text-black"
                   )}
                 >
-                  <IconComponent
-                    className={cn(
-                      "h-5 w-5 shrink-0",
-                      isActive ? "text-black" : "text-gray-500 group-hover:text-black"
-                    )}
-                  />
+                  {IconComponent && (
+                    <IconComponent
+                      className={cn(
+                        "h-5 w-5 shrink-0",
+                        isActive ? "text-black" : "text-gray-500 group-hover:text-black"
+                      )}
+                    />
+                  )}
                   <span
                     className={cn(
                       "ml-3 truncate transition-opacity duration-500",

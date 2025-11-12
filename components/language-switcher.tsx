@@ -12,8 +12,16 @@ export function LanguageSwitcher() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const languages = [
-    { code: "en", label: "EN" },
-    { code: "nl", label: "NL" },
+    { code: "en", label: "EN", name: "English", flag: "🇬🇧" },
+    { code: "nl", label: "NL", name: "Nederlands", flag: "🇳🇱" },
+    { code: "de", label: "DE", name: "Deutsch", flag: "🇩🇪" },
+    { code: "fr", label: "FR", name: "Français", flag: "🇫🇷" },
+    { code: "es", label: "ES", name: "Español", flag: "🇪🇸" },
+    { code: "it", label: "IT", name: "Italiano", flag: "🇮🇹" },
+    { code: "pt", label: "PT", name: "Português", flag: "🇵🇹" },
+    { code: "tr", label: "TR", name: "Türkçe", flag: "🇹🇷" },
+    { code: "ar", label: "AR", name: "العربية", flag: "🇸🇦" },
+    { code: "zh", label: "ZH", name: "中文", flag: "🇨🇳" },
   ];
 
   const handleLanguageChange = (newLocale: string) => {
@@ -59,19 +67,21 @@ export function LanguageSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-          {languages.map((lang) => (
-            <button
-              key={lang.code}
-              onClick={() => handleLanguageChange(lang.code)}
-              className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors first:rounded-t-md last:rounded-b-md ${
-                locale === lang.code ? "font-semibold" : ""
-              }`}
-            >
-              {locale === lang.code && "✓ "}
-              {lang.label}
-            </button>
-          ))}
+        <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 z-50 max-h-80 overflow-y-auto p-1">
+          <div className="grid grid-cols-2 gap-1">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => handleLanguageChange(lang.code)}
+                className={`text-left px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors rounded-md flex items-center gap-2 ${
+                  locale === lang.code ? "font-bold text-black bg-gray-100" : "text-gray-700"
+                }`}
+              >
+                <span className="text-base">{lang.flag}</span>
+                <span>{lang.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
