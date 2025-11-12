@@ -39,9 +39,7 @@ export default function AdminSettingsPage() {
   const handleNavigate = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 24; // 6 * 4px (space-y-6)
-      const top = element.offsetTop - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
