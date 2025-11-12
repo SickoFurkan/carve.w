@@ -138,7 +138,7 @@ export default async function SocialFeedPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/dashboard/login");
   }
 
   const activities = await getFriendActivityFeed(user.id);

@@ -119,7 +119,7 @@ export default async function FriendsPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/dashboard/login");
   }
 
   const friends = await getFriends(user.id);

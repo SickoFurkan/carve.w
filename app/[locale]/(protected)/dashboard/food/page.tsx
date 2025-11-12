@@ -82,7 +82,7 @@ export default async function FoodPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/dashboard/login");
   }
 
   const meals = await getMeals(user.id);
