@@ -30,11 +30,35 @@ const SECTION_IDS = [
 export default function AdminSettingsPage() {
   const activeSection = useScrollSpy(SECTION_IDS);
 
-  // Form state
+  // Form state - General
   const [siteName, setSiteName] = useState('Carve Wiki');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+
+  // Form state - Users & Roles
+  const [userRegistration, setUserRegistration] = useState(true);
+  const [defaultRole, setDefaultRole] = useState('user');
+  const [requireEmailVerification, setRequireEmailVerification] = useState(true);
+
+  // Form state - Content
+  const [enableWikiEditing, setEnableWikiEditing] = useState(true);
+  const [moderateEdits, setModerateEdits] = useState(true);
+  const [minEditReputation, setMinEditReputation] = useState('100');
+
+  // Form state - Notifications
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const [achievementAlerts, setAchievementAlerts] = useState(true);
+
+  // Form state - Security
+  const [enableTwoFactor, setEnableTwoFactor] = useState(false);
+  const [sessionTimeout, setSessionTimeout] = useState('24');
+  const [maxLoginAttempts, setMaxLoginAttempts] = useState('5');
+
+  // Form state - Integrations (XP)
   const [xpPerWorkout, setXpPerWorkout] = useState('50');
   const [xpPerMeal, setXpPerMeal] = useState('10');
+
+  // Form state - Advanced
   const [weeklyResetDay, setWeeklyResetDay] = useState('1');
 
   const handleNavigate = (id: string) => {
@@ -45,9 +69,28 @@ export default function AdminSettingsPage() {
   };
 
   const handleSaveGeneral = async () => {
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log('Saving general settings:', { siteName, maintenanceMode });
+  };
+
+  const handleSaveUsers = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Saving user settings:', { userRegistration, defaultRole, requireEmailVerification });
+  };
+
+  const handleSaveContent = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Saving content settings:', { enableWikiEditing, moderateEdits, minEditReputation });
+  };
+
+  const handleSaveNotifications = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Saving notification settings:', { emailNotifications, weeklyDigest, achievementAlerts });
+  };
+
+  const handleSaveSecurity = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Saving security settings:', { enableTwoFactor, sessionTimeout, maxLoginAttempts });
   };
 
   const handleSaveXP = async () => {
@@ -55,9 +98,9 @@ export default function AdminSettingsPage() {
     console.log('Saving XP settings:', { xpPerWorkout, xpPerMeal });
   };
 
-  const handleSaveLeaderboard = async () => {
+  const handleSaveAdvanced = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Saving leaderboard settings:', { weeklyResetDay });
+    console.log('Saving advanced settings:', { weeklyResetDay });
   };
 
   return (
@@ -120,9 +163,48 @@ export default function AdminSettingsPage() {
             title="Users & Roles"
             description="Manage user permissions and roles"
           >
-            <p className="text-sm text-gray-600">
-              User management settings coming soon...
-            </p>
+            <SettingItem
+              label="User Registration"
+              description="Allow new users to register for accounts"
+              htmlFor="user-registration"
+            >
+              <Switch
+                id="user-registration"
+                checked={userRegistration}
+                onCheckedChange={setUserRegistration}
+              />
+            </SettingItem>
+
+            <SettingItem
+              label="Default User Role"
+              description="Role assigned to new user accounts"
+              htmlFor="default-role"
+            >
+              <Select value={defaultRole} onValueChange={setDefaultRole}>
+                <SelectTrigger className="w-64" id="default-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="contributor">Contributor</SelectItem>
+                  <SelectItem value="moderator">Moderator</SelectItem>
+                </SelectContent>
+              </Select>
+            </SettingItem>
+
+            <SettingItem
+              label="Require Email Verification"
+              description="Users must verify their email before full access"
+              htmlFor="email-verification"
+            >
+              <Switch
+                id="email-verification"
+                checked={requireEmailVerification}
+                onCheckedChange={setRequireEmailVerification}
+              />
+            </SettingItem>
+
+            <SettingsSaveButton onSave={handleSaveUsers} />
           </SettingsSection>
 
           {/* Content Settings */}
@@ -131,9 +213,45 @@ export default function AdminSettingsPage() {
             title="Content"
             description="Configure content moderation and wiki settings"
           >
-            <p className="text-sm text-gray-600">
-              Content settings coming soon...
-            </p>
+            <SettingItem
+              label="Enable Wiki Editing"
+              description="Allow users to create and edit wiki articles"
+              htmlFor="wiki-editing"
+            >
+              <Switch
+                id="wiki-editing"
+                checked={enableWikiEditing}
+                onCheckedChange={setEnableWikiEditing}
+              />
+            </SettingItem>
+
+            <SettingItem
+              label="Moderate Edits"
+              description="Require admin approval for wiki edits"
+              htmlFor="moderate-edits"
+            >
+              <Switch
+                id="moderate-edits"
+                checked={moderateEdits}
+                onCheckedChange={setModerateEdits}
+              />
+            </SettingItem>
+
+            <SettingItem
+              label="Minimum Edit Reputation"
+              description="Reputation required to edit wiki articles"
+              htmlFor="min-edit-reputation"
+            >
+              <Input
+                id="min-edit-reputation"
+                type="number"
+                value={minEditReputation}
+                onChange={(e) => setMinEditReputation(e.target.value)}
+                className="w-32"
+              />
+            </SettingItem>
+
+            <SettingsSaveButton onSave={handleSaveContent} />
           </SettingsSection>
 
           {/* Notifications */}
@@ -142,9 +260,43 @@ export default function AdminSettingsPage() {
             title="Notifications"
             description="Configure email and notification preferences"
           >
-            <p className="text-sm text-gray-600">
-              Notification settings coming soon...
-            </p>
+            <SettingItem
+              label="Email Notifications"
+              description="Send email notifications for important events"
+              htmlFor="email-notifications"
+            >
+              <Switch
+                id="email-notifications"
+                checked={emailNotifications}
+                onCheckedChange={setEmailNotifications}
+              />
+            </SettingItem>
+
+            <SettingItem
+              label="Weekly Digest"
+              description="Send weekly summary of activity and updates"
+              htmlFor="weekly-digest"
+            >
+              <Switch
+                id="weekly-digest"
+                checked={weeklyDigest}
+                onCheckedChange={setWeeklyDigest}
+              />
+            </SettingItem>
+
+            <SettingItem
+              label="Achievement Alerts"
+              description="Notify users when they unlock achievements"
+              htmlFor="achievement-alerts"
+            >
+              <Switch
+                id="achievement-alerts"
+                checked={achievementAlerts}
+                onCheckedChange={setAchievementAlerts}
+              />
+            </SettingItem>
+
+            <SettingsSaveButton onSave={handleSaveNotifications} />
           </SettingsSection>
 
           {/* Security */}
@@ -153,9 +305,47 @@ export default function AdminSettingsPage() {
             title="Security"
             description="Authentication and privacy settings"
           >
-            <p className="text-sm text-gray-600">
-              Security settings coming soon...
-            </p>
+            <SettingItem
+              label="Enable Two-Factor Authentication"
+              description="Require 2FA for admin accounts"
+              htmlFor="two-factor"
+            >
+              <Switch
+                id="two-factor"
+                checked={enableTwoFactor}
+                onCheckedChange={setEnableTwoFactor}
+              />
+            </SettingItem>
+
+            <SettingItem
+              label="Session Timeout"
+              description="Hours until inactive sessions expire"
+              htmlFor="session-timeout"
+            >
+              <Input
+                id="session-timeout"
+                type="number"
+                value={sessionTimeout}
+                onChange={(e) => setSessionTimeout(e.target.value)}
+                className="w-32"
+              />
+            </SettingItem>
+
+            <SettingItem
+              label="Max Login Attempts"
+              description="Failed login attempts before account lockout"
+              htmlFor="max-login-attempts"
+            >
+              <Input
+                id="max-login-attempts"
+                type="number"
+                value={maxLoginAttempts}
+                onChange={(e) => setMaxLoginAttempts(e.target.value)}
+                className="w-32"
+              />
+            </SettingItem>
+
+            <SettingsSaveButton onSave={handleSaveSecurity} />
           </SettingsSection>
 
           {/* Integrations */}
@@ -222,7 +412,7 @@ export default function AdminSettingsPage() {
               </Select>
             </SettingItem>
 
-            <SettingsSaveButton onSave={handleSaveLeaderboard} />
+            <SettingsSaveButton onSave={handleSaveAdvanced} />
           </SettingsSection>
         </div>
       </div>
