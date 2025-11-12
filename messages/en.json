@@ -1,8 +1,11 @@
 {
   "nav": {
     "wiki": "Wiki",
+    "carve": "Carve",
     "dashboard": "Dashboard",
     "hiscores": "Hiscores",
+    "profile": "Profile",
+    "settings": "Settings",
     "login": "Login",
     "logout": "Logout"
   },

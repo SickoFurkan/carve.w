@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 
 type SearchResult = {
   id: string;
@@ -15,6 +18,7 @@ type SearchResultsProps = {
 };
 
 export function SearchResults({ results, isLoading, query }: SearchResultsProps) {
+  const t = useTranslations('search');
   if (isLoading) {
     return (
       <div className="p-4">
@@ -29,7 +33,7 @@ export function SearchResults({ results, isLoading, query }: SearchResultsProps)
   if (query && results.length === 0) {
     return (
       <div className="p-4 text-center text-gray-500">
-        No results for &quot;{query}&quot;
+        {t('noResults', { query })}
       </div>
     );
   }
@@ -44,7 +48,7 @@ export function SearchResults({ results, isLoading, query }: SearchResultsProps)
       {wikiResults.length > 0 && (
         <div className="mb-2">
           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-            📚 Wiki Articles ({wikiResults.length})
+            📚 {t('wikiArticles')} ({wikiResults.length})
           </div>
           {wikiResults.map((result) => (
             <Link
@@ -64,7 +68,7 @@ export function SearchResults({ results, isLoading, query }: SearchResultsProps)
       {userResults.length > 0 && (
         <div className="mb-2">
           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-            👤 Users ({userResults.length})
+            👤 {t('users')} ({userResults.length})
           </div>
           {userResults.map((result) => (
             <Link
@@ -87,7 +91,7 @@ export function SearchResults({ results, isLoading, query }: SearchResultsProps)
             href="/hiscores"
             className="block px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-blue-600"
           >
-            View all in Hiscores →
+            {t('viewAllHiscores')} →
           </Link>
         </div>
       )}

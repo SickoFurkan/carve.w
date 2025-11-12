@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { SearchResults } from "./search-results";
 import { useDebouncedCallback } from "use-debounce";
+import { useTranslations } from 'next-intl';
 
 type SearchResult = {
   id: string;
@@ -26,6 +27,7 @@ export function GlobalSearch({ className, variant = "compact", autoFocus = false
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const t = useTranslations('search');
 
   // Search function
   const performSearch = useCallback(async (searchQuery: string) => {
@@ -113,7 +115,7 @@ export function GlobalSearch({ className, variant = "compact", autoFocus = false
                 value={query}
                 onChange={handleInputChange}
                 onFocus={() => setIsOpen(true)}
-                placeholder="Search everything..."
+                placeholder={t('placeholder')}
                 className="w-64 px-3 py-2 focus:outline-none bg-transparent"
               />
               <button
@@ -156,7 +158,7 @@ export function GlobalSearch({ className, variant = "compact", autoFocus = false
             type="text"
             value={query}
             onChange={handleInputChange}
-            placeholder="Search articles, users, rankings..."
+            placeholder={t('placeholderLarge')}
             className="w-full px-4 py-4 text-lg focus:outline-none bg-transparent"
           />
         </div>
