@@ -1,37 +1,59 @@
-// Simple icon components
-const HomeIcon = () => null;
-const InfoIcon = () => null;
-const RocketIcon = () => null;
-const UsersIcon = () => null;
+import {
+  Smartphone,
+  MapIcon,
+  Newspaper,
+  Lightbulb,
+  User,
+  MessageCircleQuestion,
+  GitPullRequest
+} from 'lucide-react';
 
 export const carveNavigationGroups = [
   {
     label: 'CARVE',
-    icon: HomeIcon,
+    icon: Smartphone,
     items: [
       {
-        title: "Home",
-        href: "/",
-        icon: HomeIcon,
-        description: "Welcome to Carve"
+        title: "App",
+        href: "/carve",
+        icon: Smartphone,
+        description: "About the Carve app"
       },
       {
-        title: "Features",
-        href: "/#features",
-        icon: RocketIcon,
-        description: "What we offer"
+        title: "Roadmap",
+        href: "/carve/roadmap",
+        icon: MapIcon,
+        description: "Development roadmap"
       },
       {
-        title: "About",
-        href: "/about",
-        icon: InfoIcon,
-        description: "Learn about Carve"
+        title: "Updates",
+        href: "/carve/updates",
+        icon: Newspaper,
+        description: "Latest changes and news"
       },
       {
-        title: "Contact",
-        href: "/contact",
-        icon: UsersIcon,
-        description: "Get in touch"
+        title: "Vision",
+        href: "/carve/vision",
+        icon: Lightbulb,
+        description: "Our long-term vision"
+      },
+      {
+        title: "Developer",
+        href: "/carve/developer",
+        icon: User,
+        description: "About the developer"
+      },
+      {
+        title: "FAQ",
+        href: "/carve/faq",
+        icon: MessageCircleQuestion,
+        description: "Frequently asked questions"
+      },
+      {
+        title: "Contributing",
+        href: "/carve/contributing",
+        icon: GitPullRequest,
+        description: "How to contribute"
       }
     ]
   }

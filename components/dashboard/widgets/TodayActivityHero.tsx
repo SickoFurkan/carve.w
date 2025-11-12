@@ -23,18 +23,18 @@ export function TodayActivityHero({
   return (
     <DarkCard>
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
+      <div className="mb-4 flex items-start justify-between">
         <div>
-          <h2 className="text-3xl font-semibold text-white">
+          <h2 className="text-2xl font-semibold text-white">
             Today's Activity
           </h2>
-          <p className="mt-1 text-sm text-[#8b92a8]">
+          <p className="mt-1 text-xs text-[#8b92a8]">
             Your Path to Fitness Excellence
           </p>
         </div>
 
         {/* Metrics */}
-        <div className="flex gap-8">
+        <div className="flex gap-6">
           <Metric
             icon="🔥"
             value={caloriesBurned}
@@ -57,7 +57,7 @@ export function TodayActivityHero({
       </div>
 
       {/* Sparkline */}
-      <div className="mb-4">
+      <div className="mb-3">
         <Sparkline data={weeklyXpData} />
       </div>
 
@@ -85,9 +85,9 @@ interface MetricProps {
 function Metric({ icon, value, unit, suffix, label }: MetricProps) {
   return (
     <div className="text-right">
-      <div className="mb-1 flex items-baseline gap-1">
+      <div className="mb-0.5 flex items-baseline gap-1">
         <span className="text-xs">{icon}</span>
-        <span className="text-2xl font-semibold tabular-nums text-white">
+        <span className="text-xl font-semibold tabular-nums text-white">
           {value}
         </span>
         {unit && <span className="text-xs text-[#8b92a8]">{unit}</span>}

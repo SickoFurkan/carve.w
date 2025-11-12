@@ -10,7 +10,7 @@ export function DarkCard({ children, className }: DarkCardProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/10 bg-[#0a0e1a] p-8",
+        "rounded-2xl border border-white/10 bg-[#0a0e1a] p-5",
         className
       )}
     >

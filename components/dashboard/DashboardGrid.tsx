@@ -6,7 +6,7 @@ interface DashboardGridProps {
 
 export function DashboardGrid({ children }: DashboardGridProps) {
   return (
-    <div className="container mx-auto max-w-7xl space-y-6 p-6">
+    <div className="container mx-auto max-w-7xl space-y-4 p-4">
       {children}
     </div>
   );
@@ -19,7 +19,7 @@ interface TopRowProps {
 
 export function TopRow({ hero, quickStat }: TopRowProps) {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
       {hero}
       {quickStat}
     </div>
@@ -32,7 +32,7 @@ interface MiddleRowProps {
 
 export function MiddleRow({ children }: MiddleRowProps) {
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {children}
     </div>
   );
@@ -45,7 +45,7 @@ interface BottomRowProps {
 
 export function BottomRow({ heatmap, leaderboard }: BottomRowProps) {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_2fr]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
       {heatmap}
       {leaderboard}
     </div>
