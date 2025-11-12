@@ -1,4 +1,4 @@
-import { DarkCard } from "./shared";
+import { DarkCard, Sparkline } from "./shared";
 import Link from "next/link";
 
 interface TodayActivityHeroProps {
@@ -6,6 +6,11 @@ interface TodayActivityHeroProps {
   activeMinutes: number;
   xpEarned: number;
   streakMultiplier: number;
+  weeklyXpData: Array<{
+    day: string;
+    xp: number;
+    isToday: boolean;
+  }>;
 }
 
 export function TodayActivityHero({
@@ -13,6 +18,7 @@ export function TodayActivityHero({
   activeMinutes,
   xpEarned,
   streakMultiplier,
+  weeklyXpData,
 }: TodayActivityHeroProps) {
   return (
     <DarkCard>
@@ -42,36 +48,26 @@ export function TodayActivityHero({
             label="Active Minutes"
           />
           <Metric
-            icon="⚡"
+            icon="⭐"
             value={xpEarned}
-            unit="XP"
+            suffix={`+${streakMultiplier.toFixed(1)}x`}
             label="XP Earned"
           />
         </div>
       </div>
 
-      {/* Sparkline Placeholder */}
-      <div className="mb-8">
-        <div className="h-24 rounded-lg bg-white/5 border border-white/10" />
-        <p className="mt-2 text-xs text-[#8b92a8]">
-          Activity trend coming in Phase 2
-        </p>
+      {/* Sparkline */}
+      <div className="mb-4">
+        <Sparkline data={weeklyXpData} />
       </div>
 
-      {/* Bottom Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm text-[#8b92a8]">Streak Multiplier</div>
-          <div className="mt-1 text-2xl font-bold text-yellow-400">
-            {streakMultiplier.toFixed(1)}x
-          </div>
-        </div>
-
+      {/* Action button */}
+      <div className="flex justify-end">
         <Link
-          href="/workouts/new"
-          className="rounded-lg bg-gradient-to-r from-yellow-500 to-green-500 px-6 py-3 font-semibold text-[#0a0e1a] transition-all hover:scale-105"
+          href="/dashboard/workouts/new"
+          className="rounded-lg border border-white/20 px-4 py-2 text-sm text-white transition-colors hover:bg-white/10"
         >
-          Log Workout
+          + Start Workout
         </Link>
       </div>
     </DarkCard>
@@ -81,19 +77,25 @@ export function TodayActivityHero({
 interface MetricProps {
   icon: string;
   value: number;
-  unit: string;
+  unit?: string;
+  suffix?: string;
   label: string;
 }
 
-function Metric({ icon, value, unit, label }: MetricProps) {
+function Metric({ icon, value, unit, suffix, label }: MetricProps) {
   return (
-    <div className="text-center">
-      <div className="mb-2 text-2xl">{icon}</div>
-      <div className="text-2xl font-bold tabular-nums text-white">
-        {value}
-        <span className="ml-1 text-sm text-[#8b92a8]">{unit}</span>
+    <div className="text-right">
+      <div className="mb-1 flex items-baseline gap-1">
+        <span className="text-xs">{icon}</span>
+        <span className="text-2xl font-semibold tabular-nums text-white">
+          {value}
+        </span>
+        {unit && <span className="text-xs text-[#8b92a8]">{unit}</span>}
       </div>
-      <div className="mt-1 text-xs text-[#8b92a8]">{label}</div>
+      {suffix && (
+        <div className="text-xs text-[#8b92a8]">{suffix}</div>
+      )}
+      <div className="sr-only">{label}</div>
     </div>
   );
 }
