@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardGrid, TopRow, MiddleRow, BottomRow } from "@/components/dashboard/DashboardGrid";
@@ -8,6 +9,7 @@ import { NutritionSnapshot } from "@/components/dashboard/widgets/NutritionSnaps
 import { WeeklySchedule } from "@/components/dashboard/widgets/WeeklySchedule";
 import { AchievementProgress } from "@/components/dashboard/widgets/AchievementProgress";
 import { FriendLeaderboard } from "@/components/dashboard/widgets/FriendLeaderboard";
+import { WidgetSkeleton } from "@/components/dashboard/widgets/shared";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -259,43 +261,61 @@ export default async function DashboardPage() {
     <DashboardGrid>
       <TopRow
         hero={
-          <TodayActivityHero
-            caloriesBurned={caloriesBurned}
-            activeMinutes={activeMinutes}
-            xpEarned={xpEarned}
-            streakMultiplier={streakMultiplier}
-            weeklyXpData={weeklyXpData}
-          />
+          <Suspense key="hero-suspense" fallback={<WidgetSkeleton variant="dark" height="tall" />}>
+            <TodayActivityHero
+              caloriesBurned={caloriesBurned}
+              activeMinutes={activeMinutes}
+              xpEarned={xpEarned}
+              streakMultiplier={streakMultiplier}
+              weeklyXpData={weeklyXpData}
+            />
+          </Suspense>
         }
         quickStat={
-          <QuickStat
-            label="Current Streak"
-            value={stats?.current_workout_streak || 0}
-            unit="days 🔥"
-          />
+          <Suspense key="quickstat-suspense" fallback={<WidgetSkeleton variant="dark" height="compact" />}>
+            <QuickStat
+              label="Current Streak"
+              value={stats?.current_workout_streak || 0}
+              unit="days 🔥"
+            />
+          </Suspense>
         }
       />
 
       <MiddleRow>
-        <WeeklySchedule weekData={weekData} />
+        <Suspense key="schedule-suspense" fallback={<WidgetSkeleton variant="light" height="medium" />}>
+          <WeeklySchedule weekData={weekData} />
+        </Suspense>
 
-        <AchievementProgress
-          recentUnlock={recentUnlocks[0]}
-          inProgress={inProgress}
-        />
+        <Suspense key="achievements-suspense" fallback={<WidgetSkeleton variant="light" height="tall" />}>
+          <AchievementProgress
+            recentUnlock={recentUnlocks[0]}
+            inProgress={inProgress}
+          />
+        </Suspense>
 
-        <NutritionSnapshot
-          caloriesConsumed={caloriesConsumed}
-          caloriesGoal={userGoals?.daily_calories || 2200}
-          proteinPercent={proteinPercent}
-          waterLiters={waterLiters}
-          waterGoal={userGoals?.daily_water_l || 2.5}
-        />
+        <Suspense key="nutrition-suspense" fallback={<WidgetSkeleton variant="light" height="medium" />}>
+          <NutritionSnapshot
+            caloriesConsumed={caloriesConsumed}
+            caloriesGoal={userGoals?.daily_calories || 2200}
+            proteinPercent={proteinPercent}
+            waterLiters={waterLiters}
+            waterGoal={userGoals?.daily_water_l || 2.5}
+          />
+        </Suspense>
       </MiddleRow>
 
       <BottomRow
-        heatmap={<ActivityHeatmap data={heatmapData} />}
-        leaderboard={<FriendLeaderboard entries={leaderboardData} daysUntilReset={daysUntilReset} />}
+        heatmap={
+          <Suspense key="heatmap-suspense" fallback={<WidgetSkeleton variant="light" height="medium" />}>
+            <ActivityHeatmap data={heatmapData} />
+          </Suspense>
+        }
+        leaderboard={
+          <Suspense key="leaderboard-suspense" fallback={<WidgetSkeleton variant="light" height="tall" />}>
+            <FriendLeaderboard entries={leaderboardData} daysUntilReset={daysUntilReset} />
+          </Suspense>
+        }
       />
     </DashboardGrid>
   );
