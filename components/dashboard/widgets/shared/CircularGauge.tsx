@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 interface CircularGaugeProps {
   value: number;
   max: number;
@@ -7,6 +9,7 @@ interface CircularGaugeProps {
 }
 
 export function CircularGauge({ value, max, size = 120 }: CircularGaugeProps) {
+  const gradientId = useId();
   const percentage = Math.min((value / max) * 100, 100);
   const radius = (size - 16) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -58,7 +61,7 @@ export function CircularGauge({ value, max, size = 120 }: CircularGaugeProps) {
 
         {/* Progress circle with gradient */}
         <defs>
-          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#3b82f6" />
             <stop offset="100%" stopColor="#1e40af" />
           </linearGradient>
@@ -68,7 +71,7 @@ export function CircularGauge({ value, max, size = 120 }: CircularGaugeProps) {
           cy={center}
           r={radius}
           fill="none"
-          stroke="url(#gaugeGradient)"
+          stroke={`url(#${gradientId})`}
           strokeWidth="8"
           strokeLinecap="round"
           strokeDasharray={circumference}
