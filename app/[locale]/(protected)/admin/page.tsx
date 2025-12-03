@@ -75,7 +75,7 @@ export default async function AdminDashboardPage() {
             value={pendingFeedback || 0}
             subtitle="Needs review"
             icon="💬"
-            alert={pendingFeedback && pendingFeedback > 0}
+            alert={!!pendingFeedback && pendingFeedback > 0}
           />
           <StatCard
             title="System Status"
