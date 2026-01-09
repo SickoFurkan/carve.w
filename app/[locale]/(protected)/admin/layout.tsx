@@ -1,9 +1,5 @@
-import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { AdminSidebar } from "@/components/app/sidebars/admin-sidebar";
-import { SidebarSkeleton } from "@/components/app/sidebars/sidebar-skeleton";
-import { AppContent } from "@/components/app/app-shell";
 
 export default async function AdminLayout({
   children,
@@ -27,18 +23,9 @@ export default async function AdminLayout({
     .single();
 
   if (!profile || profile.role !== "admin") {
-    // Not an admin, redirect to dashboard
     redirect("/dashboard");
   }
 
-  return (
-    <>
-      <Suspense fallback={<SidebarSkeleton />}>
-        <AdminSidebar />
-      </Suspense>
-      <AppContent padded={false}>
-        {children}
-      </AppContent>
-    </>
-  );
+  // Layout wrapper handles shell and sidebar
+  return <>{children}</>;
 }
