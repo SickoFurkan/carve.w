@@ -1,62 +1,54 @@
-// Simple icon components
-const DashboardIcon = () => null;
-const UsersIcon = () => null;
-const ContentIcon = () => null;
-const FeedbackIcon = () => null;
-const SettingsIcon = () => null;
-const DatabaseIcon = () => null;
-
 export const adminNavigationGroups = [
   {
     label: 'OVERVIEW',
-    icon: DashboardIcon,
+    icon: { name: 'DashboardIcon' },
     items: [
       {
         title: "Dashboard",
         href: "/admin",
-        icon: DashboardIcon,
+        icon: { name: 'DashboardIcon' },
         description: "Analytics & insights"
       }
     ]
   },
   {
     label: 'MANAGEMENT',
-    icon: UsersIcon,
+    icon: { name: 'UsersIcon' },
     items: [
       {
         title: "Users",
         href: "/admin/users",
-        icon: UsersIcon,
+        icon: { name: 'UsersIcon' },
         description: "User management"
       },
       {
         title: "Content",
         href: "/admin/content",
-        icon: ContentIcon,
+        icon: { name: 'BookIcon' },
         description: "Wiki & content moderation"
       },
       {
         title: "Feedback",
         href: "/admin/feedback",
-        icon: FeedbackIcon,
+        icon: { name: 'MailIcon' },
         description: "User feedback"
       }
     ]
   },
   {
     label: 'CONFIGURATION',
-    icon: SettingsIcon,
+    icon: { name: 'SettingsIcon' },
     items: [
       {
         title: "Settings",
         href: "/admin/settings",
-        icon: SettingsIcon,
+        icon: { name: 'SettingsIcon' },
         description: "Site configuration"
       },
       {
         title: "Database",
         href: "/admin/database",
-        icon: DatabaseIcon,
+        icon: { name: 'ChartIcon' },
         description: "Database tools"
       }
     ]
