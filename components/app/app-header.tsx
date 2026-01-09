@@ -1,13 +1,14 @@
 "use client";
 
+import { Search, Settings, User, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { useState, useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { GlobalSearch } from '@/components/search/global-search';
+import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useTranslations } from 'next-intl';
 
@@ -31,19 +32,7 @@ export function AppHeader({
   const pathname = usePathname();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const t = useTranslations('nav');
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -64,41 +53,45 @@ export function AppHeader({
     return 'U';
   };
 
+  // Feature flags
+  const showHiscores = process.env.NEXT_PUBLIC_FEATURE_HISCORES === 'true';
+
   const navItems = [
-    { label: t('wiki'), href: '/', showIcon: false },
-    { label: t('hiscores'), href: '/hiscores', showIcon: false },
-    { label: t('dashboard'), href: '/dashboard', showIcon: false },
+    { label: t('wiki'), href: '/' },
+    ...(showHiscores ? [{ label: t('hiscores'), href: '/hiscores' }] : []),
     { label: t('carve'), href: '/carve', showIcon: true },
   ];
 
   return (
     <header
       className={cn(
-        'grid grid-cols-3 items-center h-16 pl-0 pr-4 sm:pl-4 sm:pr-6 lg:pl-4 lg:pr-8',
-        'bg-[#ececf1]/95 backdrop-blur-sm',
-        'border-b border-gray-200/20',
+        'flex items-center h-16 px-4',
+        'bg-[#ececf1] text-gray-900',
         'w-full',
         className
       )}
       role="banner"
+      aria-label="Carve Wiki header"
     >
-      {/* Logo Section */}
-      <Link href="/" className="flex items-center justify-self-start">
-        <Image
-          src="/carvewikilogo.png"
-          alt="Carve Wiki Logo"
-          width={180}
-          height={60}
-          className="h-14 w-auto object-contain"
-          priority
-        />
-      </Link>
+      {/* 1. Logo Section - Fixed width */}
+      <div className="flex items-center w-[200px]">
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/carvewikilogo.png"
+            alt="Carve Wiki logo"
+            width={56}
+            height={28}
+            className="object-contain"
+            priority
+          />
+        </Link>
+      </div>
 
-      {/* Navigation Section (Center) */}
-      <nav className="flex items-center justify-center justify-self-center">
+      {/* 2. Navigation Section - takes remaining space, centers content */}
+      <nav className="flex-1 flex items-center justify-center pl-12">
         <div className="flex items-center gap-8">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
             return (
               <Link
                 key={item.href}
@@ -106,8 +99,8 @@ export function AppHeader({
                 className={cn(
                   'text-sm font-medium transition-colors relative py-2 flex items-center gap-2',
                   isActive
-                    ? 'text-black'
-                    : 'text-gray-500 hover:text-black'
+                    ? 'text-gray-900 opacity-100'
+                    : 'text-gray-900 opacity-60 hover:opacity-100'
                 )}
               >
                 {item.label}
@@ -132,117 +125,118 @@ export function AppHeader({
         </div>
       </nav>
 
-      {/* User Actions Section (Right) */}
-      <div className="flex items-center gap-3 justify-self-end">
-        <GlobalSearch variant="compact" className="mr-4" />
+      {/* 3. User Actions Section - Fixed width */}
+      <div className="flex items-center gap-3 justify-end w-[200px]">
+        {/* Search Button */}
+        <button
+          type="button"
+          className="h-9 w-9 flex items-center justify-center text-gray-900 opacity-60 hover:opacity-100 transition-all"
+        >
+          <Search className="h-4 w-4" />
+          <span className="sr-only">Zoeken</span>
+        </button>
+
+        {/* Language */}
         <LanguageSwitcher />
+
+        {/* User Menu */}
         {isAuthenticated ? (
-          <div className="relative" ref={dropdownRef}>
-            {/* Avatar Button */}
-            <button
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-9 w-9 rounded-full"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full"
             >
               {userAvatar ? (
                 <Image
                   src={userAvatar}
-                  alt="User avatar"
-                  width={40}
-                  height={40}
-                  className="rounded-full object-cover border-2 border-gray-200 hover:border-gray-300 transition-colors"
+                  alt={userName || 'User'}
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-gray-200 hover:border-gray-300 transition-colors">
+                <div className="h-8 w-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center text-xs font-medium">
                   {getInitials()}
                 </div>
               )}
-            </button>
+            </Button>
 
-            {/* Dropdown Menu */}
+            {/* Dropdown */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                {/* User Info */}
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {userName || 'User'}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {userEmail}
-                  </p>
-                </div>
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsDropdownOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                  {/* User info */}
+                  <div className="px-2 py-1.5 border-b border-gray-100">
+                    <p className="text-sm font-medium leading-none text-gray-900">
+                      {userName || 'User'}
+                    </p>
+                    <p className="text-xs leading-none text-gray-500 mt-1">
+                      {userEmail}
+                    </p>
+                  </div>
 
-                {/* Menu Items */}
-                <div className="py-1">
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    {t('dashboard')}
-                  </Link>
-
-                  <Link
-                    href="/dashboard/profile"
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    {t('profile')}
-                  </Link>
-
-                  <Link
-                    href="/dashboard/settings"
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {t('settings')}
-                  </Link>
-
-                  {/* Admin Portal Link - Only for admins */}
-                  {userRole === 'admin' && (
+                  {/* Menu items */}
+                  <div className="py-1">
                     <Link
-                      href="/admin"
+                      href="/dashboard"
                       onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 transition-colors border-t border-gray-100"
+                      className="flex items-center px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                      Admin Portal
+                      <User className="mr-2 h-4 w-4" />
+                      {t('dashboard')}
                     </Link>
-                  )}
-                </div>
+                    <Link
+                      href="/dashboard/settings"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      {t('settings')}
+                    </Link>
+                  </div>
 
-                {/* Logout */}
-                <div className="border-t border-gray-100 pt-1">
+                  {/* Admin link */}
+                  {userRole === 'admin' && (
+                    <>
+                      <div className="border-t border-gray-100" />
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center px-2 py-1.5 text-sm text-purple-700 hover:bg-purple-50 cursor-pointer"
+                      >
+                        <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Admin
+                      </Link>
+                    </>
+                  )}
+
+                  {/* Logout */}
+                  <div className="border-t border-gray-100" />
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    className="flex items-center w-full px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
+                    <LogOut className="mr-2 h-4 w-4" />
                     {t('logout')}
                   </button>
                 </div>
-              </div>
+              </>
             )}
           </div>
         ) : (
           <Link
             href="/login"
-            className="px-4 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium rounded-md bg-black text-white hover:bg-gray-800 transition-colors"
           >
-            {t('login')}
+            {t('dashboard')}
           </Link>
         )}
       </div>

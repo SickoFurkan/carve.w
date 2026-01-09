@@ -30,31 +30,25 @@ export function BaseSidebar({ navigationGroups, ariaLabel }: BaseSidebarProps) {
 
   return (
     <div
-      className="hidden lg:flex lg:flex-col h-full shrink-0 transition-all duration-300 ease-in-out bg-[#ececf1] pb-3"
+      className="hidden lg:flex lg:flex-col h-full shrink-0 transition-all duration-300 ease-in-out bg-[#ececf1]"
       style={{
-        width: isHovered ? "200px" : "64px",
+        width: isHovered ? "180px" : "52px",
+        zIndex: 45,
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       role="navigation"
       aria-label={ariaLabel}
     >
-      <nav className="flex-1 px-2 py-4 overflow-y-auto">
+      <nav className="flex-1 px-1.5 pt-2 overflow-y-auto scrollbar-thin-auto-hide">
         {navigationGroups.map((group) => (
-          <div key={group.label} className="mb-3">
-            {/* Group label */}
-            <div className="mb-1.5 flex items-center px-3">
-              <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                <span className="text-xs font-semibold text-gray-400">—</span>
-              </div>
-              <span
-                className={cn(
-                  "ml-3 text-xs font-semibold text-gray-400 uppercase tracking-wider transition-opacity duration-500",
-                  isHovered ? "opacity-100" : "opacity-0"
-                )}
-              >
-                {group.label}
-              </span>
+          <div key={group.label} className="mb-1.5">
+            {/* Group divider - minimal line */}
+            <div className="flex items-center justify-center mb-1 h-4">
+              <div className={cn(
+                "h-px bg-gray-300 transition-all duration-300",
+                isHovered ? "w-full mx-2" : "w-3"
+              )} />
             </div>
 
             {/* Group items */}
@@ -67,28 +61,29 @@ export function BaseSidebar({ navigationGroups, ariaLabel }: BaseSidebarProps) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "group h-9 flex items-center rounded-lg px-3 py-1.5 mb-0.5 text-sm font-medium transition-all",
+                    "group flex items-center justify-center rounded-md mb-0.5 transition-all duration-200",
+                    isHovered ? "h-8 px-2 justify-start" : "h-9 w-9 mx-auto",
                     isActive
-                      ? "bg-gray-100 text-black shadow-sm"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-black"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:bg-gray-200/60 hover:text-gray-900"
                   )}
                 >
                   {IconComponent && (
                     <IconComponent
                       className={cn(
-                        "h-5 w-5 shrink-0",
-                        isActive ? "text-black" : "text-gray-500 group-hover:text-black"
+                        "shrink-0 transition-all duration-200",
+                        isHovered ? "h-4 w-4" : "h-5 w-5",
+                        isActive
+                          ? "text-gray-700"
+                          : "text-gray-500 group-hover:text-gray-700"
                       )}
                     />
                   )}
-                  <span
-                    className={cn(
-                      "ml-3 truncate transition-opacity duration-500",
-                      isHovered ? "opacity-100" : "opacity-0"
-                    )}
-                  >
-                    {item.title}
-                  </span>
+                  {isHovered && (
+                    <span className="ml-2.5 text-sm font-medium truncate">
+                      {item.title}
+                    </span>
+                  )}
                 </Link>
               );
             })}
