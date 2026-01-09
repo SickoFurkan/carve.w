@@ -4,43 +4,41 @@ import { Smartphone, Zap, Target, TrendingUp, Award, Users, Rocket, ArrowRight, 
 import Link from 'next/link';
 import ScrollExpandMedia from '@/components/ui/scroll-expansion-hero';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
+import HowItWorksWithPhone from '@/components/carve/HowItWorksWithPhone';
 
 export default function CarvePage() {
   return (
-    <div className="min-h-full w-full bg-[#0a0a0a]">
+    <div className="min-h-full w-full bg-white">
       {/* Hero Section with Scroll Expand */}
       <ScrollExpandMedia
         mediaType="image"
-        mediaSrc="/loginscreen.png"
+        mediaSrc="/screenshots/dashboard.png"
         bgImageSrc="/loginscreen.png"
-        title="Carve"
+        title="Welcome to Carve"
         scrollToExpand="Scroll to explore"
       >
         <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto mb-6 font-light">
           Turn your workouts into an RPG experience
         </p>
-        <div className="flex items-center justify-center gap-2 text-white/60">
-          <ChevronDown className="w-5 h-5 animate-bounce" />
-        </div>
       </ScrollExpandMedia>
 
       {/* Main Content */}
-      <div className="relative z-50 bg-[#0a0a0a]">
+      <div className="relative z-50 bg-white">
         {/* Intro Section */}
         <section className="py-24 px-6">
           <div className="max-w-5xl mx-auto">
             <ScrollReveal animation="fade-up">
               <div className="text-center mb-16">
-                <span className="inline-block px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white/70 mb-6">
+                <span className="inline-block px-4 py-2 bg-gray-100 border border-gray-200 rounded-full text-sm text-gray-600 mb-6">
                   The Future of Fitness Tracking
                 </span>
-                <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                   Fitness that feels like{' '}
                   <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                     gaming
                   </span>
                 </h2>
-                <p className="text-xl text-white/60 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                   Carve transforms your fitness journey into an immersive experience.
                   Track workouts, earn XP, level up your character, and compete with friends.
                 </p>
@@ -75,13 +73,13 @@ export default function CarvePage() {
         </section>
 
         {/* Features Section */}
-        <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] to-[#111]">
+        <section className="py-24 px-6 bg-gray-50">
           <div className="max-w-5xl mx-auto">
             <ScrollReveal animation="fade-up">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 text-center">
+              <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 text-center">
                 Core Features
               </h2>
-              <p className="text-white/60 text-center mb-16 max-w-2xl mx-auto">
+              <p className="text-gray-600 text-center mb-16 max-w-2xl mx-auto">
                 Everything you need to transform your fitness journey
               </p>
             </ScrollReveal>
@@ -135,22 +133,25 @@ export default function CarvePage() {
           </div>
         </section>
 
+        {/* How It Works Section with Phone */}
+        <HowItWorksWithPhone />
+
         {/* Development Status */}
-        <section className="py-24 px-6 bg-[#111]">
+        <section className="py-24 px-6 bg-white">
           <div className="max-w-4xl mx-auto">
             <ScrollReveal animation="fade-up">
               <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
                   Development Status
                 </h2>
-                <p className="text-white/60">
+                <p className="text-gray-600">
                   We're actively building Carve. Here's where we are:
                 </p>
               </div>
             </ScrollReveal>
 
             <ScrollReveal animation="scale" delay={0.2}>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8">
                 <div className="space-y-4">
                   <StatusItem completed title="Website & Landing Page" />
                   <StatusItem completed title="Wiki System" />
@@ -160,11 +161,11 @@ export default function CarvePage() {
                   <StatusItem title="Nutrition Tracking" />
                 </div>
 
-                <div className="mt-8 p-6 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                  <p className="text-blue-300 font-medium flex items-center gap-2">
+                <div className="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
+                  <p className="text-blue-700 font-medium flex items-center gap-2">
                     <Rocket className="w-5 h-5" />
                     We're in active development. Check the{' '}
-                    <Link href="/carve/roadmap" className="underline hover:text-blue-200">
+                    <Link href="/carve/roadmap" className="underline hover:text-blue-900">
                       Roadmap
                     </Link>{' '}
                     to see what's coming next.
@@ -176,7 +177,7 @@ export default function CarvePage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-24 px-6 bg-gradient-to-b from-[#111] to-[#0a0a0a]">
+        <section className="py-24 px-6 bg-gray-50">
           <div className="max-w-5xl mx-auto">
             <StaggerContainer className="grid md:grid-cols-2 gap-6" staggerDelay={0.15}>
               <StaggerItem>
@@ -208,10 +209,10 @@ export default function CarvePage() {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm hover:bg-white/10 transition-colors">
-      <div className="text-blue-400 mb-3">{icon}</div>
-      <div className="text-sm text-white/60 mb-1">{label}</div>
-      <div className="font-bold text-white">{value}</div>
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:bg-gray-100 transition-colors">
+      <div className="text-blue-500 mb-3">{icon}</div>
+      <div className="text-sm text-gray-500 mb-1">{label}</div>
+      <div className="font-bold text-gray-900">{value}</div>
     </div>
   );
 }
@@ -228,14 +229,14 @@ function FeatureBlock({
   gradient: string;
 }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all hover:border-white/20">
+    <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all hover:border-gray-300">
       <div className="flex items-start gap-4">
         <div className={`flex-shrink-0 p-3 rounded-xl bg-gradient-to-r ${gradient} text-white`}>
           {icon}
         </div>
         <div className="flex-1">
-          <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
-          <p className="text-white/60 leading-relaxed">{description}</p>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">{title}</h3>
+          <p className="text-gray-600 leading-relaxed">{description}</p>
         </div>
       </div>
     </div>
@@ -256,10 +257,10 @@ function StatusItem({ title, completed = false, inProgress = false }: { title: s
         <div className="w-6 h-6 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
       )}
       {!completed && !inProgress && (
-        <div className="w-6 h-6 rounded-full border-2 border-white/30" />
+        <div className="w-6 h-6 rounded-full border-2 border-gray-300" />
       )}
       <span className={`text-lg ${
-        completed ? 'text-white/80' : inProgress ? 'text-blue-400 font-medium' : 'text-white/40'
+        completed ? 'text-gray-700' : inProgress ? 'text-blue-600 font-medium' : 'text-gray-400'
       }`}>
         {title}
       </span>
