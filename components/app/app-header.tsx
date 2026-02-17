@@ -21,6 +21,16 @@ interface AppHeaderProps {
   userRole?: string;
 }
 
+// Strip locale prefix for route matching
+const LOCALES = ['en', 'nl', 'de', 'fr', 'es'];
+function stripLocale(pathname: string): string {
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length > 0 && LOCALES.includes(segments[0])) {
+    return '/' + segments.slice(1).join('/') || '/';
+  }
+  return pathname;
+}
+
 export function AppHeader({
   className,
   isAuthenticated = false,
@@ -33,6 +43,8 @@ export function AppHeader({
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const t = useTranslations('nav');
+
+  const isDark = stripLocale(pathname).startsWith('/dashboard/money');
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -66,7 +78,7 @@ export function AppHeader({
     <header
       className={cn(
         'flex items-center h-16 px-4',
-        'bg-[#ececf1] text-gray-900',
+        isDark ? 'bg-[#111318] text-white' : 'bg-[#ececf1] text-gray-900',
         'w-full',
         className
       )}
@@ -99,8 +111,8 @@ export function AppHeader({
                 className={cn(
                   'text-sm font-medium transition-colors relative py-2 flex items-center gap-2',
                   isActive
-                    ? 'text-gray-900 opacity-100'
-                    : 'text-gray-900 opacity-60 hover:opacity-100'
+                    ? isDark ? 'text-white opacity-100' : 'text-gray-900 opacity-100'
+                    : isDark ? 'text-white opacity-60 hover:opacity-100' : 'text-gray-900 opacity-60 hover:opacity-100'
                 )}
               >
                 {item.label}
@@ -130,7 +142,10 @@ export function AppHeader({
         {/* Search Button */}
         <button
           type="button"
-          className="h-9 w-9 flex items-center justify-center text-gray-900 opacity-60 hover:opacity-100 transition-all"
+          className={cn(
+            "h-9 w-9 flex items-center justify-center opacity-60 hover:opacity-100 transition-all",
+            isDark ? "text-white" : "text-gray-900"
+          )}
         >
           <Search className="h-4 w-4" />
           <span className="sr-only">Zoeken</span>
@@ -148,7 +163,7 @@ export function AppHeader({
               className="relative h-9 w-9 rounded-full"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              {userAvatar ? (
+              {userAvatar && (userAvatar.startsWith('/') || userAvatar.startsWith('http')) ? (
                 <Image
                   src={userAvatar}
                   alt={userName || 'User'}
@@ -157,7 +172,10 @@ export function AppHeader({
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="h-8 w-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center text-xs font-medium">
+                <div className={cn(
+                  "h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium",
+                  isDark ? "bg-slate-700 text-white" : "bg-gray-200 text-gray-700"
+                )}>
                   {getInitials()}
                 </div>
               )}
@@ -170,13 +188,16 @@ export function AppHeader({
                   className="fixed inset-0 z-40"
                   onClick={() => setIsDropdownOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                <div className={cn(
+                  "absolute right-0 mt-2 w-56 rounded-md shadow-lg py-1 z-50",
+                  isDark ? "bg-[#1c1f27] border border-white/10" : "bg-white border border-gray-200"
+                )}>
                   {/* User info */}
-                  <div className="px-2 py-1.5 border-b border-gray-100">
-                    <p className="text-sm font-medium leading-none text-gray-900">
+                  <div className={cn("px-2 py-1.5 border-b", isDark ? "border-white/10" : "border-gray-100")}>
+                    <p className={cn("text-sm font-medium leading-none", isDark ? "text-white" : "text-gray-900")}>
                       {userName || 'User'}
                     </p>
-                    <p className="text-xs leading-none text-gray-500 mt-1">
+                    <p className={cn("text-xs leading-none mt-1", isDark ? "text-[#9da6b9]" : "text-gray-500")}>
                       {userEmail}
                     </p>
                   </div>
@@ -186,7 +207,10 @@ export function AppHeader({
                     <Link
                       href="/dashboard"
                       onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      className={cn(
+                        "flex items-center px-2 py-1.5 text-sm cursor-pointer",
+                        isDark ? "text-[#9da6b9] hover:bg-white/5 hover:text-white" : "text-gray-700 hover:bg-gray-100"
+                      )}
                     >
                       <User className="mr-2 h-4 w-4" />
                       {t('dashboard')}
@@ -194,7 +218,10 @@ export function AppHeader({
                     <Link
                       href="/dashboard/settings"
                       onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      className={cn(
+                        "flex items-center px-2 py-1.5 text-sm cursor-pointer",
+                        isDark ? "text-[#9da6b9] hover:bg-white/5 hover:text-white" : "text-gray-700 hover:bg-gray-100"
+                      )}
                     >
                       <Settings className="mr-2 h-4 w-4" />
                       {t('settings')}
@@ -204,11 +231,14 @@ export function AppHeader({
                   {/* Admin link */}
                   {userRole === 'admin' && (
                     <>
-                      <div className="border-t border-gray-100" />
+                      <div className={cn("border-t", isDark ? "border-white/10" : "border-gray-100")} />
                       <Link
                         href="/admin"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center px-2 py-1.5 text-sm text-purple-700 hover:bg-purple-50 cursor-pointer"
+                        className={cn(
+                          "flex items-center px-2 py-1.5 text-sm cursor-pointer",
+                          isDark ? "text-purple-400 hover:bg-purple-500/10" : "text-purple-700 hover:bg-purple-50"
+                        )}
                       >
                         <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -219,10 +249,13 @@ export function AppHeader({
                   )}
 
                   {/* Logout */}
-                  <div className="border-t border-gray-100" />
+                  <div className={cn("border-t", isDark ? "border-white/10" : "border-gray-100")} />
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    className={cn(
+                      "flex items-center w-full px-2 py-1.5 text-sm cursor-pointer",
+                      isDark ? "text-[#9da6b9] hover:bg-white/5 hover:text-white" : "text-gray-700 hover:bg-gray-100"
+                    )}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     {t('logout')}

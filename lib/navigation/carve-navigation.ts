@@ -4,10 +4,22 @@ export const carveNavigationGroups = [
     icon: { name: 'RocketIcon' },
     items: [
       {
-        title: "App",
+        title: "Overview",
         href: "/carve",
         icon: { name: 'RocketIcon' },
-        description: "About the Carve app"
+        description: "Carve — Self improvement"
+      },
+      {
+        title: "Health",
+        href: "/carve/health",
+        icon: { name: 'DumbbellIcon' },
+        description: "Fitness with a scoreboard"
+      },
+      {
+        title: "Money",
+        href: "/carve/money",
+        icon: { name: 'WalletIcon' },
+        description: "Know where your money goes"
       },
       {
         title: "Roadmap",

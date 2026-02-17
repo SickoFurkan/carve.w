@@ -13,6 +13,7 @@ import { adminNavigationGroups } from '@/lib/navigation/admin-navigation';
 import { hiscoresNavigationGroups } from '@/lib/navigation/hiscores-navigation';
 import { carveNavigationGroups } from '@/lib/navigation/carve-navigation';
 import { supportNavigationGroups } from '@/lib/navigation/support-navigation';
+import { moneyNavigationGroups } from '@/lib/navigation/money-navigation';
 
 // Import icons
 import { iconMap } from '@/components/icons/sidebar-icons';
@@ -51,6 +52,9 @@ function getSidebarGroups(pathname: string, isAuthenticated: boolean, userRole?:
     if (userRole !== 'admin') return null;
     return adminNavigationGroups as NavigationGroup[];
   }
+  if (path.startsWith('/dashboard/money')) {
+    return moneyNavigationGroups as NavigationGroup[];
+  }
   if (path.startsWith('/dashboard')) {
     return isAuthenticated
       ? (dashboardNavigationGroups as NavigationGroup[])
@@ -88,6 +92,7 @@ export function AppSidebarController({
   const groups = getSidebarGroups(pathname, isAuthenticated, userRole);
   const safeGroups = groups || [];
   const path = stripLocale(pathname);
+  const isDarkVariant = path.startsWith('/dashboard/money');
 
   useEffect(() => {
     setIsMounted(true);
@@ -129,7 +134,10 @@ export function AppSidebarController({
       {/* Skeleton on first paint */}
       {!isMounted ? (
         <div
-          className="hidden lg:flex lg:flex-col h-full max-h-full shrink-0 bg-[#ececf1] pb-3"
+          className={cn(
+            "hidden lg:flex lg:flex-col h-full max-h-full shrink-0 pb-3",
+            isDarkVariant ? 'bg-[#111318]' : 'bg-[#ececf1]'
+          )}
           style={{ width: 64, zIndex: 45 }}
           role="navigation"
           aria-label="Navigatie (laden)"
@@ -150,7 +158,10 @@ export function AppSidebarController({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="hidden lg:flex lg:flex-col h-full max-h-full shrink-0 transition-all duration-300 ease-in-out relative bg-[#ececf1] pb-3"
+            className={cn(
+              "hidden lg:flex lg:flex-col h-full max-h-full shrink-0 transition-all duration-300 ease-in-out relative pb-3",
+              isDarkVariant ? 'bg-[#111318]' : 'bg-[#ececf1]'
+            )}
             style={{
               width: isHovered ? '200px' : '64px',
               zIndex: 45,
@@ -166,10 +177,11 @@ export function AppSidebarController({
                 <div key={`desktop-${group.label}`} className="mb-2">
                   {/* Group divider with label */}
                   <div className="flex items-center gap-2 px-3 mb-1 min-h-[24px]">
-                    <div className="w-4 h-0.5 bg-gray-300 rounded shrink-0" />
+                    <div className={cn("w-4 h-0.5 rounded shrink-0", isDarkVariant ? 'bg-slate-700' : 'bg-gray-300')} />
                     <span
                       className={cn(
-                        'text-[10px] font-bold uppercase tracking-wider text-gray-500 overflow-hidden whitespace-nowrap transition-opacity duration-500',
+                        'text-[10px] font-bold uppercase tracking-wider overflow-hidden whitespace-nowrap transition-opacity duration-500',
+                        isDarkVariant ? 'text-slate-500' : 'text-gray-500',
                         isHovered ? 'opacity-100' : 'opacity-0'
                       )}
                       style={{
@@ -200,16 +212,24 @@ export function AppSidebarController({
                           className={cn(
                             'group h-7 flex items-center rounded-lg px-3 py-1 text-sm font-medium relative',
                             isActive
-                              ? 'bg-white text-gray-900 font-medium shadow-sm'
-                              : 'text-gray-600 hover:bg-gray-300/70 hover:text-gray-900'
+                              ? isDarkVariant
+                                ? 'bg-[#135bec]/10 text-[#135bec] font-medium border-l-2 border-[#135bec]'
+                                : 'bg-white text-gray-900 font-medium shadow-sm'
+                              : isDarkVariant
+                                ? 'text-[#9da6b9] hover:bg-white/5 hover:text-white'
+                                : 'text-gray-600 hover:bg-gray-300/70 hover:text-gray-900'
                           )}
                         >
                           <Icon
                             className={cn(
                               'h-5 w-5 shrink-0',
                               isActive
-                                ? 'text-gray-700'
-                                : 'text-gray-500 group-hover:text-gray-700'
+                                ? isDarkVariant
+                                  ? 'text-[#135bec]'
+                                  : 'text-gray-700'
+                                : isDarkVariant
+                                  ? 'text-[#9da6b9] group-hover:text-white'
+                                  : 'text-gray-500 group-hover:text-gray-700'
                             )}
                           />
                           <span
