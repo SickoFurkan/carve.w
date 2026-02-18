@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart3, Dumbbell, Flame, Footprints } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 const RANKS = ['Legend', 'Master', 'Elite', 'Advanced', 'Intermediate', 'Beginner', 'Rookie'] as const;
 
@@ -154,7 +154,7 @@ export function ScoreboardCard() {
           <div className="mt-4 pt-3 border-t border-white/[0.08] grid grid-cols-3 text-center">
             <AnimatedStat icon={<Dumbbell className="w-3.5 h-3.5" />} value={current.workouts} label="Workouts" />
             <AnimatedStat icon={<Flame className="w-3.5 h-3.5" />} value={current.streak} label="Streak" />
-            <AnimatedStat icon={<Footprints className="w-3.5 h-3.5" />} value={current.steps} label="Steps" isString />
+            <AnimatedStat icon={<Footprints className="w-3.5 h-3.5" />} value={current.steps} label="Steps" />
           </div>
         </div>
 
@@ -181,14 +181,7 @@ export function ScoreboardCard() {
   );
 }
 
-interface AnimatedStatProps {
-  icon: React.ReactNode;
-  value: number | string;
-  label: string;
-  isString?: boolean;
-}
-
-function AnimatedStat({ icon, value, label, isString }: AnimatedStatProps) {
+function AnimatedStat({ icon, value, label }: { icon: React.ReactNode; value: number | string; label: string }) {
   return (
     <div className="space-y-0.5">
       <div className="flex items-center justify-center text-white/30">{icon}</div>
@@ -201,7 +194,7 @@ function AnimatedStat({ icon, value, label, isString }: AnimatedStatProps) {
           transition={{ duration: 0.3, ease: 'easeInOut' }}
           className="text-white font-bold text-lg"
         >
-          {isString ? value : value}
+          {value}
         </motion.p>
       </AnimatePresence>
       <p className="text-white/40 text-[11px]">{label}</p>

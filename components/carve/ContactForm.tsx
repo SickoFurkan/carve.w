@@ -64,16 +64,16 @@ export function ContactForm() {
   if (status === 'success') {
     return (
       <div className="text-center py-12">
-        <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+        <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+        <h3 className="text-2xl font-bold text-white mb-2">
           Thank You!
         </h3>
-        <p className="text-gray-600 mb-6">
+        <p className="text-white/50 mb-6">
           Your feedback has been received. We'll review it soon.
         </p>
         <button
           onClick={() => setStatus('idle')}
-          className="text-blue-600 hover:text-blue-700 font-medium"
+          className="text-white/50 hover:text-white font-medium transition-colors"
         >
           Submit another
         </button>
@@ -85,7 +85,7 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Name */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="name" className="block text-sm font-medium text-white/60 mb-2">
           Name
         </label>
         <input
@@ -95,14 +95,14 @@ export function ContactForm() {
           value={formData.name}
           onChange={handleChange}
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+          className="w-full bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 rounded-xl px-4 py-3 focus:ring-1 focus:ring-white/20 focus:border-white/20 transition-all outline-none"
           placeholder="Your name"
         />
       </div>
 
       {/* Email */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="email" className="block text-sm font-medium text-white/60 mb-2">
           Email
         </label>
         <input
@@ -112,14 +112,14 @@ export function ContactForm() {
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+          className="w-full bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 rounded-xl px-4 py-3 focus:ring-1 focus:ring-white/20 focus:border-white/20 transition-all outline-none"
           placeholder="your.email@example.com"
         />
       </div>
 
       {/* Type */}
       <div>
-        <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="type" className="block text-sm font-medium text-white/60 mb-2">
           Type
         </label>
         <select
@@ -128,7 +128,7 @@ export function ContactForm() {
           value={formData.type}
           onChange={handleChange}
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-white"
+          className="w-full bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 rounded-xl px-4 py-3 focus:ring-1 focus:ring-white/20 focus:border-white/20 transition-all outline-none appearance-none"
         >
           <option value="bug">Bug Report</option>
           <option value="feature">Feature Request</option>
@@ -139,7 +139,7 @@ export function ContactForm() {
 
       {/* Message */}
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="message" className="block text-sm font-medium text-white/60 mb-2">
           Message
         </label>
         <textarea
@@ -149,16 +149,16 @@ export function ContactForm() {
           onChange={handleChange}
           required
           rows={6}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all resize-none"
+          className="w-full bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 rounded-xl px-4 py-3 focus:ring-1 focus:ring-white/20 focus:border-white/20 transition-all outline-none resize-none"
           placeholder="Tell us more about your feedback..."
         />
       </div>
 
       {/* Error Message */}
       {status === 'error' && (
-        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-red-700">{errorMessage}</p>
+        <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-400">{errorMessage}</p>
         </div>
       )}
 
@@ -166,11 +166,11 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === 'submitting'}
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-8 py-4 rounded-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full bg-white text-black font-semibold px-8 py-4 rounded-xl hover:bg-white/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {status === 'submitting' ? (
           <>
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
             Submitting...
           </>
         ) : (

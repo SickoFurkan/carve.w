@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { Receipt, PiggyBank, TrendingUp } from 'lucide-react';
-import Link from 'next/link';
 import { MoneyCard } from '@/components/carve/MoneyCard';
+import { CarveFooter } from '@/components/carve/CarveFooter';
 import { ScrollReveal } from '@/components/ui/scroll-reveal';
 
 export default function CarveMoneyPage() {
@@ -115,19 +115,7 @@ export default function CarveMoneyPage() {
               <p className="text-white/30 text-sm">Coming Spring 2026</p>
             </div>
 
-            {/* Footer links */}
-            <div className="border-t border-white/[0.08] pt-8">
-              <div className="flex flex-wrap justify-center gap-6 text-sm text-white/30 mb-6">
-                <Link href="/carve/roadmap" className="hover:text-white/60 transition-colors">Roadmap</Link>
-                <Link href="/carve/vision" className="hover:text-white/60 transition-colors">Vision</Link>
-                <Link href="/carve/faq" className="hover:text-white/60 transition-colors">FAQ</Link>
-                <Link href="/privacy" className="hover:text-white/60 transition-colors">Privacy</Link>
-                <Link href="/terms" className="hover:text-white/60 transition-colors">Terms</Link>
-              </div>
-              <p className="text-white/20 text-xs">
-                celiker studio 2024 · amsterdam
-              </p>
-            </div>
+            <CarveFooter />
           </div>
         </ScrollReveal>
       </section>

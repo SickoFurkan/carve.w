@@ -14,7 +14,7 @@ export const loginNavigationGroups = [
   }
 ];
 
-// Full navigation for authenticated users
+// Full navigation for authenticated users (Health dashboard)
 export const dashboardNavigationGroups = [
   {
     label: 'OVERVIEW',
@@ -33,22 +33,22 @@ export const dashboardNavigationGroups = [
     icon: { name: 'ChartIcon' },
     items: [
       {
+        title: "Workouts",
+        href: "/dashboard/workouts",
+        icon: { name: 'DumbbellIcon' },
+        description: "Workout history & analytics"
+      },
+      {
         title: "Food",
         href: "/dashboard/food",
         icon: { name: 'AppleIcon' },
         description: "Nutrition tracking"
       },
       {
-        title: "Workouts",
-        href: "/dashboard/workouts",
-        icon: { name: 'DumbbellIcon' },
-        description: "Workout analytics"
-      },
-      {
-        title: "Highscores",
-        href: "/dashboard/highscores",
-        icon: { name: 'ActivityIcon' },
-        description: "PR's & leaderboards"
+        title: "Social",
+        href: "/dashboard/social",
+        icon: { name: 'UsersIcon' },
+        description: "Friends & activity feed"
       }
     ]
   },
@@ -56,12 +56,6 @@ export const dashboardNavigationGroups = [
     label: 'ACCOUNT',
     icon: { name: 'UserIcon' },
     items: [
-      {
-        title: "Profile",
-        href: "/dashboard/profile",
-        icon: { name: 'UserIcon' },
-        description: "Your profile"
-      },
       {
         title: "Settings",
         href: "/dashboard/settings",

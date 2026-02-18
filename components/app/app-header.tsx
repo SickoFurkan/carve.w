@@ -1,16 +1,14 @@
 "use client";
 
-import { Search, Settings, User, LogOut } from 'lucide-react';
+import { Settings, User, LogOut, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { LanguageSwitcher } from '@/components/language-switcher';
-import { useTranslations } from 'next-intl';
 
 interface AppHeaderProps {
   className?: string;
@@ -19,9 +17,9 @@ interface AppHeaderProps {
   userName?: string;
   userAvatar?: string;
   userRole?: string;
+  transparent?: boolean;
 }
 
-// Strip locale prefix for route matching
 const LOCALES = ['en', 'nl', 'de', 'fr', 'es'];
 function stripLocale(pathname: string): string {
   const segments = pathname.split('/').filter(Boolean);
@@ -31,6 +29,19 @@ function stripLocale(pathname: string): string {
   return pathname;
 }
 
+// Nav items: marketing pages link to /carve/*, app pages link to /dashboard/*
+const APP_NAV = [
+  { label: 'Health', href: '/dashboard' },
+  { label: 'Money', href: '/dashboard/money' },
+  { label: 'Wiki', href: '/' },
+] as const;
+
+const MARKETING_NAV = [
+  { label: 'Health', href: '/carve/health' },
+  { label: 'Money', href: '/carve/money' },
+  { label: 'Wiki', href: '/' },
+] as const;
+
 export function AppHeader({
   className,
   isAuthenticated = false,
@@ -38,13 +49,16 @@ export function AppHeader({
   userName,
   userAvatar,
   userRole,
+  transparent = false,
 }: AppHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const t = useTranslations('nav');
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isDark = stripLocale(pathname).startsWith('/dashboard/money');
+  const path = stripLocale(pathname);
+  const isMarketing = path === '/carve' || path.startsWith('/carve/');
+  const navItems = isMarketing ? MARKETING_NAV : APP_NAV;
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -54,225 +68,219 @@ export function AppHeader({
     setIsDropdownOpen(false);
   };
 
-  // Get initials from name or email
   const getInitials = () => {
-    if (userName) {
-      return userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    }
-    if (userEmail) {
-      return userEmail.slice(0, 2).toUpperCase();
-    }
+    if (userName) return userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (userEmail) return userEmail.slice(0, 2).toUpperCase();
     return 'U';
   };
 
-  // Feature flags
-  const showHiscores = process.env.NEXT_PUBLIC_FEATURE_HISCORES === 'true';
-
-  const navItems = [
-    { label: t('wiki'), href: '/' },
-    ...(showHiscores ? [{ label: t('hiscores'), href: '/hiscores' }] : []),
-    { label: t('carve'), href: '/carve', showIcon: true },
-  ];
+  const isActive = (href: string) => {
+    const itemPath = stripLocale(href);
+    if (itemPath === '/') return path === '/' || path.startsWith('/wiki');
+    if (itemPath === '/dashboard') return path === '/dashboard' || (path.startsWith('/dashboard') && !path.startsWith('/dashboard/money'));
+    return path === itemPath || path.startsWith(itemPath);
+  };
 
   return (
-    <header
-      className={cn(
-        'flex items-center h-16 px-4',
-        isDark ? 'bg-[#111318] text-white' : 'bg-[#ececf1] text-gray-900',
-        'w-full',
-        className
-      )}
-      role="banner"
-      aria-label="Carve Wiki header"
-    >
-      {/* 1. Logo Section - Fixed width */}
-      <div className="flex items-center w-[200px]">
-        <Link href="/" className="flex items-center">
-          <Image
-            src="/carvewikilogo.png"
-            alt="Carve Wiki logo"
-            width={56}
-            height={28}
-            className="object-contain"
-            priority
-          />
-        </Link>
-      </div>
-
-      {/* 2. Navigation Section - takes remaining space, centers content */}
-      <nav className="flex-1 flex items-center justify-center pl-12">
-        <div className="flex items-center gap-8">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'text-sm font-medium transition-colors relative py-2 flex items-center gap-2',
-                  isActive
-                    ? isDark ? 'text-white opacity-100' : 'text-gray-900 opacity-100'
-                    : isDark ? 'text-white opacity-60 hover:opacity-100' : 'text-gray-900 opacity-60 hover:opacity-100'
-                )}
-              >
-                {item.label}
-                {item.showIcon && (
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                  </svg>
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* 3. User Actions Section - Fixed width */}
-      <div className="flex items-center gap-3 justify-end w-[200px]">
-        {/* Search Button */}
-        <button
-          type="button"
-          className={cn(
-            "h-9 w-9 flex items-center justify-center opacity-60 hover:opacity-100 transition-all",
-            isDark ? "text-white" : "text-gray-900"
-          )}
-        >
-          <Search className="h-4 w-4" />
-          <span className="sr-only">Zoeken</span>
-        </button>
-
-        {/* Language */}
-        <LanguageSwitcher />
-
-        {/* User Menu */}
-        {isAuthenticated ? (
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-9 w-9 rounded-full"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+    <>
+      <header
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50',
+          !transparent && 'bg-[#0c0e14]',
+          className
+        )}
+        role="banner"
+      >
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link
+              href="/carve"
+              className="text-white font-bold text-lg tracking-[0.2em] hover:text-white/80 transition-colors"
             >
-              {userAvatar && (userAvatar.startsWith('/') || userAvatar.startsWith('http')) ? (
-                <Image
-                  src={userAvatar}
-                  alt={userName || 'User'}
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className={cn(
-                  "h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium",
-                  isDark ? "bg-slate-700 text-white" : "bg-gray-200 text-gray-700"
-                )}>
-                  {getInitials()}
-                </div>
-              )}
-            </Button>
+              CARVE
+            </Link>
 
-            {/* Dropdown */}
-            {isDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsDropdownOpen(false)}
-                />
-                <div className={cn(
-                  "absolute right-0 mt-2 w-56 rounded-md shadow-lg py-1 z-50",
-                  isDark ? "bg-[#1c1f27] border border-white/10" : "bg-white border border-gray-200"
-                )}>
-                  {/* User info */}
-                  <div className={cn("px-2 py-1.5 border-b", isDark ? "border-white/10" : "border-gray-100")}>
-                    <p className={cn("text-sm font-medium leading-none", isDark ? "text-white" : "text-gray-900")}>
-                      {userName || 'User'}
-                    </p>
-                    <p className={cn("text-xs leading-none mt-1", isDark ? "text-[#9da6b9]" : "text-gray-500")}>
-                      {userEmail}
-                    </p>
-                  </div>
+            {/* Desktop nav */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'relative px-4 py-2 text-sm font-medium transition-colors',
+                    isActive(item.href)
+                      ? 'text-white'
+                      : 'text-white/40 hover:text-white/70'
+                  )}
+                >
+                  {item.label}
+                  {isActive(item.href) && (
+                    <motion.div
+                      layoutId="header-indicator"
+                      className="absolute bottom-0 left-4 right-4 h-px bg-white/50"
+                      transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                    />
+                  )}
+                </Link>
+              ))}
+            </nav>
 
-                  {/* Menu items */}
-                  <div className="py-1">
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setIsDropdownOpen(false)}
-                      className={cn(
-                        "flex items-center px-2 py-1.5 text-sm cursor-pointer",
-                        isDark ? "text-[#9da6b9] hover:bg-white/5 hover:text-white" : "text-gray-700 hover:bg-gray-100"
-                      )}
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      {t('dashboard')}
-                    </Link>
-                    <Link
-                      href="/dashboard/settings"
-                      onClick={() => setIsDropdownOpen(false)}
-                      className={cn(
-                        "flex items-center px-2 py-1.5 text-sm cursor-pointer",
-                        isDark ? "text-[#9da6b9] hover:bg-white/5 hover:text-white" : "text-gray-700 hover:bg-gray-100"
-                      )}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      {t('settings')}
-                    </Link>
-                  </div>
+            {/* Right side - Desktop */}
+            <div className="hidden md:flex items-center">
+              {isAuthenticated ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 transition-colors"
+                  >
+                    {userAvatar && (userAvatar.startsWith('/') || userAvatar.startsWith('http')) ? (
+                      <Image
+                        src={userAvatar}
+                        alt={userName || 'User'}
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-[10px] font-semibold text-white">
+                        {getInitials()}
+                      </div>
+                    )}
+                  </button>
 
-                  {/* Admin link */}
-                  {userRole === 'admin' && (
+                  {isDropdownOpen && (
                     <>
-                      <div className={cn("border-t", isDark ? "border-white/10" : "border-gray-100")} />
-                      <Link
-                        href="/admin"
+                      <div
+                        className="fixed inset-0 z-40"
                         onClick={() => setIsDropdownOpen(false)}
-                        className={cn(
-                          "flex items-center px-2 py-1.5 text-sm cursor-pointer",
-                          isDark ? "text-purple-400 hover:bg-purple-500/10" : "text-purple-700 hover:bg-purple-50"
+                      />
+                      <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-2xl py-1 z-50 bg-[#1a1d25] border border-white/[0.08]">
+                        <div className="px-3 py-2.5 border-b border-white/[0.06]">
+                          <p className="text-sm font-medium text-white leading-none">
+                            {userName || 'User'}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1 leading-none">
+                            {userEmail}
+                          </p>
+                        </div>
+
+                        <div className="py-1">
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center px-3 py-2 text-sm text-slate-400 hover:bg-white/[0.04] hover:text-white transition-colors"
+                          >
+                            <User className="mr-2.5 h-4 w-4" />
+                            Dashboard
+                          </Link>
+                          <Link
+                            href="/dashboard/settings"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center px-3 py-2 text-sm text-slate-400 hover:bg-white/[0.04] hover:text-white transition-colors"
+                          >
+                            <Settings className="mr-2.5 h-4 w-4" />
+                            Settings
+                          </Link>
+                        </div>
+
+                        {userRole === 'admin' && (
+                          <>
+                            <div className="border-t border-white/[0.06]" />
+                            <Link
+                              href="/admin"
+                              onClick={() => setIsDropdownOpen(false)}
+                              className="flex items-center px-3 py-2 text-sm text-purple-400 hover:bg-purple-500/10 transition-colors"
+                            >
+                              <svg className="mr-2.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                              Admin
+                            </Link>
+                          </>
                         )}
-                      >
-                        <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                        Admin
-                      </Link>
+
+                        <div className="border-t border-white/[0.06]" />
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center w-full px-3 py-2 text-sm text-slate-400 hover:bg-white/[0.04] hover:text-white transition-colors"
+                        >
+                          <LogOut className="mr-2.5 h-4 w-4" />
+                          Logout
+                        </button>
+                      </div>
                     </>
                   )}
-
-                  {/* Logout */}
-                  <div className={cn("border-t", isDark ? "border-white/10" : "border-gray-100")} />
-                  <button
-                    onClick={handleLogout}
-                    className={cn(
-                      "flex items-center w-full px-2 py-1.5 text-sm cursor-pointer",
-                      isDark ? "text-[#9da6b9] hover:bg-white/5 hover:text-white" : "text-gray-700 hover:bg-gray-100"
-                    )}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {t('logout')}
-                  </button>
                 </div>
-              </>
-            )}
+              ) : (
+                <Link
+                  href="/dashboard/login"
+                  className="text-sm font-medium text-white/40 hover:text-white/70 transition-colors px-4 py-2"
+                >
+                  Log in
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden text-white/60 hover:text-white transition-colors p-2"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
-        ) : (
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium rounded-md bg-black text-white hover:bg-gray-800 transition-colors"
+        </div>
+      </header>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl pt-20 px-6"
           >
-            {t('dashboard')}
-          </Link>
+            <nav className="flex flex-col gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    'text-2xl font-medium py-3 transition-colors',
+                    isActive(item.href) ? 'text-white' : 'text-white/30'
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <div className="border-t border-white/[0.08] mt-4 pt-4">
+                {isAuthenticated ? (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-lg text-white/40"
+                  >
+                    Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    href="/dashboard/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-lg text-white/40"
+                  >
+                    Log in
+                  </Link>
+                )}
+              </div>
+            </nav>
+          </motion.div>
         )}
-      </div>
-    </header>
+      </AnimatePresence>
+    </>
   );
 }

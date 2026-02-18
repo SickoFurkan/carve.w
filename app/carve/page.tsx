@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Dumbbell, Wallet, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/ui/scroll-reveal';
+import { CarveFooter } from '@/components/carve/CarveFooter';
 
 const products = [
   {
@@ -81,11 +82,13 @@ export default function CarvePage() {
       </section>
 
       {/* Footer */}
-      <footer className="pb-10 text-center">
-        <p className="text-white/20 text-xs">
-          celiker studio 2024 · amsterdam
-        </p>
-      </footer>
+      <section className="py-24 md:py-32 px-6">
+        <ScrollReveal animation="fade-up">
+          <div className="text-center">
+            <CarveFooter />
+          </div>
+        </ScrollReveal>
+      </section>
     </div>
   );
 }

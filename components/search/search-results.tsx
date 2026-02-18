@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from 'next-intl';
 import type { SearchResult } from "@/types/search";
 
 type SearchResultsProps = {
@@ -11,7 +10,6 @@ type SearchResultsProps = {
 };
 
 export function SearchResults({ results, isLoading, query }: SearchResultsProps) {
-  const t = useTranslations('search');
   if (isLoading) {
     return (
       <div className="p-4">
@@ -26,7 +24,7 @@ export function SearchResults({ results, isLoading, query }: SearchResultsProps)
   if (query && results.length === 0) {
     return (
       <div className="p-4 text-center text-gray-500">
-        {t('noResults', { query })}
+        No results for &ldquo;{query}&rdquo;
       </div>
     );
   }
@@ -41,7 +39,7 @@ export function SearchResults({ results, isLoading, query }: SearchResultsProps)
       {wikiResults.length > 0 && (
         <div className="mb-2">
           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-            📚 {t('wikiArticles')} ({wikiResults.length})
+            Wiki Articles ({wikiResults.length})
           </div>
           {wikiResults.map((result) => (
             <Link
@@ -61,7 +59,7 @@ export function SearchResults({ results, isLoading, query }: SearchResultsProps)
       {userResults.length > 0 && (
         <div className="mb-2">
           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-            👤 {t('users')} ({userResults.length})
+            Users ({userResults.length})
           </div>
           {userResults.map((result) => (
             <Link
@@ -78,13 +76,13 @@ export function SearchResults({ results, isLoading, query }: SearchResultsProps)
       {hiscoreResults.length > 0 && (
         <div className="mb-2">
           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-            🏆 Hiscores
+            Hiscores
           </div>
           <Link
             href="/hiscores"
             className="block px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-blue-600"
           >
-            {t('viewAllHiscores')} →
+            View all in Hiscores &rarr;
           </Link>
         </div>
       )}

@@ -31,19 +31,8 @@ type NavigationGroup = {
   items: NavigationItem[];
 };
 
-// Supported locales - strip these from pathname for route matching
-const LOCALES = ['en', 'nl', 'de', 'fr', 'es'];
-
-function stripLocale(pathname: string): string {
-  const segments = pathname.split('/').filter(Boolean);
-  if (segments.length > 0 && LOCALES.includes(segments[0])) {
-    return '/' + segments.slice(1).join('/') || '/';
-  }
-  return pathname;
-}
-
 function getSidebarGroups(pathname: string, isAuthenticated: boolean, userRole?: string): NavigationGroup[] | null {
-  const path = stripLocale(pathname);
+  const path = pathname;
 
   if (path === '/' || path.startsWith('/wiki')) {
     return wikiNavigationGroups as NavigationGroup[];
@@ -91,8 +80,7 @@ export function AppSidebarController({
 
   const groups = getSidebarGroups(pathname, isAuthenticated, userRole);
   const safeGroups = groups || [];
-  const path = stripLocale(pathname);
-  const isDarkVariant = path.startsWith('/dashboard/money');
+  const isDarkVariant = true; // Always dark
 
   useEffect(() => {
     setIsMounted(true);
@@ -136,7 +124,7 @@ export function AppSidebarController({
         <div
           className={cn(
             "hidden lg:flex lg:flex-col h-full max-h-full shrink-0 pb-3",
-            isDarkVariant ? 'bg-[#111318]' : 'bg-[#ececf1]'
+            'bg-[#0c0e14]'
           )}
           style={{ width: 64, zIndex: 45 }}
           role="navigation"
@@ -145,7 +133,7 @@ export function AppSidebarController({
           <nav className="flex-1 px-2 overflow-y-auto scrollbar-thin-auto-hide">
             <div className="mt-2 animate-pulse space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={`skeleton-${i}`} className="h-7 rounded-lg bg-gray-300/70" />
+                <div key={`skeleton-${i}`} className={cn("h-7 rounded-lg", isDarkVariant ? "bg-white/5" : "bg-gray-300/70")} />
               ))}
             </div>
           </nav>
@@ -160,7 +148,7 @@ export function AppSidebarController({
             transition={{ duration: 0.2 }}
             className={cn(
               "hidden lg:flex lg:flex-col h-full max-h-full shrink-0 transition-all duration-300 ease-in-out relative pb-3",
-              isDarkVariant ? 'bg-[#111318]' : 'bg-[#ececf1]'
+              'bg-[#0c0e14]'
             )}
             style={{
               width: isHovered ? '200px' : '64px',
@@ -197,8 +185,8 @@ export function AppSidebarController({
                   {/* Group items */}
                   {group.items.map((item, itemIndex) => {
                     const isActive =
-                      path === item.href ||
-                      (item.href !== '/' && path.startsWith(item.href));
+                      pathname === item.href ||
+                      (item.href !== '/' && pathname.startsWith(item.href + '/'));
 
                     const iconName = item.icon?.name || 'HomeIcon';
                     const Icon = iconMap[iconName] || iconMap['HomeIcon'];

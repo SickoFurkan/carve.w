@@ -10,22 +10,16 @@ interface AppShellProps {
   hasGlobalHeader?: boolean;
   headerHeight?: number;
   disablePageScroll?: boolean;
+  isDark?: boolean;
 }
 
-/**
- * App Shell Component
- *
- * Provides the main layout container with:
- * - Responsive design
- * - Optional page scroll disable
- * - Consistent styling
- */
 export function AppShell({
   children,
   className,
   hasGlobalHeader = false,
-  headerHeight = 64,
+  headerHeight = 56,
   disablePageScroll = true,
+  isDark = false,
 }: AppShellProps) {
   React.useEffect(() => {
     if (disablePageScroll) {
@@ -48,8 +42,7 @@ export function AppShell({
     <div
       className={cn(
         "flex flex-col w-full h-full overflow-hidden",
-        "bg-[#ececf1] text-gray-900",
-        "rounded-lg",
+        "bg-[#0c0e14] text-white",
         "relative z-10",
         className
       )}
@@ -61,9 +54,6 @@ export function AppShell({
   );
 }
 
-/**
- * App Body Component (Sidebar + Content area)
- */
 interface AppBodyProps {
   children: ReactNode;
   className?: string;
@@ -85,14 +75,12 @@ export function AppBody({
   );
 }
 
-/**
- * App Content Area Component
- */
 interface AppContentProps {
   children: ReactNode;
   className?: string;
   padded?: boolean;
   useFixedHeight?: boolean;
+  isDark?: boolean;
 }
 
 export function AppContent({
@@ -100,6 +88,7 @@ export function AppContent({
   className,
   padded = true,
   useFixedHeight = true,
+  isDark = false,
 }: AppContentProps) {
   return (
     <main
@@ -108,12 +97,8 @@ export function AppContent({
         useFixedHeight
           ? "h-full overflow-y-auto scrollbar-auto-hide"
           : "min-h-full",
-        // Always keep rounded corners and border for consistent look
-        "rounded-xl border border-gray-300",
-        "shadow-sm",
-        "overflow-hidden", // Clip content to rounded corners
-        // Only show white background when padded
-        padded && "bg-white text-gray-900",
+        "bg-[#111318] text-white rounded-tl-xl",
+        "overflow-hidden",
         "m-0",
         className
       )}
@@ -121,14 +106,7 @@ export function AppContent({
       aria-label="Main content area"
     >
       <section
-        className={cn(
-          padded ? "max-w-6xl mx-auto w-full" : "w-full h-full",
-          padded && "px-2 sm:px-3 lg:px-3 xl:px-4",
-          padded && "pt-8 pb-8",
-          "flex flex-col flex-1 min-h-0",
-          // Make children stretch to fill when edge-to-edge
-          !padded && "[&>*]:flex-1 [&>*]:w-full"
-        )}
+        className="w-full h-full flex flex-col flex-1 min-h-0 [&>*]:flex-1 [&>*]:w-full"
       >
         {children}
       </section>
@@ -136,9 +114,6 @@ export function AppContent({
   );
 }
 
-/**
- * App Page Container
- */
 interface AppPageProps {
   children: ReactNode;
   className?: string;

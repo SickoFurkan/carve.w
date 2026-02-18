@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { LayoutWrapper } from '@/components/app/layout-wrapper';
+import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,15 +19,27 @@ export const metadata: Metadata = {
   description: "Evidence-based information on nutrition, fitness, and health. Track your progress with personalized dashboards.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let profile = null;
+  if (user) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    profile = data;
+  }
+
   return (
     <html lang="en">
       <head>
-        {/* Plausible Analytics - Privacy-first, no cookies */}
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
           <script
             defer
@@ -37,7 +51,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#ececf1]`}
       >
-        {children}
+        <LayoutWrapper
+          isAuthenticated={!!user}
+          userEmail={user?.email}
+          userName={profile?.display_name || profile?.username || undefined}
+          userAvatar={profile?.avatar_image_url || undefined}
+          userRole={profile?.role || undefined}
+        >
+          {children}
+        </LayoutWrapper>
       </body>
     </html>
   );

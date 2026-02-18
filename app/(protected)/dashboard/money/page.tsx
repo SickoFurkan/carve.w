@@ -7,6 +7,7 @@ import {
   sampleSubscriptions,
   CATEGORY_CONFIG,
 } from "@/components/money/sample-data"
+import { SubscriptionTimeline } from "@/components/money/widgets/SubscriptionTimeline"
 
 export default function MoneyPage() {
   const { totalSpend, changePercent, highestCategory, highestCategoryPercent } =
@@ -32,7 +33,6 @@ export default function MoneyPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total Spend This Month */}
         <MoneyCard>
           <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">
             Total Spend This Month
@@ -43,7 +43,6 @@ export default function MoneyPage() {
           <ChangeBadge value={changePercent} className="mt-2" />
         </MoneyCard>
 
-        {/* Monthly Subscriptions */}
         <MoneyCard>
           <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">
             Monthly Subscriptions
@@ -59,7 +58,6 @@ export default function MoneyPage() {
           </p>
         </MoneyCard>
 
-        {/* Top Category */}
         <MoneyCard>
           <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">
             Top Category
@@ -71,6 +69,22 @@ export default function MoneyPage() {
             {highestCategoryPercent}% of spending
           </p>
         </MoneyCard>
+      </div>
+
+      {/* Upcoming payments timeline */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">Upcoming Payments</h2>
+          <Link
+            href="/dashboard/money/subscriptions"
+            className="text-sm text-slate-400 hover:text-white transition-colors"
+          >
+            View all
+          </Link>
+        </div>
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden" style={{ height: '340px' }}>
+          <SubscriptionTimeline subscriptions={sampleSubscriptions} />
+        </div>
       </div>
 
       {/* Quick link cards */}

@@ -16,6 +16,15 @@ interface LayoutWrapperProps {
   userRole?: string
 }
 
+const LOCALES = ['en', 'nl', 'de', 'fr', 'es'];
+function stripLocale(pathname: string): string {
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length > 0 && LOCALES.includes(segments[0])) {
+    return '/' + segments.slice(1).join('/') || '/';
+  }
+  return pathname;
+}
+
 export function LayoutWrapper({
   children,
   isAuthenticated,
@@ -25,24 +34,27 @@ export function LayoutWrapper({
   userRole,
 }: LayoutWrapperProps) {
   const pathname = usePathname()
+  const path = stripLocale(pathname || '')
 
-  // Check if this is an auth route (login, signup, etc.) - exclude /dashboard/login
+  // Auth routes (login, signup) get no app chrome - exclude /dashboard/login
   const isAuthRoute = (pathname?.includes('/login') || pathname?.includes('/signup') || pathname?.includes('/forgot-password'))
     && !pathname?.includes('/dashboard/login')
 
-  // Marketing pages render without app shell (no header, sidebar, border)
-  const strippedPath = pathname?.replace(/^\/(nl|en|de|fr|es)/, '') || ''
+  // Marketing pages render with their own header (no sidebar)
   const isMarketingRoute =
-    strippedPath === '/carve' ||
-    strippedPath === '/carve/health' ||
-    strippedPath === '/carve/money'
+    path === '/carve' ||
+    path === '/carve/health' ||
+    path === '/carve/money' ||
+    path === '/carve/roadmap' ||
+    path === '/carve/vision' ||
+    path === '/carve/faq' ||
+    path === '/carve/developer' ||
+    path === '/carve/contributing'
 
-  // Auth routes get minimal layout (no app chrome)
   if (isAuthRoute) {
     return <>{children}</>
   }
 
-  // Marketing routes: full viewport, own header, no app chrome
   if (isMarketingRoute) {
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -52,20 +64,10 @@ export function LayoutWrapper({
     )
   }
 
-  // Check if route should have edge-to-edge content (no padding)
-  // Use includes() to handle locale prefixes like /nl/carve, /en/wiki, etc.
-  const isEdgeToEdgeRoute =
-    pathname === '/' ||
-    pathname?.includes('/wiki') ||
-    pathname?.includes('/admin') ||
-    pathname?.includes('/carve') ||
-    pathname?.includes('/dashboard/money')
-
-  const isMoneyRoute = pathname?.includes('/dashboard/money')
-
+  // Everything uses dark theme now — consistent across wiki and dashboard
   return (
-    <div className={cn("min-h-screen", isMoneyRoute ? "bg-[#111318]" : "bg-[#ececf1]")}>
-      {/* Fixed header at top */}
+    <div className="min-h-screen bg-[#0c0e14]">
+      {/* Fixed header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <AppHeader
           isAuthenticated={isAuthenticated}
@@ -76,17 +78,15 @@ export function LayoutWrapper({
         />
       </div>
 
-      {/* Shell wrapper - flush left, spacing on right/bottom */}
-      <div className="fixed top-16 left-0 right-2 bottom-2 md:right-2 md:bottom-2 lg:right-3 lg:bottom-3">
-        <AppShell hasGlobalHeader headerHeight={64} disablePageScroll={true}>
+      {/* Shell wrapper — edge-to-edge, no margins */}
+      <div className="fixed top-16 left-0 right-0 bottom-0">
+        <AppShell hasGlobalHeader headerHeight={64} disablePageScroll={true} isDark>
           <AppBody>
-            {/* Sidebar controller */}
             <AppSidebarController
               isAuthenticated={isAuthenticated}
               userRole={userRole}
             />
-            {/* Main content */}
-            <AppContent padded={!isEdgeToEdgeRoute} useFixedHeight={true}>
+            <AppContent padded={false} useFixedHeight={true} isDark>
               {children}
             </AppContent>
           </AppBody>
