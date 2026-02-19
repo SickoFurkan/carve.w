@@ -119,7 +119,7 @@ export function SearchBar() {
     const parts = text.split(new RegExp(`(${query})`, 'gi'));
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
-        <mark key={i} className="bg-yellow-200 text-zinc-900">
+        <mark key={i} className="bg-amber-500/30 text-white">
           {part}
         </mark>
       ) : (
@@ -132,7 +132,7 @@ export function SearchBar() {
     <div ref={searchRef} className="relative w-full max-w-2xl mx-auto">
       {/* Search Input */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
         <input
           ref={inputRef}
           type="text"
@@ -141,30 +141,30 @@ export function SearchBar() {
           onKeyDown={handleKeyDown}
           onFocus={() => query.length >= 2 && setShowResults(true)}
           placeholder="Zoek artikelen over fitness, voeding, training..."
-          className="w-full pl-12 pr-12 py-4 bg-white rounded-lg shadow-md border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg transition-all"
+          className="w-full pl-12 pr-12 py-4 bg-[rgba(28,31,39,0.7)] backdrop-blur-xl rounded-xl border border-white/[0.08] focus:outline-none focus:border-white/20 text-white text-lg placeholder:text-white/30 transition-all"
         />
         {query && (
           <button
             onClick={clearSearch}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-zinc-100 rounded-full transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/[0.08] rounded-full transition-colors"
             aria-label="Clear search"
           >
-            <X className="w-5 h-5 text-zinc-400" />
+            <X className="w-5 h-5 text-white/30" />
           </button>
         )}
       </div>
 
       {/* Search Results Dropdown */}
       {showResults && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-zinc-200 max-h-[70vh] overflow-y-auto z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[rgba(28,31,39,0.95)] backdrop-blur-xl rounded-xl border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5)] max-h-[70vh] overflow-y-auto z-50">
           {isSearching ? (
-            <div className="p-8 text-center text-zinc-500">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900"></div>
+            <div className="p-8 text-center text-white/40">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white/50"></div>
               <p className="mt-2">Zoeken...</p>
             </div>
           ) : results.length > 0 ? (
             <>
-              <div className="p-3 border-b border-zinc-100 text-xs text-zinc-500">
+              <div className="p-3 border-b border-white/[0.06] text-xs text-white/30">
                 {results.length} resultaten gevonden
               </div>
               <ul>
@@ -172,8 +172,8 @@ export function SearchBar() {
                   <li key={result.slug}>
                     <button
                       onClick={() => navigateToArticle(result)}
-                      className={`w-full text-left p-4 hover:bg-zinc-50 transition-colors border-b border-zinc-100 last:border-b-0 ${
-                        index === selectedIndex ? 'bg-zinc-50' : ''
+                      className={`w-full text-left p-4 hover:bg-white/[0.04] transition-colors border-b border-white/[0.06] last:border-b-0 ${
+                        index === selectedIndex ? 'bg-white/[0.06]' : ''
                       }`}
                     >
                       {/* Evidence Rating */}
@@ -182,12 +182,12 @@ export function SearchBar() {
                       </div>
 
                       {/* Title */}
-                      <h3 className="font-semibold text-zinc-900 mb-1">
+                      <h3 className="font-semibold text-white mb-1">
                         {highlightMatch(result.title, query)}
                       </h3>
 
                       {/* Category */}
-                      <div className="text-xs text-zinc-500 mb-2">
+                      <div className="text-xs text-white/40 mb-2">
                         {result.category.split('-').map(word =>
                           word.charAt(0).toUpperCase() + word.slice(1)
                         ).join(' ')}
@@ -195,7 +195,7 @@ export function SearchBar() {
 
                       {/* Summary */}
                       {result.summary && (
-                        <p className="text-sm text-zinc-600 line-clamp-2 mb-2">
+                        <p className="text-sm text-white/50 line-clamp-2 mb-2">
                           {result.summary}
                         </p>
                       )}
@@ -206,7 +206,7 @@ export function SearchBar() {
                           {result.tags.slice(0, 3).map((tag) => (
                             <span
                               key={tag}
-                              className="px-2 py-0.5 bg-zinc-100 text-zinc-600 rounded text-xs"
+                              className="px-2 py-0.5 bg-white/[0.04] border border-white/[0.08] text-white/60 rounded text-xs"
                             >
                               {tag}
                             </span>
@@ -219,7 +219,7 @@ export function SearchBar() {
               </ul>
             </>
           ) : query.length >= 2 ? (
-            <div className="p-8 text-center text-zinc-500">
+            <div className="p-8 text-center text-white/50">
               <p className="mb-2">Geen resultaten gevonden voor "{query}"</p>
               <p className="text-sm">Probeer andere zoektermen</p>
             </div>
