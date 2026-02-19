@@ -49,7 +49,7 @@ export default async function RootLayout({
         )}
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#ececf1]`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0A0A0B]`}
       >
         <LayoutWrapper
           isAuthenticated={!!user}
