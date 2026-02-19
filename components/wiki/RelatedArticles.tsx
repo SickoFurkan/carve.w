@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { getCategoryColor } from '@/lib/wiki/category-colors';
 
 interface RelatedArticlesProps {
   currentSlug: string;
@@ -25,19 +26,19 @@ export async function RelatedArticles({ currentSlug, category }: RelatedArticles
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-zinc-900 mb-6">Related Articles</h2>
+      <h2 className="text-2xl font-bold text-white mb-6">Related Articles</h2>
       <div className="grid gap-4">
         {articles.map((article) => (
           <Link
             key={article.slug}
             href={`/wiki/${article.category}/${article.slug}`}
-            className="block p-4 bg-zinc-50 rounded-lg hover:bg-zinc-100 transition-colors"
+            className="block p-4 bg-[rgba(28,31,39,0.7)] backdrop-blur-xl border border-white/[0.08] rounded-xl hover:bg-white/[0.06] hover:-translate-y-0.5 transition-all"
           >
-            <h3 className="font-semibold text-zinc-900 mb-2">
+            <h3 className="font-semibold text-white mb-2">
               {article.title}
             </h3>
             {article.summary && (
-              <p className="text-sm text-zinc-600 line-clamp-2">
+              <p className="text-sm text-white/50 line-clamp-2">
                 {article.summary}
               </p>
             )}
