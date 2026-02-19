@@ -51,6 +51,9 @@ export function LayoutWrapper({
     path === '/carve/developer' ||
     path === '/carve/contributing'
 
+  // Wiki pages render with header but no sidebar — full-width scrollable
+  const isWikiRoute = path === '/' || path.startsWith('/wiki')
+
   if (isAuthRoute) {
     return <>{children}</>
   }
@@ -64,7 +67,29 @@ export function LayoutWrapper({
     )
   }
 
-  // Everything uses dark theme now — consistent across wiki and dashboard
+  if (isWikiRoute) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0B]">
+        {/* Fixed header */}
+        <div className="fixed top-0 left-0 right-0 z-50">
+          <AppHeader
+            isAuthenticated={isAuthenticated}
+            userEmail={userEmail}
+            userName={userName}
+            userAvatar={userAvatar}
+            userRole={userRole}
+          />
+        </div>
+
+        {/* Full-width scrollable content — no sidebar, no fixed shell */}
+        <div className="pt-16">
+          {children}
+        </div>
+      </div>
+    )
+  }
+
+  // Dashboard and other routes use sidebar shell
   return (
     <div className="min-h-screen bg-[#0c0e14]">
       {/* Fixed header */}

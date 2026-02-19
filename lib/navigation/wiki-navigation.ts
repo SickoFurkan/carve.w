@@ -16,22 +16,34 @@ export const wikiNavigationGroups = [
         description: "Diet & meal planning"
       },
       {
-        title: "Fitness",
-        href: "/wiki/fitness",
+        title: "Exercise Science",
+        href: "/wiki/exercise-science",
         icon: { name: 'DumbbellIcon' },
-        description: "Workouts & training"
+        description: "Biomechanics & training science"
       },
       {
-        title: "Health",
-        href: "/wiki/health",
-        icon: { name: 'HeartIcon' },
-        description: "Wellness & recovery"
-      },
-      {
-        title: "Science",
-        href: "/wiki/science",
+        title: "Physiology",
+        href: "/wiki/physiology",
         icon: { name: 'BeakerIcon' },
-        description: "Research & studies"
+        description: "Energy systems & recovery"
+      },
+      {
+        title: "Training Methods",
+        href: "/wiki/training-methods",
+        icon: { name: 'DumbbellIcon' },
+        description: "Programming & methods"
+      },
+      {
+        title: "Psychology",
+        href: "/wiki/psychology",
+        icon: { name: 'BrainIcon' },
+        description: "Motivation & mindset"
+      },
+      {
+        title: "Injury & Health",
+        href: "/wiki/injury-health",
+        icon: { name: 'HeartIcon' },
+        description: "Prevention & recovery"
       }
     ]
   }
