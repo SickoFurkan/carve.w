@@ -36,7 +36,7 @@ export default function AnalyticsPage() {
       <div className="space-y-4 mb-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-[#135bec] font-medium">Analytics</span>
+          <span className="text-[#e8e0d4] font-medium">Analytics</span>
           <svg
             width="14"
             height="14"

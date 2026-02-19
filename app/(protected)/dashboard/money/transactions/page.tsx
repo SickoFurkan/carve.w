@@ -231,7 +231,7 @@ export default function TransactionsPage() {
             className={cn(
               "pl-9 pr-4 py-2 rounded-lg text-sm text-white placeholder:text-slate-500",
               "bg-[#1c1f27] border border-white/10",
-              "focus:outline-none focus:border-[#135bec]/50 focus:ring-1 focus:ring-[#135bec]/20",
+              "focus:outline-none focus:border-[#e8e0d4]/50 focus:ring-1 focus:ring-[#e8e0d4]/20",
               "transition-colors w-[260px]"
             )}
           />

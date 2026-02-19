@@ -145,7 +145,7 @@ export function SubscriptionTable({
               "pl-9 pr-4 py-2 rounded-lg text-sm",
               "bg-[#111318]/50 border border-[#3b4354]/30",
               "text-white placeholder-[#9da6b9]",
-              "focus:outline-none focus:border-[#135bec]/50",
+              "focus:outline-none focus:border-[#e8e0d4]/50",
               "transition-colors"
             )}
           />
@@ -159,7 +159,7 @@ export function SubscriptionTable({
               className={cn(
                 "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
                 activeFilter === tab
-                  ? "bg-[#135bec]/20 text-[#135bec] border border-[#135bec]/20"
+                  ? "bg-[#e8e0d4]/20 text-[#e8e0d4] border border-[#e8e0d4]/20"
                   : "text-[#9da6b9] hover:bg-[#3b4354]/30 border border-transparent"
               )}
             >
@@ -315,7 +315,7 @@ export function SubscriptionTable({
               className={cn(
                 "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
                 currentPage === page
-                  ? "bg-[#135bec] text-white"
+                  ? "bg-[#e8e0d4] text-white"
                   : "text-[#9da6b9] hover:bg-[#3b4354]/30"
               )}
             >

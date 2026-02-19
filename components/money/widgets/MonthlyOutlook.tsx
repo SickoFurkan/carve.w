@@ -203,18 +203,18 @@ export function MonthlyOutlook({ subscriptions }: MonthlyOutlookProps) {
       </div>
 
       {/* Insight card */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-[#135bec]/20 to-[#135bec]/5 border border-[#135bec]/20">
-        <p className="text-xs font-bold text-[#135bec] uppercase tracking-wide mb-1">
+      <div className="p-4 rounded-xl bg-gradient-to-br from-[#e8e0d4]/20 to-[#e8e0d4]/5 border border-[#e8e0d4]/20">
+        <p className="text-xs font-bold text-[#e8e0d4] uppercase tracking-wide mb-1">
           Insight
         </p>
         <p className="text-sm text-white leading-relaxed">
           Your {CATEGORY_CHART_CONFIG[highestCategory].label.toLowerCase()} spend
           is the largest category at{" "}
-          <span className="text-[#135bec] font-bold">
+          <span className="text-[#e8e0d4] font-bold">
             ${categoryTotals[highestCategory].toFixed(2)}/mo
           </span>
           , accounting for{" "}
-          <span className="text-[#135bec] font-bold">
+          <span className="text-[#e8e0d4] font-bold">
             {grandTotal > 0
               ? Math.round(
                   (categoryTotals[highestCategory] / grandTotal) * 100

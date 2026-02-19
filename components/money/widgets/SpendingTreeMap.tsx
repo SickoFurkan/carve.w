@@ -9,10 +9,10 @@ const TREEMAP_STYLES: Record<
   { bg: string; hoverBg: string; border: string; text: string }
 > = {
   housing: {
-    bg: 'bg-[#135bec]/20',
-    hoverBg: 'hover:bg-[#135bec]/30',
-    border: 'border-[#135bec]/20',
-    text: 'text-[#135bec]',
+    bg: 'bg-[#e8e0d4]/20',
+    hoverBg: 'hover:bg-[#e8e0d4]/30',
+    border: 'border-[#e8e0d4]/20',
+    text: 'text-[#e8e0d4]',
   },
   dining: {
     bg: 'bg-purple-500/10',

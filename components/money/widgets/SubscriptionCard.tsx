@@ -24,12 +24,12 @@ const SERVICE_ICON_MAP: Record<
 // Progress percentages per subscription (mock billing-cycle progress)
 const PROGRESS_MAP: Record<string, { value: number; color: string }> = {
   Netflix: { value: 95, color: "bg-rose-500" },
-  Spotify: { value: 25, color: "bg-[#135bec]" },
+  Spotify: { value: 25, color: "bg-[#e8e0d4]" },
   "Adobe CC": { value: 65, color: "bg-amber-500" },
-  Figma: { value: 15, color: "bg-[#135bec]" },
-  AWS: { value: 80, color: "bg-[#135bec]" },
-  "X Premium": { value: 45, color: "bg-[#135bec]" },
-  Equinox: { value: 55, color: "bg-[#135bec]" },
+  Figma: { value: 15, color: "bg-[#e8e0d4]" },
+  AWS: { value: 80, color: "bg-[#e8e0d4]" },
+  "X Premium": { value: 45, color: "bg-[#e8e0d4]" },
+  Equinox: { value: 55, color: "bg-[#e8e0d4]" },
 }
 
 // ---------------------------------------------------------------------------
@@ -74,7 +74,7 @@ export function SubscriptionCard({
   // Progress config
   const progressCfg = PROGRESS_MAP[name] ?? {
     value: 50,
-    color: "bg-[#135bec]",
+    color: "bg-[#e8e0d4]",
   }
 
   // Urgency badge
@@ -111,7 +111,7 @@ export function SubscriptionCard({
         "bg-[rgba(30,35,45,0.4)] backdrop-blur-xl",
         "border border-white/[0.08]",
         "shadow-[0_4px_30px_rgba(0,0,0,0.3)]",
-        "hover:bg-[rgba(30,35,45,0.6)] hover:border-[#135bec]/30",
+        "hover:bg-[rgba(30,35,45,0.6)] hover:border-[#e8e0d4]/30",
         "hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(19,91,236,0.15)]",
         className
       )}
@@ -187,13 +187,13 @@ export function AddSubscriptionCard({ className }: { className?: string }) {
         "group rounded-xl p-5 transition-all duration-200 cursor-pointer",
         "bg-transparent",
         "border-2 border-dashed border-white/[0.12]",
-        "hover:border-[#135bec]/40 hover:bg-[rgba(30,35,45,0.2)]",
+        "hover:border-[#e8e0d4]/40 hover:bg-[rgba(30,35,45,0.2)]",
         "flex flex-col items-center justify-center gap-3 min-h-[180px]",
         className
       )}
     >
       {/* Plus icon */}
-      <div className="w-12 h-12 rounded-lg border border-dashed border-white/20 flex items-center justify-center group-hover:border-[#135bec]/40 transition-colors">
+      <div className="w-12 h-12 rounded-lg border border-dashed border-white/20 flex items-center justify-center group-hover:border-[#e8e0d4]/40 transition-colors">
         <svg
           width="24"
           height="24"
@@ -203,7 +203,7 @@ export function AddSubscriptionCard({ className }: { className?: string }) {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-slate-500 group-hover:text-[#135bec] transition-colors"
+          className="text-slate-500 group-hover:text-[#e8e0d4] transition-colors"
         >
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />

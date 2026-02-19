@@ -20,7 +20,7 @@ export function MonthSelector({ months, selected, onSelect }: MonthSelectorProps
             className={cn(
               'px-4 py-2 text-sm font-medium transition-colors rounded-lg',
               isActive
-                ? 'bg-white dark:bg-[#282e39] text-[#135bec] shadow-sm border border-slate-200 dark:border-slate-700'
+                ? 'bg-white dark:bg-[#282e39] text-[#e8e0d4] shadow-sm border border-slate-200 dark:border-slate-700'
                 : 'text-slate-500 hover:text-white'
             )}
           >

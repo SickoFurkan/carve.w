@@ -145,7 +145,7 @@ export function TransactionsList({ transactions, filterCategory }: TransactionsL
 
       {/* Footer */}
       <div className="p-4 pt-2 border-t border-white/[0.06]">
-        <button className="w-full py-2.5 text-sm font-medium text-[#135bec] hover:text-white bg-[#135bec]/10 hover:bg-[#135bec]/20 rounded-xl transition-colors">
+        <button className="w-full py-2.5 text-sm font-medium text-[#e8e0d4] hover:text-white bg-[#e8e0d4]/10 hover:bg-[#e8e0d4]/20 rounded-xl transition-colors">
           View All Transactions
         </button>
       </div>

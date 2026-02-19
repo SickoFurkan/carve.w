@@ -192,7 +192,7 @@ export function PotentialSavings({ insights }: PotentialSavingsProps) {
           </div>
           <h3 className="text-white text-sm font-semibold">Potential Savings</h3>
         </div>
-        <button className="text-[#135bec] text-xs font-medium hover:text-[#135bec]/80 transition-colors">
+        <button className="text-[#e8e0d4] text-xs font-medium hover:text-[#e8e0d4]/80 transition-colors">
           View All Insights
         </button>
       </div>

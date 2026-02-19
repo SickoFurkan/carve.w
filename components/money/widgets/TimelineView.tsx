@@ -158,7 +158,7 @@ export function TimelineView({ subscriptions, insights }: TimelineViewProps) {
             <div className="w-px h-6 bg-white/10" />
 
             {/* Add subscription button */}
-            <button className="flex items-center gap-1.5 bg-[#135bec] hover:bg-[#135bec]/90 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+            <button className="flex items-center gap-1.5 bg-[#e8e0d4] hover:bg-[#e8e0d4]/90 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
               <PlusIcon />
               Add Subscription
             </button>
