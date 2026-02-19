@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { MoneyCard, ChangeBadge } from "@/components/money/shared"
 import {
   sampleMonthlySpending,
@@ -24,15 +25,24 @@ export default function MoneyPage() {
   return (
     <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       {/* Page header */}
-      <div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1 className="text-3xl font-bold text-white tracking-tight">
           Carve Money
         </h1>
         <p className="text-[#9da6b9] mt-1">Your financial overview</p>
-      </div>
+      </motion.div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+      >
         <MoneyCard>
           <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">
             Total Spend This Month
@@ -69,10 +79,14 @@ export default function MoneyPage() {
             {highestCategoryPercent}% of spending
           </p>
         </MoneyCard>
-      </div>
+      </motion.div>
 
       {/* Upcoming payments timeline */}
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Upcoming Payments</h2>
           <Link
@@ -85,10 +99,15 @@ export default function MoneyPage() {
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden" style={{ height: '340px' }}>
           <SubscriptionTimeline subscriptions={sampleSubscriptions} />
         </div>
-      </div>
+      </motion.div>
 
       {/* Quick link cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
         <Link href="/dashboard/money/analytics">
           <MoneyCard className="hover:border-[#e8e0d4]/30 transition-colors cursor-pointer group">
             <h3 className="text-lg font-semibold text-white group-hover:text-[#e8e0d4] transition-colors">
@@ -109,7 +128,7 @@ export default function MoneyPage() {
             </p>
           </MoneyCard>
         </Link>
-      </div>
+      </motion.div>
     </div>
   )
 }

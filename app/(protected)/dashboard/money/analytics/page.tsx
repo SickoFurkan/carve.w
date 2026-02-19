@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { ChangeBadge } from '@/components/money/shared'
 import {
@@ -33,7 +34,12 @@ export default function AnalyticsPage() {
   return (
     <div className="p-6 lg:p-10 h-full flex flex-col max-w-7xl mx-auto">
       {/* Header */}
-      <div className="space-y-4 mb-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-4 mb-6"
+      >
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm">
           <span className="text-[#e8e0d4] font-medium">Analytics</span>
@@ -79,10 +85,15 @@ export default function AnalyticsPage() {
             <span className="text-slate-400">{highestCategoryPercent}%</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-6 flex-1 min-h-0">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
+        className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-6 flex-1 min-h-0"
+      >
         {/* Left: TreeMap */}
         <div>
           <SpendingTreeMap
@@ -98,7 +109,7 @@ export default function AnalyticsPage() {
             filterCategory={filterCategory}
           />
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
   sampleTransactions,
@@ -163,7 +164,12 @@ export default function TransactionsPage() {
       {/* --------------------------------------------------------------- */}
       {/* Header                                                          */}
       {/* --------------------------------------------------------------- */}
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col sm:flex-row sm:items-end gap-4"
+      >
         <div className="flex-1">
           <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
             Transactions
@@ -193,12 +199,17 @@ export default function TransactionsPage() {
             })}
           </span>
         </div>
-      </div>
+      </motion.div>
 
       {/* --------------------------------------------------------------- */}
       {/* Filters row: category tabs + search                             */}
       {/* --------------------------------------------------------------- */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="flex flex-col lg:flex-row items-start lg:items-center gap-3"
+      >
         {/* Category pill tabs */}
         <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg flex-wrap">
           {FILTER_TABS.map((tab) => (
@@ -236,11 +247,16 @@ export default function TransactionsPage() {
             )}
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* --------------------------------------------------------------- */}
       {/* Transaction list (glass panel)                                  */}
       {/* --------------------------------------------------------------- */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
       <div
         className={cn(
           "bg-[rgba(28,31,39,0.7)] backdrop-blur-xl",
@@ -356,10 +372,16 @@ export default function TransactionsPage() {
           </div>
         )}
       </div>
+      </motion.div>
 
       {/* --------------------------------------------------------------- */}
       {/* Summary footer                                                  */}
       {/* --------------------------------------------------------------- */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+      >
       <div
         className={cn(
           "bg-[rgba(28,31,39,0.7)] backdrop-blur-xl",
@@ -393,6 +415,7 @@ export default function TransactionsPage() {
           </span>
         </div>
       </div>
+      </motion.div>
     </div>
   )
 }

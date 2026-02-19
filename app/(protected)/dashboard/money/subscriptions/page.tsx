@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
   sampleSubscriptions,
@@ -148,7 +149,12 @@ export default function SubscriptionsPage() {
       {/* ----------------------------------------------------------------- */}
       {/* Hero stats section                                                */}
       {/* ----------------------------------------------------------------- */}
-      <div className="mb-8">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="mb-8"
+      >
         {/* Main amount + badge */}
         <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
           <div className="flex-1">
@@ -213,12 +219,17 @@ export default function SubscriptionsPage() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ----------------------------------------------------------------- */}
       {/* View toggle                                                       */}
       {/* ----------------------------------------------------------------- */}
-      <div className="flex bg-white/5 p-1 rounded-lg w-fit mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+        className="flex bg-white/5 p-1 rounded-lg w-fit mb-6"
+      >
         <button
           className={cn(
             "px-4 py-2 rounded-md text-sm font-medium transition-all",
@@ -252,7 +263,7 @@ export default function SubscriptionsPage() {
         >
           Manage
         </button>
-      </div>
+      </motion.div>
 
       {/* ----------------------------------------------------------------- */}
       {/* View content                                                      */}
@@ -321,12 +332,17 @@ export default function SubscriptionsPage() {
           </div>
 
           {/* Subscription cards grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+          >
             {filteredSubscriptions.map((sub) => (
               <SubscriptionCard key={sub.id} subscription={sub} />
             ))}
             <AddSubscriptionCard />
-          </div>
+          </motion.div>
         </>
       )}
 
