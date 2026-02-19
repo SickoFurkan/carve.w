@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getCategoryColor } from '@/lib/wiki/category-colors';
 
 interface TocEntry {
   level: number;
@@ -10,6 +11,7 @@ interface TocEntry {
 
 interface TableOfContentsProps {
   html: string;
+  category?: string;
 }
 
 // Extract TOC from HTML (h2-h6 tags with IDs)
@@ -29,9 +31,10 @@ function extractTocFromHtml(html: string): TocEntry[] {
   return toc;
 }
 
-export function TableOfContents({ html }: TableOfContentsProps) {
+export function TableOfContents({ html, category }: TableOfContentsProps) {
   const [toc, setToc] = useState<TocEntry[]>([]);
   const [activeId, setActiveId] = useState<string>('');
+  const colors = category ? getCategoryColor(category) : null;
 
   useEffect(() => {
     // Extract TOC on mount
@@ -64,9 +67,9 @@ export function TableOfContents({ html }: TableOfContentsProps) {
   }
 
   return (
-    <nav className="bg-white rounded-lg shadow-sm p-6">
-      <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wide mb-4">
-        Table of Contents
+    <nav className="bg-[rgba(28,31,39,0.5)] backdrop-blur-xl border border-white/[0.08] rounded-xl p-6">
+      <h3 className="text-[11px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-4">
+        Contents
       </h3>
       <ul className="space-y-2 text-sm">
         {toc.map((entry) => (
@@ -76,11 +79,12 @@ export function TableOfContents({ html }: TableOfContentsProps) {
           >
             <a
               href={`#${entry.id}`}
-              className={`block py-1 hover:text-blue-600 transition-colors ${
+              className={`block py-1 transition-colors ${
                 activeId === entry.id
-                  ? 'text-blue-600 font-medium'
-                  : 'text-zinc-600'
+                  ? `${colors?.text || 'text-white'} font-medium border-l-2 pl-2`
+                  : 'text-white/50 hover:text-white/80'
               }`}
+              style={activeId === entry.id && colors ? { borderLeftColor: colors.hex } : undefined}
             >
               {entry.text}
             </a>
