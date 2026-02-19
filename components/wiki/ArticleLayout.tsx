@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { getCategoryColor } from '@/lib/wiki/category-colors';
 import { EvidenceRating } from './EvidenceRating';
 import { TableOfContents } from './TableOfContents';
 import { SourcesList } from './SourcesList';
@@ -43,39 +44,40 @@ interface ArticleLayoutProps {
 export function ArticleLayout({ article, citations, html, category }: ArticleLayoutProps) {
   const updatedDate = new Date(article.updated_at);
   const timeAgo = formatDistanceToNow(updatedDate, { addSuffix: true });
+  const colors = getCategoryColor(category);
 
   return (
-    <div className="min-h-screen bg-[#ececf1]">
+    <div className="min-h-screen bg-[#0A0A0B]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
-        <nav className="mb-6 text-sm text-zinc-600">
-          <Link href="/wiki" className="hover:text-zinc-900">
+        <nav className="mb-6 text-sm text-white/40">
+          <Link href="/wiki" className="hover:text-white/60">
             Wiki
           </Link>
           <span className="mx-2">/</span>
-          <Link href={`/wiki/${category}`} className="hover:text-zinc-900 capitalize">
+          <Link href={`/wiki/${category}`} className={`hover:text-white/60 capitalize ${colors.text}`}>
             {category.replace('-', ' ')}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-zinc-900">{article.title}</span>
+          <span className="text-white">{article.title}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <article className="lg:col-span-3 bg-white rounded-lg shadow-sm p-8">
+          <article className="lg:col-span-3 bg-[rgba(28,31,39,0.7)] backdrop-blur-xl border border-white/[0.08] rounded-xl p-8 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
             {/* Article Header */}
-            <header className="mb-8 border-b pb-6">
-              <h1 className="text-4xl font-bold text-zinc-900 mb-4">
+            <header className="mb-8 border-b border-white/[0.06] pb-6">
+              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
                 {article.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-600">
+              <div className="flex flex-wrap items-center gap-4 text-[11px] uppercase tracking-[0.15em] text-white/30">
                 {/* Evidence Rating */}
                 <EvidenceRating rating={article.evidence_rating} />
 
                 {/* Author */}
                 <div>
-                  By <span className="font-medium text-zinc-900">{article.author}</span>
+                  By <span className="font-medium text-white/60">{article.author}</span>
                 </div>
 
                 {/* Updated Date */}
@@ -91,7 +93,7 @@ export function ArticleLayout({ article, citations, html, category }: ArticleLay
                   {article.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-full text-sm"
+                      className="px-3 py-1 bg-white/[0.04] border border-white/[0.08] text-white/60 rounded-full text-sm"
                     >
                       {tag}
                     </span>
@@ -114,24 +116,24 @@ export function ArticleLayout({ article, citations, html, category }: ArticleLay
 
             {/* Article Summary */}
             {article.summary && (
-              <div className="mb-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
-                <p className="text-zinc-700 leading-relaxed">{article.summary}</p>
+              <div className="mb-8 p-4 bg-white/[0.03] border-l-4 rounded-lg" style={{ borderLeftColor: colors.hex }}>
+                <p className="text-white/70 leading-relaxed">{article.summary}</p>
               </div>
             )}
 
             {/* Article Content */}
             <div
-              className="prose prose-zinc max-w-none
-                prose-headings:font-bold prose-headings:text-zinc-900
+              className="prose prose-invert max-w-none
+                prose-headings:text-white prose-headings:font-bold
                 prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
                 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                prose-p:text-zinc-700 prose-p:leading-relaxed prose-p:mb-4
-                prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                prose-strong:text-zinc-900 prose-strong:font-semibold
+                prose-p:text-white/70 prose-p:leading-relaxed prose-p:mb-4
+                prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-white prose-strong:font-semibold
                 prose-ul:my-4 prose-ol:my-4
-                prose-li:text-zinc-700
-                prose-code:text-sm prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-                prose-pre:bg-zinc-900 prose-pre:text-zinc-100"
+                prose-li:text-white/70
+                prose-code:text-sm prose-code:bg-white/[0.04] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:border prose-code:border-white/[0.08]
+                prose-pre:bg-[rgba(28,31,39,0.7)] prose-pre:border prose-pre:border-white/[0.08]"
               dangerouslySetInnerHTML={{ __html: html }}
             />
 
@@ -140,14 +142,14 @@ export function ArticleLayout({ article, citations, html, category }: ArticleLay
 
             {/* Sources */}
             {citations.length > 0 && (
-              <div className="mt-12 pt-8 border-t">
-                <h2 className="text-2xl font-bold text-zinc-900 mb-6">Sources</h2>
+              <div className="mt-12 pt-8 border-t border-white/[0.06]">
+                <h2 className="text-2xl font-bold text-white mb-6">Sources</h2>
                 <SourcesList citations={citations} />
               </div>
             )}
 
             {/* Related Articles */}
-            <div className="mt-12 pt-8 border-t">
+            <div className="mt-12 pt-8 border-t border-white/[0.06]">
               <RelatedArticles currentSlug={article.slug} category={category} />
             </div>
           </article>
@@ -155,7 +157,7 @@ export function ArticleLayout({ article, citations, html, category }: ArticleLay
           {/* Sidebar (Table of Contents) */}
           <aside className="lg:col-span-1">
             <div className="sticky top-8">
-              <TableOfContents html={html} />
+              <TableOfContents html={html} category={category} />
             </div>
           </aside>
         </div>
