@@ -11,9 +11,8 @@ export function MoneyCard({ children, className }: MoneyCardProps) {
     <div
       className={cn(
         "rounded-xl p-5",
-        "bg-[rgba(28,31,39,0.7)] backdrop-blur-xl",
-        "border border-white/[0.08]",
-        "shadow-[0_4px_30px_rgba(0,0,0,0.3)]",
+        "bg-[#1c1f27]",
+        "border border-white/[0.06]",
         className
       )}
     >

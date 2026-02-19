@@ -90,8 +90,8 @@ export default function MoneyPage() {
       {/* Quick link cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link href="/dashboard/money/analytics">
-          <MoneyCard className="hover:border-[#135bec]/30 transition-colors cursor-pointer group">
-            <h3 className="text-lg font-semibold text-white group-hover:text-[#135bec] transition-colors">
+          <MoneyCard className="hover:border-[#e8e0d4]/30 transition-colors cursor-pointer group">
+            <h3 className="text-lg font-semibold text-white group-hover:text-[#e8e0d4] transition-colors">
               Analytics
             </h3>
             <p className="text-[#9da6b9] text-sm mt-1">
@@ -100,8 +100,8 @@ export default function MoneyPage() {
           </MoneyCard>
         </Link>
         <Link href="/dashboard/money/subscriptions">
-          <MoneyCard className="hover:border-[#135bec]/30 transition-colors cursor-pointer group">
-            <h3 className="text-lg font-semibold text-white group-hover:text-[#135bec] transition-colors">
+          <MoneyCard className="hover:border-[#e8e0d4]/30 transition-colors cursor-pointer group">
+            <h3 className="text-lg font-semibold text-white group-hover:text-[#e8e0d4] transition-colors">
               Subscriptions
             </h3>
             <p className="text-[#9da6b9] text-sm mt-1">

@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
@@ -30,6 +29,25 @@ type NavigationGroup = {
   icon: { name: string };
   items: NavigationItem[];
 };
+
+type SectionTheme = {
+  accent: string;       // Active text/icon color
+  accentBg: string;     // Active background
+};
+
+const sectionThemes: Record<string, SectionTheme> = {
+  money:   { accent: '#e8e0d4', accentBg: 'rgba(255,255,255,0.06)' },
+  health:  { accent: '#e2e8f0', accentBg: 'rgba(226,232,240,0.06)' },
+  admin:   { accent: '#f59e0b', accentBg: 'rgba(245,158,11,0.10)' },
+  default: { accent: '#e2e8f0', accentBg: 'rgba(226,232,240,0.08)' },
+};
+
+function getSectionKey(pathname: string): string {
+  if (pathname.startsWith('/dashboard/money')) return 'money';
+  if (pathname.startsWith('/dashboard')) return 'health';
+  if (pathname.startsWith('/admin')) return 'admin';
+  return 'default';
+}
 
 function getSidebarGroups(pathname: string, isAuthenticated: boolean, userRole?: string): NavigationGroup[] | null {
   const path = pathname;
@@ -74,175 +92,134 @@ export function AppSidebarController({
 }) {
   const pathname = usePathname();
   const [isHovered, setIsHovered] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const activeItemRef = useRef<HTMLAnchorElement>(null);
   const navRef = useRef<HTMLElement>(null);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const groups = getSidebarGroups(pathname, isAuthenticated, userRole);
   const safeGroups = groups || [];
-  const isDarkVariant = true; // Always dark
+  const sectionKey = getSectionKey(pathname);
+  const theme = sectionThemes[sectionKey] || sectionThemes.default;
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    setIsHovered(false);
-  }, [pathname]);
+  // Find the most specific matching href across all nav items
+  const allHrefs = safeGroups.flatMap((g) => g.items.map((i) => i.href));
+  const activeHref = allHrefs
+    .filter((href) => pathname === href || (href !== '/' && pathname.startsWith(href + '/')))
+    .sort((a, b) => b.length - a.length)[0] ?? null;
 
   useEffect(() => {
     if (activeItemRef.current && navRef.current) {
-      const scrollToActiveItem = () => {
-        const navElement = navRef.current;
-        const activeElement = activeItemRef.current;
-        if (!navElement || !activeElement) return;
+      const navElement = navRef.current;
+      const activeElement = activeItemRef.current;
 
-        const relativeTop = activeElement.offsetTop;
-        const navHeight = navElement.clientHeight;
-        const activeHeight = activeElement.clientHeight;
-        const scrollTop = relativeTop - navHeight / 2 + activeHeight / 2;
+      const relativeTop = activeElement.offsetTop;
+      const navHeight = navElement.clientHeight;
+      const activeHeight = activeElement.clientHeight;
+      const scrollTop = relativeTop - navHeight / 2 + activeHeight / 2;
 
-        if (navElement.scrollTo) {
-          navElement.scrollTo({
-            top: Math.max(0, scrollTop),
-            behavior: 'smooth',
-          });
-        } else {
-          navElement.scrollTop = Math.max(0, scrollTop);
-        }
-      };
-
-      const timer = setTimeout(scrollToActiveItem, 100);
-      return () => clearTimeout(timer);
+      navElement.scrollTo({
+        top: Math.max(0, scrollTop),
+        behavior: 'smooth',
+      });
     }
   }, [pathname]);
 
   return (
-    <>
-      {/* Skeleton on first paint */}
-      {!isMounted ? (
-        <div
-          className={cn(
-            "hidden lg:flex lg:flex-col h-full max-h-full shrink-0 pb-3",
-            'bg-[#0c0e14]'
-          )}
-          style={{ width: 64, zIndex: 45 }}
-          role="navigation"
-          aria-label="Navigatie (laden)"
-        >
-          <nav className="flex-1 px-2 overflow-y-auto scrollbar-thin-auto-hide">
-            <div className="mt-2 animate-pulse space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={`skeleton-${i}`} className={cn("h-7 rounded-lg", isDarkVariant ? "bg-white/5" : "bg-gray-300/70")} />
-              ))}
-            </div>
-          </nav>
-        </div>
-      ) : (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname.split('/')[1] || 'home'}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              "hidden lg:flex lg:flex-col h-full max-h-full shrink-0 transition-all duration-300 ease-in-out relative pb-3",
-              'bg-[#0c0e14]'
-            )}
-            style={{
-              width: isHovered ? '200px' : '64px',
-              zIndex: 45,
-            }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            role="navigation"
-            aria-label="Hoofdnavigatie"
-          >
-            {/* Main Navigation */}
-            <nav ref={navRef} className="flex-1 px-2 overflow-y-auto scrollbar-thin-auto-hide">
-              {safeGroups.map((group) => (
-                <div key={`desktop-${group.label}`} className="mb-2">
-                  {/* Group divider with label */}
-                  <div className="flex items-center gap-2 px-3 mb-1 min-h-[24px]">
-                    <div className={cn("w-4 h-0.5 rounded shrink-0", isDarkVariant ? 'bg-slate-700' : 'bg-gray-300')} />
-                    <span
-                      className={cn(
-                        'text-[10px] font-bold uppercase tracking-wider overflow-hidden whitespace-nowrap transition-opacity duration-500',
-                        isDarkVariant ? 'text-slate-500' : 'text-gray-500',
-                        isHovered ? 'opacity-100' : 'opacity-0'
-                      )}
-                      style={{
-                        display: 'inline-block',
-                        width: isHovered ? 'auto' : 0,
-                        minWidth: 0,
-                      }}
-                    >
-                      {group.label}
-                    </span>
-                  </div>
-
-                  {/* Group items */}
-                  {group.items.map((item, itemIndex) => {
-                    const isActive =
-                      pathname === item.href ||
-                      (item.href !== '/' && pathname.startsWith(item.href + '/'));
-
-                    const iconName = item.icon?.name || 'HomeIcon';
-                    const Icon = iconMap[iconName] || iconMap['HomeIcon'];
-                    const uniqueKey = `desktop-${group.label}-${item.href}-${itemIndex}`;
-
-                    return (
-                      <div key={uniqueKey} className="mb-0.5">
-                        <Link
-                          ref={isActive ? activeItemRef : null}
-                          href={item.href}
-                          className={cn(
-                            'group h-7 flex items-center rounded-lg px-3 py-1 text-sm font-medium relative',
-                            isActive
-                              ? isDarkVariant
-                                ? 'bg-[#135bec]/10 text-[#135bec] font-medium border-l-2 border-[#135bec]'
-                                : 'bg-white text-gray-900 font-medium shadow-sm'
-                              : isDarkVariant
-                                ? 'text-[#9da6b9] hover:bg-white/5 hover:text-white'
-                                : 'text-gray-600 hover:bg-gray-300/70 hover:text-gray-900'
-                          )}
-                        >
-                          <Icon
-                            className={cn(
-                              'h-5 w-5 shrink-0',
-                              isActive
-                                ? isDarkVariant
-                                  ? 'text-[#135bec]'
-                                  : 'text-gray-700'
-                                : isDarkVariant
-                                  ? 'text-[#9da6b9] group-hover:text-white'
-                                  : 'text-gray-500 group-hover:text-gray-700'
-                            )}
-                          />
-                          <span
-                            className={cn(
-                              'flex-1 ml-3 min-w-0 text-sm font-medium truncate overflow-hidden whitespace-nowrap transition-opacity duration-500',
-                              isHovered ? 'opacity-100' : 'opacity-0'
-                            )}
-                            style={{
-                              display: 'inline-block',
-                              width: isHovered ? 'auto' : 0,
-                              minWidth: 0,
-                            }}
-                          >
-                            {item.title}
-                          </span>
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </nav>
-          </motion.div>
-        </AnimatePresence>
+    <div
+      className={cn(
+        "hidden lg:flex lg:flex-col h-full max-h-full shrink-0 transition-[width] duration-300 ease-in-out pb-3",
+        'bg-[#0c0e14]'
       )}
-    </>
+      style={{
+        width: isHovered ? '200px' : '64px',
+        zIndex: 45,
+        willChange: 'width',
+      }}
+      onMouseEnter={() => {
+        if (leaveTimer.current) clearTimeout(leaveTimer.current);
+        setIsHovered(true);
+      }}
+      onMouseLeave={() => {
+        leaveTimer.current = setTimeout(() => setIsHovered(false), 100);
+      }}
+      role="navigation"
+      aria-label="Hoofdnavigatie"
+    >
+      <nav ref={navRef} className="flex-1 px-2 overflow-y-auto scrollbar-thin-auto-hide">
+          {safeGroups.map((group) => (
+            <div key={`desktop-${group.label}`} className="mb-2">
+              {/* Group divider with label */}
+              <div className="flex items-center gap-2 px-3 mb-1 min-h-[24px]">
+                <div
+                  className="w-4 h-0.5 rounded shrink-0 bg-white/[0.08]"
+                />
+                <span
+                  className={cn(
+                    'text-[10px] font-bold uppercase tracking-wider overflow-hidden whitespace-nowrap transition-opacity duration-300',
+                    'text-[#555d70]',
+                    isHovered ? 'opacity-100' : 'opacity-0'
+                  )}
+                  style={{
+                    display: 'inline-block',
+                    width: isHovered ? 'auto' : 0,
+                    minWidth: 0,
+                  }}
+                >
+                  {group.label}
+                </span>
+              </div>
+
+              {/* Group items */}
+              {group.items.map((item, itemIndex) => {
+                const isActive = activeHref === item.href;
+
+                const iconName = item.icon?.name || 'HomeIcon';
+                const Icon = iconMap[iconName] || iconMap['HomeIcon'];
+                const uniqueKey = `desktop-${group.label}-${item.href}-${itemIndex}`;
+
+                return (
+                  <div key={uniqueKey} className="mb-0.5">
+                    <Link
+                      ref={isActive ? activeItemRef : null}
+                      href={item.href}
+                      className={cn(
+                        'group h-7 flex items-center rounded-lg px-3 py-1 text-sm font-medium relative',
+                        isActive
+                          ? 'font-medium'
+                          : 'text-[#7a8299] hover:bg-white/[0.04] hover:text-[#c4cad6]'
+                      )}
+                      style={isActive ? {
+                        color: theme.accent,
+                        backgroundColor: theme.accentBg,
+                      } : undefined}
+                    >
+                      <Icon
+                        className={cn(
+                          'h-5 w-5 shrink-0',
+                          !isActive && 'text-[#7a8299] group-hover:text-[#c4cad6]'
+                        )}
+                        style={isActive ? { color: theme.accent } : undefined}
+                      />
+                      <span
+                        className={cn(
+                          'flex-1 ml-3 min-w-0 text-sm font-medium truncate overflow-hidden whitespace-nowrap transition-opacity duration-300',
+                          isHovered ? 'opacity-100' : 'opacity-0'
+                        )}
+                        style={{
+                          display: 'inline-block',
+                          width: isHovered ? 'auto' : 0,
+                          minWidth: 0,
+                        }}
+                      >
+                        {item.title}
+                      </span>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+    </div>
   );
 }

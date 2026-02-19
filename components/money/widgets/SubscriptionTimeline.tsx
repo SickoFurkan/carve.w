@@ -84,7 +84,7 @@ function StatusBadge({ status }: { status: TimelineStatus }) {
       )
     case 'due_soon':
       return (
-        <span className="bg-[#135bec]/20 text-[#135bec] text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+        <span className="bg-[#e8e0d4]/20 text-[#e8e0d4] text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
           Due Soon
         </span>
       )
@@ -122,7 +122,7 @@ function TimelineCard({
     <div
       className={cn(
         'w-[220px] rounded-xl p-3 transition-all duration-300 cursor-pointer',
-        'bg-white/[0.03] backdrop-blur-lg',
+        'bg-[#1c1f27]',
         'border border-white/[0.05]',
         'hover:bg-white/[0.07] hover:border-white/[0.15] hover:-translate-y-0.5',
         isPast && 'opacity-50 hover:opacity-100'
@@ -155,7 +155,7 @@ function TimelineCard({
           className={cn(
             'text-[10px] font-medium uppercase tracking-wider',
             status === 'paid' && 'text-emerald-500',
-            status === 'due_soon' && 'text-[#135bec]',
+            status === 'due_soon' && 'text-[#e8e0d4]',
             status === 'upcoming' && 'text-slate-500'
           )}
         >
@@ -209,12 +209,12 @@ export function SubscriptionTimeline({ subscriptions }: SubscriptionTimelineProp
           style={{ left: `${todayLeftPx}px` }}
         >
           {/* Vertical glow line */}
-          <div className="absolute w-[1px] h-24 bg-gradient-to-b from-[#135bec]/0 via-[#135bec]/60 to-[#135bec]/0 -translate-y-1/2" />
+          <div className="absolute w-[1px] h-24 bg-gradient-to-b from-[#e8e0d4]/0 via-[#e8e0d4]/60 to-[#e8e0d4]/0 -translate-y-1/2" />
           {/* Dot */}
-          <div className="w-3 h-3 rounded-full bg-[#135bec] border-2 border-[#111318] shadow-[0_0_10px_rgba(19,91,236,0.8)] z-10" />
+          <div className="w-3 h-3 rounded-full bg-[#e8e0d4] border-2 border-[#111318] shadow-[0_0_10px_rgba(232,224,212,0.8)] z-10" />
           {/* Label */}
           <div className="absolute -top-8">
-            <span className="bg-[#135bec] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-[0_0_10px_rgba(19,91,236,0.5)]">
+            <span className="bg-[#e8e0d4] text-[#0c0e14] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-[0_0_10px_rgba(232,224,212,0.3)]">
               Today
             </span>
           </div>
@@ -243,7 +243,7 @@ export function SubscriptionTimeline({ subscriptions }: SubscriptionTimelineProp
                     'w-3 h-3 rounded-full border-2 border-[#111318]',
                     isPast
                       ? 'bg-slate-700'
-                      : 'bg-[#135bec] shadow-[0_0_10px_rgba(19,91,236,0.8)]'
+                      : 'bg-[#e8e0d4] shadow-[0_0_10px_rgba(232,224,212,0.8)]'
                   )}
                 />
               </div>
