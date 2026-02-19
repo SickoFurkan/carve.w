@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { TrendingUp, Eye } from 'lucide-react';
+import { getCategoryColor } from '@/lib/wiki/category-colors';
 
 interface PopularArticle {
   slug: string;
@@ -40,11 +41,11 @@ export async function PopularToday() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-[rgba(28,31,39,0.7)] backdrop-blur-xl border border-white/[0.08] rounded-xl p-6">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-5 h-5 text-orange-500" />
-        <h2 className="text-lg font-bold text-zinc-900">Populair Vandaag</h2>
+        <h2 className="text-lg font-semibold text-white">Populair Vandaag</h2>
       </div>
 
       {/* Articles List */}
@@ -53,22 +54,22 @@ export async function PopularToday() {
           <li key={article.slug}>
             <Link
               href={`/wiki/${article.category}/${article.slug}`}
-              className="group flex items-start gap-3 hover:bg-zinc-50 p-2 -mx-2 rounded-lg transition-colors"
+              className="group flex items-start gap-3 hover:bg-white/[0.04] p-2 -mx-2 rounded-lg transition-colors"
             >
               {/* Rank */}
-              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-900 text-white text-xs font-bold flex items-center justify-center">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/10 text-white text-xs font-bold flex items-center justify-center">
                 {index + 1}
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                <h3 className="text-sm font-medium text-white/80 group-hover:text-white transition-colors line-clamp-2">
                   {article.title}
                 </h3>
 
                 {/* Category & Views */}
-                <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500">
-                  <span className="capitalize">
+                <div className="flex items-center gap-2 mt-1 text-xs text-white/30">
+                  <span className={`capitalize ${getCategoryColor(article.category).text}`}>
                     {article.category.split('-').join(' ')}
                   </span>
                   <span>•</span>
@@ -86,7 +87,7 @@ export async function PopularToday() {
       {/* View All Link */}
       <Link
         href="/wiki"
-        className="block mt-4 pt-4 border-t border-zinc-100 text-sm text-blue-600 hover:text-blue-700 font-medium text-center"
+        className="block mt-4 pt-4 border-t border-white/[0.06] text-sm text-white/40 hover:text-white/60 font-medium text-center"
       >
         Browse All Articles →
       </Link>
