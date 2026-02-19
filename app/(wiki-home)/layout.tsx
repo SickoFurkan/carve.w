@@ -3,6 +3,9 @@ export default function WikiLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Layout wrapper handles shell and sidebar
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-[#0A0A0B] text-white">
+      {children}
+    </div>
+  );
 }
