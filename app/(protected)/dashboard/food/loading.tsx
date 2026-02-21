@@ -1,49 +1,40 @@
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-
 export default function FoodLoading() {
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto animate-pulse">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div>
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-64" />
+          <div className="h-8 w-36 rounded-lg bg-white/5" />
+          <div className="h-4 w-52 rounded-lg bg-white/5 mt-2" />
         </div>
-        <Skeleton className="h-10 w-28" />
+        <div className="h-9 w-28 rounded-lg bg-white/5" />
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <Card className="p-4">
-          <Skeleton className="h-12 w-full" />
-        </Card>
-        <Card className="p-4">
-          <Skeleton className="h-12 w-full" />
-        </Card>
-      </div>
-
-      {/* Meal List */}
-      <div className="space-y-6">
-        {[1, 2, 3].map((i) => (
-          <div key={i}>
-            <Skeleton className="h-6 w-48 mb-3" />
-            <Card className="p-4 mb-3">
-              <Skeleton className="h-16 w-full" />
-            </Card>
-            <div className="space-y-3">
-              {[1, 2, 3].map((j) => (
-                <Card key={j} className="p-5">
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                </Card>
-              ))}
-            </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        {[1, 2].map((i) => (
+          <div key={i} className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-5">
+            <div className="h-3 w-20 rounded bg-white/5 mb-3" />
+            <div className="h-8 w-12 rounded bg-white/5" />
           </div>
         ))}
       </div>
+
+      {/* Meal list */}
+      {[1, 2].map((i) => (
+        <div key={i} className="space-y-3">
+          <div className="h-4 w-48 rounded bg-white/5" />
+          <div className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-5">
+            <div className="h-4 w-full rounded bg-white/5" />
+          </div>
+          {[1, 2].map((j) => (
+            <div key={j} className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-5 space-y-2">
+              <div className="h-5 w-32 rounded bg-white/5" />
+              <div className="h-4 w-48 rounded bg-white/5" />
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

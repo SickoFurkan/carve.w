@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, RefreshCw, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function FoodError({
@@ -20,33 +17,39 @@ export default function FoodError({
   }, [error]);
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-16">
-      <Card className="p-8 text-center">
+    <div className="p-6 lg:p-10 max-w-2xl mx-auto pt-16">
+      <div className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-8 text-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
-            <AlertCircle className="w-8 h-8 text-red-600" />
+          <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center">
+            <span className="text-2xl">⚠️</span>
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold mb-2">Error Loading Nutrition</h2>
-            <p className="text-muted-foreground mb-6">
-              We couldn't load your nutrition history. Your data is safe and
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Error Loading Nutrition
+            </h2>
+            <p className="text-[#9da6b9] mb-6">
+              We couldn&apos;t load your nutrition history. Your data is safe and
               this is likely a temporary issue.
             </p>
           </div>
 
           <div className="flex gap-3">
-            <Button onClick={reset} variant="default">
-              <RefreshCw className="w-4 h-4 mr-2" />
+            <button
+              onClick={reset}
+              className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/15 transition-colors"
+            >
               Try Again
-            </Button>
-            <Button onClick={() => router.push("/dashboard")} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            </button>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] px-4 py-2.5 text-sm text-slate-400 hover:text-white hover:border-white/[0.15] transition-colors"
+            >
               Back to Dashboard
-            </Button>
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

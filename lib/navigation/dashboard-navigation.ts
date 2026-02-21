@@ -49,6 +49,12 @@ export const dashboardNavigationGroups = [
         href: "/dashboard/social",
         icon: { name: 'UsersIcon' },
         description: "Friends & activity feed"
+      },
+      {
+        title: "Hiscores",
+        href: "/hiscores",
+        icon: { name: 'TrophyIcon' },
+        description: "Global leaderboard"
       }
     ]
   },
