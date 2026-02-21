@@ -1,17 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Dumbbell,
-  TrendingUp,
-  Trophy,
-  Utensils,
-  Zap,
-  UserPlus,
-} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { HealthCard } from "@/components/dashboard/shared";
 
 interface ActivityFeedItem {
   id: string;
@@ -29,7 +20,6 @@ interface ActivityFeedItem {
 async function getFriendActivityFeed(userId: string): Promise<ActivityFeedItem[]> {
   const supabase = await createClient();
 
-  // Get friend IDs
   const { data: friendships } = await supabase
     .from("friendships")
     .select("user_id, friend_id")
@@ -40,12 +30,10 @@ async function getFriendActivityFeed(userId: string): Promise<ActivityFeedItem[]
     return [];
   }
 
-  // Extract friend IDs
   const friendIds = friendships.map((f) =>
     f.user_id === userId ? f.friend_id : f.user_id
   );
 
-  // Get activity feed for friends
   const { data: activities, error } = await supabase
     .from("activity_feed")
     .select(
@@ -75,39 +63,13 @@ async function getFriendActivityFeed(userId: string): Promise<ActivityFeedItem[]
   }));
 }
 
-function getActivityIcon(type: string) {
-  switch (type) {
-    case "workout":
-      return <Dumbbell className="w-4 h-4" />;
-    case "pr":
-      return <TrendingUp className="w-4 h-4" />;
-    case "achievement":
-      return <Trophy className="w-4 h-4" />;
-    case "level_up":
-      return <Zap className="w-4 h-4" />;
-    case "meal":
-      return <Utensils className="w-4 h-4" />;
-    default:
-      return <Dumbbell className="w-4 h-4" />;
-  }
-}
-
-function getActivityGradient(type: string) {
-  switch (type) {
-    case "workout":
-      return "from-purple-500 to-pink-500";
-    case "pr":
-      return "from-yellow-500 to-orange-500";
-    case "achievement":
-      return "from-blue-500 to-cyan-500";
-    case "level_up":
-      return "from-green-500 to-emerald-500";
-    case "meal":
-      return "from-green-400 to-teal-400";
-    default:
-      return "from-gray-500 to-gray-600";
-  }
-}
+const ACTIVITY_ICONS: Record<string, string> = {
+  workout: "💪",
+  pr: "🏆",
+  achievement: "⭐",
+  level_up: "⚡",
+  meal: "🍽",
+};
 
 function getActivityDescription(activity: ActivityFeedItem): string {
   const { activity_type, activity_data } = activity;
@@ -144,78 +106,77 @@ export default async function SocialFeedPage() {
   const activities = await getFriendActivityFeed(user.id);
 
   return (
-    <div className="container max-w-3xl mx-auto px-4 py-8">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Social Feed</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Social Feed
+          </h1>
+          <p className="text-[#9da6b9] mt-1">
             See what your friends are up to
           </p>
         </div>
-        <Link href="/dashboard/social/friends">
-          <Button variant="outline">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Manage Friends
-          </Button>
+        <Link
+          href="/dashboard/social/friends"
+          className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] px-4 py-2 text-sm text-slate-400 hover:text-white hover:border-white/[0.15] transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Manage Friends
         </Link>
       </div>
 
       {/* Activity Feed */}
       {activities.length === 0 ? (
-        <Card className="p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-            <Dumbbell className="w-8 h-8 text-muted-foreground" />
+        <HealthCard className="py-12 text-center">
+          <div className="w-14 h-14 rounded-full bg-white/5 mx-auto mb-4 flex items-center justify-center">
+            <span className="text-2xl">👥</span>
           </div>
-          <h3 className="text-lg font-semibold mb-2">No activity yet</h3>
-          <p className="text-muted-foreground mb-4">
+          <h3 className="text-lg font-semibold text-white mb-2">
+            No activity yet
+          </h3>
+          <p className="text-[#9da6b9] mb-4">
             Add friends to see their fitness journey!
           </p>
-          <Link href="/dashboard/social/friends">
-            <Button>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Friends
-            </Button>
+          <Link
+            href="/dashboard/social/friends"
+            className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15 transition-colors"
+          >
+            Add Friends
           </Link>
-        </Card>
+        </HealthCard>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {activities.map((activity) => (
-            <Card key={activity.id} className="p-5">
+            <HealthCard key={activity.id}>
               <div className="flex items-start gap-4">
-                {/* Activity Icon */}
-                <div
-                  className={`w-10 h-10 rounded-full bg-gradient-to-br ${getActivityGradient(
-                    activity.activity_type
-                  )} flex items-center justify-center text-white flex-shrink-0`}
-                >
-                  {getActivityIcon(activity.activity_type)}
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg">
+                    {ACTIVITY_ICONS[activity.activity_type] || "💪"}
+                  </span>
                 </div>
 
-                {/* Activity Content */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm mb-1">
+                  <p className="text-sm text-white mb-1">
                     {getActivityDescription(activity)}
                   </p>
 
-                  {/* Additional Details */}
                   {activity.activity_data.xp_earned && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                        +{activity.activity_data.xp_earned} XP
-                      </span>
-                    </div>
+                    <span className="inline-flex text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">
+                      +{activity.activity_data.xp_earned} XP
+                    </span>
                   )}
 
-                  {/* Timestamp */}
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-xs text-slate-500 mt-2">
                     {formatDistanceToNow(new Date(activity.created_at), {
                       addSuffix: true,
                     })}
                   </p>
                 </div>
               </div>
-            </Card>
+            </HealthCard>
           ))}
         </div>
       )}

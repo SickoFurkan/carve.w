@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { UserPlus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface SearchResult {
@@ -31,7 +29,6 @@ export function FriendSearchForm({ currentUserId }: { currentUserId: string }) {
     try {
       const supabase = createClient();
 
-      // Search for users by username (case-insensitive)
       const { data: users, error: searchError } = await supabase
         .from("profiles")
         .select("id, username, display_name, avatar_url")
@@ -53,7 +50,6 @@ export function FriendSearchForm({ currentUserId }: { currentUserId: string }) {
     try {
       const supabase = createClient();
 
-      // Check if friendship already exists
       const { data: existing } = await supabase
         .from("friendships")
         .select("id, status")
@@ -67,7 +63,6 @@ export function FriendSearchForm({ currentUserId }: { currentUserId: string }) {
         return;
       }
 
-      // Create friendship request
       const { error: insertError } = await supabase.from("friendships").insert({
         user_id: currentUserId,
         friend_id: friendId,
@@ -76,7 +71,6 @@ export function FriendSearchForm({ currentUserId }: { currentUserId: string }) {
 
       if (insertError) throw insertError;
 
-      // Refresh the page to show updated state
       router.refresh();
       setSearchQuery("");
       setSearchResults([]);
@@ -92,16 +86,20 @@ export function FriendSearchForm({ currentUserId }: { currentUserId: string }) {
           placeholder="Search by username..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="bg-white/5 border-white/[0.06] text-white placeholder:text-slate-600"
         />
-        <Button type="submit" disabled={loading}>
-          <Search className="w-4 h-4 mr-2" />
+        <button
+          type="submit"
+          disabled={loading}
+          className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15 transition-colors disabled:opacity-50"
+        >
           Search
-        </Button>
+        </button>
       </form>
 
       {error && (
-        <div className="p-3 mb-4 rounded-lg bg-red-50 border border-red-200">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-3 mb-4 rounded-lg bg-red-500/10 border border-red-500/20">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 
@@ -110,37 +108,36 @@ export function FriendSearchForm({ currentUserId }: { currentUserId: string }) {
           {searchResults.map((user) => (
             <div
               key={user.id}
-              className="flex items-center justify-between p-3 rounded-lg border"
+              className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] bg-white/[0.02]"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-semibold text-sm">
                   {user.username?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-semibold">
+                  <p className="font-semibold text-white text-sm">
                     {user.display_name || user.username}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     @{user.username}
                   </p>
                 </div>
               </div>
-              <Button
-                size="sm"
+              <button
                 onClick={() => handleSendRequest(user.id)}
                 disabled={loading}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/15 transition-colors"
               >
-                <UserPlus className="w-4 h-4 mr-2" />
                 Add Friend
-              </Button>
+              </button>
             </div>
           ))}
         </div>
       )}
 
       {searchQuery && searchResults.length === 0 && !loading && (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          No users found matching "{searchQuery}"
+        <p className="text-sm text-slate-500 text-center py-4">
+          No users found matching &quot;{searchQuery}&quot;
         </p>
       )}
     </div>

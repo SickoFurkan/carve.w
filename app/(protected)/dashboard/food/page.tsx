@@ -1,10 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Plus, Utensils, Calendar, Flame, Apple } from "lucide-react";
 import { format } from "date-fns";
+import { HealthCard } from "@/components/dashboard/shared";
 
 interface Meal {
   id: string;
@@ -44,7 +42,6 @@ async function getNutritionStats(userId: string) {
     .eq("user_id", userId)
     .single();
 
-  // Get meals this week
   const startOfWeek = new Date();
   startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
   startOfWeek.setHours(0, 0, 0, 0);
@@ -118,109 +115,112 @@ export default async function FoodPage() {
   });
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Nutrition Tracking</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Nutrition
+          </h1>
+          <p className="text-[#9da6b9] mt-1">
             Monitor your meals and macros
           </p>
         </div>
-        <Link href="/dashboard/food/new">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Log Meal
-          </Button>
+        <Link
+          href="/dashboard/food/new"
+          className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Log Meal
         </Link>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-              <Utensils className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Meals</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <Apple className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">This Week</p>
-              <p className="text-2xl font-bold">{stats.thisWeek}</p>
-            </div>
-          </div>
-        </Card>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <HealthCard>
+          <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">
+            Total Meals
+          </p>
+          <p className="text-3xl font-bold text-white tracking-tight">
+            {stats.total}
+          </p>
+        </HealthCard>
+        <HealthCard>
+          <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">
+            This Week
+          </p>
+          <p className="text-3xl font-bold text-white tracking-tight">
+            {stats.thisWeek}
+          </p>
+        </HealthCard>
       </div>
 
       {/* Meal List */}
       {meals.length === 0 ? (
-        <Card className="p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-            <Utensils className="w-8 h-8 text-muted-foreground" />
+        <HealthCard className="py-12 text-center">
+          <div className="w-14 h-14 rounded-full bg-white/5 mx-auto mb-4 flex items-center justify-center">
+            <span className="text-2xl">🍽</span>
           </div>
-          <h3 className="text-lg font-semibold mb-2">No meals logged yet</h3>
-          <p className="text-muted-foreground mb-4">
+          <h3 className="text-lg font-semibold text-white mb-2">
+            No meals logged yet
+          </h3>
+          <p className="text-[#9da6b9] mb-4">
             Start tracking your nutrition to monitor your progress!
           </p>
-          <Link href="/dashboard/food/new">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Log Your First Meal
-            </Button>
+          <Link
+            href="/dashboard/food/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Log Your First Meal
           </Link>
-        </Card>
+        </HealthCard>
       ) : (
         <div className="space-y-6">
           {dates.map((date) => (
             <div key={date}>
               <div className="flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <h2 className="font-semibold">
+                <span className="text-slate-500 text-sm">📅</span>
+                <h2 className="font-semibold text-white text-sm">
                   {format(new Date(date), "EEEE, MMMM d, yyyy")}
                 </h2>
               </div>
 
               {/* Daily Totals */}
-              <Card className="p-4 mb-3 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <HealthCard className="mb-3 bg-emerald-500/5 border-emerald-500/10">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-sm">Daily Totals</span>
-                  <div className="flex gap-6 text-sm">
+                  <span className="font-semibold text-sm text-white">Daily Totals</span>
+                  <div className="flex gap-5 text-sm">
                     <div className="flex items-center gap-1">
-                      <Flame className="w-4 h-4 text-orange-500" />
-                      <span className="font-semibold">
+                      <span className="text-orange-400 text-xs">🔥</span>
+                      <span className="font-semibold text-white">
                         {Math.round(dailyTotals[date].calories)}
                       </span>
-                      <span className="text-muted-foreground">cal</span>
+                      <span className="text-slate-500">cal</span>
                     </div>
                     {dailyTotals[date].protein > 0 && (
-                      <div className="text-muted-foreground">
-                        <span className="font-semibold text-foreground">
+                      <div className="text-slate-500">
+                        <span className="font-semibold text-white">
                           {Math.round(dailyTotals[date].protein)}g
                         </span>{" "}
                         P
                       </div>
                     )}
                     {dailyTotals[date].carbs > 0 && (
-                      <div className="text-muted-foreground">
-                        <span className="font-semibold text-foreground">
+                      <div className="text-slate-500">
+                        <span className="font-semibold text-white">
                           {Math.round(dailyTotals[date].carbs)}g
                         </span>{" "}
                         C
                       </div>
                     )}
                     {dailyTotals[date].fat > 0 && (
-                      <div className="text-muted-foreground">
-                        <span className="font-semibold text-foreground">
+                      <div className="text-slate-500">
+                        <span className="font-semibold text-white">
                           {Math.round(dailyTotals[date].fat)}g
                         </span>{" "}
                         F
@@ -228,64 +228,58 @@ export default async function FoodPage() {
                     )}
                   </div>
                 </div>
-              </Card>
+              </HealthCard>
 
               {/* Individual Meals */}
               <div className="space-y-3">
                 {groupedMeals[date].map((meal) => (
-                  <Card key={meal.id} className="p-5">
+                  <HealthCard key={meal.id}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-lg">
                             {MEAL_TYPE_ICONS[meal.meal_type]}
                           </span>
-                          <h3 className="font-semibold">
+                          <h3 className="font-semibold text-white">
                             {MEAL_TYPE_LABELS[meal.meal_type]}
                           </h3>
                           {meal.name && (
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-sm text-[#9da6b9]">
                               — {meal.name}
                             </span>
                           )}
                         </div>
 
-                        {/* Macros */}
-                        {(meal.calories ||
-                          meal.protein ||
-                          meal.carbs ||
-                          meal.fat) && (
+                        {(meal.calories || meal.protein || meal.carbs || meal.fat) && (
                           <div className="flex gap-4 text-sm mb-2">
                             {meal.calories && (
                               <div className="flex items-center gap-1">
-                                <Flame className="w-3 h-3 text-orange-500" />
-                                <span className="font-medium">
+                                <span className="text-xs">🔥</span>
+                                <span className="font-medium text-white">
                                   {meal.calories}
                                 </span>
-                                <span className="text-muted-foreground">
-                                  cal
-                                </span>
+                                <span className="text-slate-500">cal</span>
                               </div>
                             )}
                             {meal.protein && (
-                              <div className="text-muted-foreground">
-                                <span className="font-medium text-foreground">
+                              <div className="text-slate-500">
+                                <span className="font-medium text-white">
                                   {meal.protein}g
                                 </span>{" "}
                                 protein
                               </div>
                             )}
                             {meal.carbs && (
-                              <div className="text-muted-foreground">
-                                <span className="font-medium text-foreground">
+                              <div className="text-slate-500">
+                                <span className="font-medium text-white">
                                   {meal.carbs}g
                                 </span>{" "}
                                 carbs
                               </div>
                             )}
                             {meal.fat && (
-                              <div className="text-muted-foreground">
-                                <span className="font-medium text-foreground">
+                              <div className="text-slate-500">
+                                <span className="font-medium text-white">
                                   {meal.fat}g
                                 </span>{" "}
                                 fat
@@ -294,20 +288,18 @@ export default async function FoodPage() {
                           </div>
                         )}
 
-                        {/* Notes */}
                         {meal.notes && (
-                          <p className="text-sm text-muted-foreground italic">
+                          <p className="text-sm text-[#9da6b9] italic">
                             {meal.notes}
                           </p>
                         )}
                       </div>
 
-                      {/* Time */}
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-slate-500">
                         {format(new Date(meal.created_at), "h:mm a")}
                       </span>
                     </div>
-                  </Card>
+                  </HealthCard>
                 ))}
               </div>
             </div>

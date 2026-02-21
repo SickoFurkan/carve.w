@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function FriendRequestActions({ friendshipId }: { friendshipId: string }) {
@@ -52,24 +50,20 @@ export function FriendRequestActions({ friendshipId }: { friendshipId: string })
 
   return (
     <div className="flex gap-2">
-      <Button
-        size="sm"
+      <button
         onClick={handleAccept}
         disabled={loading}
-        className="bg-green-600 hover:bg-green-700"
+        className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors"
       >
-        <Check className="w-4 h-4 mr-1" />
         Accept
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
+      </button>
+      <button
         onClick={handleDecline}
         disabled={loading}
+        className="inline-flex items-center gap-1 rounded-lg border border-white/[0.06] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-white/[0.15] transition-colors"
       >
-        <X className="w-4 h-4 mr-1" />
         Decline
-      </Button>
+      </button>
     </div>
   );
 }

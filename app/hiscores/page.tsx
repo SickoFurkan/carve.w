@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Trophy, Zap, Dumbbell, TrendingUp } from 'lucide-react';
 
 interface LeaderboardUser {
   id: string;
@@ -17,16 +16,22 @@ interface LeaderboardUser {
 
 type LeaderboardType = 'xp' | 'level' | 'workouts';
 
-function getRankBadgeColor(rank: number): string {
+const TABS: { value: LeaderboardType; label: string; icon: string }[] = [
+  { value: 'xp', label: 'Total XP', icon: '📊' },
+  { value: 'level', label: 'Level', icon: '⚡' },
+  { value: 'workouts', label: 'Workouts', icon: '💪' },
+];
+
+function getRankStyle(rank: number): string {
   switch (rank) {
     case 1:
-      return 'bg-yellow-500 text-white shadow-lg scale-110'; // Gold
+      return 'bg-[#c8b86e]/20 text-[#c8b86e] border-[#c8b86e]/30';
     case 2:
-      return 'bg-gray-400 text-white shadow-md scale-105'; // Silver
+      return 'bg-slate-400/20 text-slate-300 border-slate-400/30';
     case 3:
-      return 'bg-amber-700 text-white shadow-md scale-105'; // Bronze
+      return 'bg-amber-700/20 text-amber-500 border-amber-700/30';
     default:
-      return 'bg-gray-200 text-gray-700';
+      return 'bg-white/5 text-slate-400 border-white/[0.06]';
   }
 }
 
@@ -68,85 +73,70 @@ export default function HiscoresPage() {
   }, [leaderboardType]);
 
   return (
-    <div className="min-h-screen bg-white py-12 px-4">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#0c0e14] py-12 px-4">
+      <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center">
           <div className="inline-flex items-center justify-center gap-3 mb-4">
-            <Trophy className="w-12 h-12 text-yellow-500" />
-            <h1 className="text-5xl font-bold text-gray-900">Hiscores</h1>
+            <span className="text-4xl">🏆</span>
+            <h1 className="text-5xl font-bold text-white tracking-tight">
+              Hiscores
+            </h1>
           </div>
-          <p className="text-xl text-gray-600">
+          <p className="text-lg text-[#9da6b9]">
             See where you rank among the Carve community
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-md p-2 mb-8 flex gap-2">
-          <button
-            onClick={() => setLeaderboardType('xp')}
-            className={`flex-1 py-3 px-4 rounded-md font-semibold transition-all flex items-center justify-center gap-2 ${
-              leaderboardType === 'xp'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <TrendingUp className="w-5 h-5" />
-            Total XP
-          </button>
-          <button
-            onClick={() => setLeaderboardType('level')}
-            className={`flex-1 py-3 px-4 rounded-md font-semibold transition-all flex items-center justify-center gap-2 ${
-              leaderboardType === 'level'
-                ? 'bg-purple-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <Zap className="w-5 h-5" />
-            Level
-          </button>
-          <button
-            onClick={() => setLeaderboardType('workouts')}
-            className={`flex-1 py-3 px-4 rounded-md font-semibold transition-all flex items-center justify-center gap-2 ${
-              leaderboardType === 'workouts'
-                ? 'bg-green-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <Dumbbell className="w-5 h-5" />
-            Workouts
-          </button>
+        <div className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-1.5 flex gap-1.5">
+          {TABS.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setLeaderboardType(tab.value)}
+              className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm ${
+                leaderboardType === tab.value
+                  ? 'bg-white/10 text-white'
+                  : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Leaderboard */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="rounded-xl bg-[#1c1f27] border border-white/[0.06] overflow-hidden">
           {loading ? (
             <div className="p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-              <p className="text-gray-600">Loading leaderboard...</p>
+              <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-white/10 border-t-white/50 mb-4" />
+              <p className="text-slate-500">Loading leaderboard...</p>
             </div>
           ) : users.length === 0 ? (
             <div className="p-12 text-center">
-              <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+              <span className="text-5xl block mb-4">🏆</span>
+              <h3 className="text-xl font-bold text-white mb-2">
                 No Players Yet
               </h3>
-              <p className="text-gray-600">
+              <p className="text-[#9da6b9]">
                 Be the first to join and claim the top spot!
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-white/[0.04]">
               {users.map((user) => (
                 <div
                   key={user.id}
                   className={`flex items-center gap-4 p-4 transition-colors ${
-                    user.rank <= 3 ? 'bg-gradient-to-r from-yellow-50 to-white' : 'hover:bg-gray-50'
+                    user.rank <= 3
+                      ? 'bg-[#c8b86e]/[0.03]'
+                      : 'hover:bg-white/[0.02]'
                   }`}
                 >
                   {/* Rank Badge */}
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 transition-transform ${getRankBadgeColor(
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 border ${getRankStyle(
                       user.rank
                     )}`}
                   >
@@ -154,7 +144,7 @@ export default function HiscoresPage() {
                   </div>
 
                   {/* Avatar */}
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-md">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                     {user.avatar_image_url ? (
                       <img
                         src={user.avatar_image_url}
@@ -168,29 +158,27 @@ export default function HiscoresPage() {
 
                   {/* User Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-gray-900 truncate">
+                    <h3 className="font-bold text-white truncate">
                       {user.display_name}
                     </h3>
-                    <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                    <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
                       <span className="flex items-center gap-1">
-                        <Zap className="w-4 h-4 text-yellow-500" />
-                        Level {user.level}
+                        ⚡ Level {user.level}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Dumbbell className="w-4 h-4 text-blue-500" />
-                        {user.workout_count} workouts
+                        💪 {user.workout_count} workouts
                       </span>
                     </div>
                   </div>
 
                   {/* Stats */}
                   <div className="text-right flex-shrink-0">
-                    <div className="font-bold text-2xl text-blue-600">
+                    <div className="font-bold text-xl text-white">
                       {leaderboardType === 'xp' && user.total_xp.toLocaleString()}
                       {leaderboardType === 'level' && user.level}
                       {leaderboardType === 'workouts' && user.workout_count}
                     </div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">
+                    <div className="text-xs text-slate-500 uppercase tracking-wider">
                       {leaderboardType === 'xp' && 'XP'}
                       {leaderboardType === 'level' && 'Level'}
                       {leaderboardType === 'workouts' && 'Workouts'}
@@ -203,16 +191,18 @@ export default function HiscoresPage() {
         </div>
 
         {/* CTA */}
-        <div className="mt-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-xl p-8 text-center text-white">
-          <h2 className="text-3xl font-bold mb-3">Want to compete?</h2>
-          <p className="text-blue-100 mb-6 text-lg">
+        <div className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-3">
+            Want to compete?
+          </h2>
+          <p className="text-[#9da6b9] mb-6">
             Join the waitlist to track your workouts, earn XP, and climb the leaderboard.
           </p>
           <a
             href="/#waitlist"
-            className="inline-block bg-white text-blue-600 font-bold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
+            className="inline-block rounded-lg bg-white/10 px-8 py-3 font-medium text-white hover:bg-white/15 transition-colors"
           >
-            Join Waitlist →
+            Join Waitlist
           </a>
         </div>
       </div>

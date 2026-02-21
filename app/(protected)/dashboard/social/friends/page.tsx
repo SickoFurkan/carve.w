@@ -1,9 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { UserPlus, Users, Clock, Check, X } from "lucide-react";
+import { HealthCard } from "@/components/dashboard/shared";
 import { FriendSearchForm } from "@/components/social/FriendSearchForm";
 import { FriendRequestActions } from "@/components/social/FriendRequestActions";
 
@@ -14,20 +11,9 @@ interface Profile {
   avatar_url: string | null;
 }
 
-interface Friendship {
-  id: string;
-  status: "pending" | "accepted" | "blocked";
-  created_at: string;
-  user_id: string;
-  friend_id: string;
-  friend_profile?: Profile;
-  requester_profile?: Profile;
-}
-
 async function getFriends(userId: string) {
   const supabase = await createClient();
 
-  // Get accepted friendships
   const { data: friendships, error } = await supabase
     .from("friendships")
     .select(
@@ -59,7 +45,6 @@ async function getFriends(userId: string) {
 async function getPendingRequests(userId: string) {
   const supabase = await createClient();
 
-  // Get incoming pending requests (where current user is the friend_id)
   const { data: requests, error } = await supabase
     .from("friendships")
     .select(
@@ -87,7 +72,6 @@ async function getPendingRequests(userId: string) {
 async function getSentRequests(userId: string) {
   const supabase = await createClient();
 
-  // Get outgoing pending requests (where current user is the user_id)
   const { data: requests, error } = await supabase
     .from("friendships")
     .select(
@@ -127,30 +111,32 @@ export default async function FriendsPage() {
   const sentRequests = await getSentRequests(user.id);
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Friends</h1>
-        <p className="text-muted-foreground">
+      <div>
+        <h1 className="text-3xl font-bold text-white tracking-tight">
+          Friends
+        </h1>
+        <p className="text-[#9da6b9] mt-1">
           Connect with others and share your fitness journey
         </p>
       </div>
 
-      {/* Search for Friends */}
-      <Card className="p-6 mb-6">
+      {/* Search */}
+      <HealthCard>
         <div className="flex items-center gap-2 mb-4">
-          <UserPlus className="w-5 h-5" />
-          <h2 className="text-xl font-semibold">Add Friends</h2>
+          <span className="text-sm">🔍</span>
+          <h2 className="text-sm font-semibold text-white">Add Friends</h2>
         </div>
         <FriendSearchForm currentUserId={user.id} />
-      </Card>
+      </HealthCard>
 
-      {/* Pending Friend Requests */}
+      {/* Pending Requests */}
       {pendingRequests.length > 0 && (
-        <Card className="p-6 mb-6">
+        <HealthCard>
           <div className="flex items-center gap-2 mb-4">
-            <Clock className="w-5 h-5" />
-            <h2 className="text-xl font-semibold">
+            <span className="text-sm">⏳</span>
+            <h2 className="text-sm font-semibold text-white">
               Pending Requests ({pendingRequests.length})
             </h2>
           </div>
@@ -158,18 +144,18 @@ export default async function FriendsPage() {
             {pendingRequests.map((request: any) => (
               <div
                 key={request.id}
-                className="flex items-center justify-between p-4 rounded-lg border"
+                className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] bg-white/[0.02]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-semibold text-sm">
                     {request.requester_profile.username?.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-semibold">
+                    <p className="font-semibold text-white text-sm">
                       {request.requester_profile.display_name ||
                         request.requester_profile.username}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-slate-500">
                       @{request.requester_profile.username}
                     </p>
                   </div>
@@ -178,15 +164,15 @@ export default async function FriendsPage() {
               </div>
             ))}
           </div>
-        </Card>
+        </HealthCard>
       )}
 
       {/* Sent Requests */}
       {sentRequests.length > 0 && (
-        <Card className="p-6 mb-6">
+        <HealthCard>
           <div className="flex items-center gap-2 mb-4">
-            <Clock className="w-5 h-5" />
-            <h2 className="text-xl font-semibold">
+            <span className="text-sm">📤</span>
+            <h2 className="text-sm font-semibold text-white">
               Sent Requests ({sentRequests.length})
             </h2>
           </div>
@@ -194,44 +180,44 @@ export default async function FriendsPage() {
             {sentRequests.map((request: any) => (
               <div
                 key={request.id}
-                className="flex items-center justify-between p-4 rounded-lg border"
+                className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] bg-white/[0.02]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-semibold text-sm">
                     {request.friend_profile.username?.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-semibold">
+                    <p className="font-semibold text-white text-sm">
                       {request.friend_profile.display_name ||
                         request.friend_profile.username}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-slate-500">
                       @{request.friend_profile.username}
                     </p>
                   </div>
                 </div>
-                <span className="text-sm text-muted-foreground">Pending</span>
+                <span className="text-xs text-slate-500">Pending</span>
               </div>
             ))}
           </div>
-        </Card>
+        </HealthCard>
       )}
 
       {/* Friends List */}
-      <Card className="p-6">
+      <HealthCard>
         <div className="flex items-center gap-2 mb-4">
-          <Users className="w-5 h-5" />
-          <h2 className="text-xl font-semibold">
+          <span className="text-sm">👥</span>
+          <h2 className="text-sm font-semibold text-white">
             My Friends ({friends.length})
           </h2>
         </div>
 
         {friends.length === 0 ? (
           <div className="text-center py-8">
-            <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-              <Users className="w-8 h-8 text-muted-foreground" />
+            <div className="w-14 h-14 rounded-full bg-white/5 mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl">👥</span>
             </div>
-            <p className="text-muted-foreground">
+            <p className="text-[#9da6b9]">
               No friends yet. Search for users to add friends!
             </p>
           </div>
@@ -240,33 +226,30 @@ export default async function FriendsPage() {
             {friends.map((friendship: any) => (
               <div
                 key={friendship.id}
-                className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-semibold text-sm">
                     {friendship.friend_profile?.username
                       ?.charAt(0)
                       .toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-semibold">
+                    <p className="font-semibold text-white text-sm">
                       {friendship.friend_profile?.display_name ||
                         friendship.friend_profile?.username}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-slate-500">
                       @{friendship.friend_profile?.username}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-muted-foreground">Friends</span>
-                </div>
+                <span className="text-xs text-emerald-400">Friends</span>
               </div>
             ))}
           </div>
         )}
-      </Card>
+      </HealthCard>
     </div>
   );
 }

@@ -3,12 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, X, ArrowLeft, Dumbbell } from "lucide-react";
 
 interface Exercise {
   id: string;
@@ -26,12 +23,10 @@ export default function NewWorkoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [xpAwarded, setXpAwarded] = useState<number | null>(null);
 
-  // Workout form state
   const [workoutName, setWorkoutName] = useState("");
   const [duration, setDuration] = useState("");
   const [workoutNotes, setWorkoutNotes] = useState("");
 
-  // Exercises state
   const [exercises, setExercises] = useState<Exercise[]>([
     {
       id: crypto.randomUUID(),
@@ -81,13 +76,11 @@ export default function NewWorkoutPage() {
     try {
       const supabase = createClient();
 
-      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Insert workout
       const { data: workout, error: workoutError } = await supabase
         .from("workouts")
         .insert({
@@ -101,7 +94,6 @@ export default function NewWorkoutPage() {
 
       if (workoutError) throw workoutError;
 
-      // Insert exercises
       const exercisesToInsert = exercises
         .filter((ex) => ex.exercise_name.trim() !== "")
         .map((ex, index) => ({
@@ -123,18 +115,8 @@ export default function NewWorkoutPage() {
         if (exercisesError) throw exercisesError;
       }
 
-      // Fetch updated user stats to show XP awarded
-      const { data: stats } = await supabase
-        .from("user_stats")
-        .select("total_xp")
-        .eq("user_id", user.id)
-        .single();
-
-      // Calculate XP awarded (base 50 XP + potential streak multiplier)
-      // For simplicity, showing base XP here. Real XP is calculated by trigger.
       setXpAwarded(50);
 
-      // Show success message briefly, then redirect
       setTimeout(() => {
         router.push("/dashboard/workouts");
       }, 2000);
@@ -146,130 +128,131 @@ export default function NewWorkoutPage() {
 
   if (xpAwarded !== null) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 py-8">
-        <Card className="p-8 text-center">
-          <div className="mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Dumbbell className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Workout Logged!</h2>
-            <p className="text-muted-foreground mb-4">
-              You earned {xpAwarded} XP for completing this workout!
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Redirecting to workout history...
-            </p>
+      <div className="p-6 lg:p-10 max-w-2xl mx-auto">
+        <div className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">💪</span>
           </div>
-        </Card>
+          <h2 className="text-2xl font-bold text-white mb-2">Workout Logged!</h2>
+          <p className="text-[#9da6b9] mb-4">
+            You earned {xpAwarded} XP for completing this workout!
+          </p>
+          <p className="text-sm text-slate-500">
+            Redirecting to workout history...
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 py-8">
+    <div className="p-6 lg:p-10 space-y-6 max-w-2xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
+      <div>
+        <button
           onClick={() => router.back()}
-          className="mb-4"
+          className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors mb-4"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
           Back
-        </Button>
-        <h1 className="text-3xl font-bold">Log Workout</h1>
-        <p className="text-muted-foreground">
+        </button>
+        <h1 className="text-3xl font-bold text-white tracking-tight">
+          Log Workout
+        </h1>
+        <p className="text-[#9da6b9] mt-1">
           Track your training and earn XP!
         </p>
       </div>
 
       {error && (
-        <Card className="p-4 mb-6 bg-red-50 border-red-200">
-          <p className="text-red-600 text-sm">{error}</p>
-        </Card>
+        <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Workout Details */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Workout Details</h2>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="workoutName">Workout Name *</Label>
-              <Input
-                id="workoutName"
-                placeholder="e.g., Upper Body Day, Leg Day"
-                value={workoutName}
-                onChange={(e) => setWorkoutName(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="duration">Duration (minutes)</Label>
-              <Input
-                id="duration"
-                type="number"
-                min="1"
-                placeholder="60"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="How did you feel? Any observations?"
-                rows={3}
-                value={workoutNotes}
-                onChange={(e) => setWorkoutNotes(e.target.value)}
-              />
-            </div>
+        <div className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-white">Workout Details</h2>
+          <div>
+            <Label htmlFor="workoutName" className="text-slate-400 text-xs">Workout Name *</Label>
+            <Input
+              id="workoutName"
+              placeholder="e.g., Upper Body Day, Leg Day"
+              value={workoutName}
+              onChange={(e) => setWorkoutName(e.target.value)}
+              required
+              className="mt-1 bg-white/5 border-white/[0.06] text-white placeholder:text-slate-600"
+            />
           </div>
-        </Card>
+          <div>
+            <Label htmlFor="duration" className="text-slate-400 text-xs">Duration (minutes)</Label>
+            <Input
+              id="duration"
+              type="number"
+              min="1"
+              placeholder="60"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="mt-1 bg-white/5 border-white/[0.06] text-white placeholder:text-slate-600"
+            />
+          </div>
+          <div>
+            <Label htmlFor="notes" className="text-slate-400 text-xs">Notes</Label>
+            <Textarea
+              id="notes"
+              placeholder="How did you feel? Any observations?"
+              rows={3}
+              value={workoutNotes}
+              onChange={(e) => setWorkoutNotes(e.target.value)}
+              className="mt-1 bg-white/5 border-white/[0.06] text-white placeholder:text-slate-600"
+            />
+          </div>
+        </div>
 
         {/* Exercises */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Exercises</h2>
-            <Button
+        <div className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-white">Exercises</h2>
+            <button
               type="button"
-              variant="outline"
-              size="sm"
               onClick={addExercise}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
               Add Exercise
-            </Button>
+            </button>
           </div>
 
           <div className="space-y-4">
             {exercises.map((exercise, index) => (
               <div
                 key={exercise.id}
-                className="p-4 border rounded-lg space-y-3"
+                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.02] space-y-3"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-sm text-muted-foreground">
+                  <span className="font-medium text-xs text-slate-500">
                     Exercise {index + 1}
                   </span>
                   {exercises.length > 1 && (
-                    <Button
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
                       onClick={() => removeExercise(exercise.id)}
+                      className="text-slate-500 hover:text-red-400 transition-colors"
                     >
-                      <X className="w-4 h-4" />
-                    </Button>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor={`exercise-name-${exercise.id}`}>
+                  <Label htmlFor={`exercise-name-${exercise.id}`} className="text-slate-400 text-xs">
                     Exercise Name
                   </Label>
                   <Input
@@ -279,46 +262,39 @@ export default function NewWorkoutPage() {
                     onChange={(e) =>
                       updateExercise(exercise.id, "exercise_name", e.target.value)
                     }
+                    className="mt-1 bg-white/5 border-white/[0.06] text-white placeholder:text-slate-600"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <Label htmlFor={`sets-${exercise.id}`}>Sets</Label>
+                    <Label htmlFor={`sets-${exercise.id}`} className="text-slate-400 text-xs">Sets</Label>
                     <Input
                       id={`sets-${exercise.id}`}
                       type="number"
                       min="1"
                       value={exercise.sets}
                       onChange={(e) =>
-                        updateExercise(
-                          exercise.id,
-                          "sets",
-                          parseInt(e.target.value)
-                        )
+                        updateExercise(exercise.id, "sets", parseInt(e.target.value))
                       }
+                      className="mt-1 bg-white/5 border-white/[0.06] text-white"
                     />
                   </div>
-
                   <div>
-                    <Label htmlFor={`reps-${exercise.id}`}>Reps</Label>
+                    <Label htmlFor={`reps-${exercise.id}`} className="text-slate-400 text-xs">Reps</Label>
                     <Input
                       id={`reps-${exercise.id}`}
                       type="number"
                       min="1"
                       value={exercise.reps}
                       onChange={(e) =>
-                        updateExercise(
-                          exercise.id,
-                          "reps",
-                          parseInt(e.target.value)
-                        )
+                        updateExercise(exercise.id, "reps", parseInt(e.target.value))
                       }
+                      className="mt-1 bg-white/5 border-white/[0.06] text-white"
                     />
                   </div>
-
                   <div>
-                    <Label htmlFor={`weight-${exercise.id}`}>
+                    <Label htmlFor={`weight-${exercise.id}`} className="text-slate-400 text-xs">
                       Weight ({exercise.weight_unit})
                     </Label>
                     <Input
@@ -328,18 +304,15 @@ export default function NewWorkoutPage() {
                       step="0.5"
                       value={exercise.weight}
                       onChange={(e) =>
-                        updateExercise(
-                          exercise.id,
-                          "weight",
-                          parseFloat(e.target.value)
-                        )
+                        updateExercise(exercise.id, "weight", parseFloat(e.target.value))
                       }
+                      className="mt-1 bg-white/5 border-white/[0.06] text-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor={`exercise-notes-${exercise.id}`}>
+                  <Label htmlFor={`exercise-notes-${exercise.id}`} className="text-slate-400 text-xs">
                     Notes (optional)
                   </Label>
                   <Input
@@ -349,26 +322,31 @@ export default function NewWorkoutPage() {
                     onChange={(e) =>
                       updateExercise(exercise.id, "notes", e.target.value)
                     }
+                    className="mt-1 bg-white/5 border-white/[0.06] text-white placeholder:text-slate-600"
                   />
                 </div>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
-        {/* Submit Button */}
+        {/* Submit */}
         <div className="flex gap-3">
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={() => router.back()}
             disabled={loading}
+            className="rounded-lg border border-white/[0.06] px-4 py-2.5 text-sm text-slate-400 hover:text-white hover:border-white/[0.15] transition-colors"
           >
             Cancel
-          </Button>
-          <Button type="submit" disabled={loading} className="flex-1">
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/15 transition-colors disabled:opacity-50"
+          >
             {loading ? "Saving..." : "Log Workout & Earn XP"}
-          </Button>
+          </button>
         </div>
       </form>
     </div>
