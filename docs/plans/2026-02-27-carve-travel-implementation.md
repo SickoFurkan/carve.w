@@ -16,9 +16,10 @@
 - Create: `lib/navigation/travel-navigation.ts`
 - Modify: `components/app/app-sidebar-controller.tsx:38-49` (add travel theme + route detection)
 - Modify: `components/app/app-header.tsx:33-37` (add Travel to APP_NAV)
-- Modify: `components/app/app-header.tsx:39-43` (add Travel to MARKETING_NAV)
 - Modify: `components/app/app-header.tsx:77-82` (update isActive to handle travel routes)
 - Modify: `components/icons/sidebar-icons.tsx` (add travel icons)
+
+> **Note:** Do NOT add Travel to `MARKETING_NAV` yet — no marketing page exists. That comes in Task 15.
 
 **Step 1: Create travel navigation config**
 
@@ -109,22 +110,12 @@ if (path.startsWith('/dashboard/travel')) {
 
 In `components/app/app-header.tsx`:
 
-Update `APP_NAV`:
+Update `APP_NAV` only (NOT MARKETING_NAV):
 ```ts
 const APP_NAV = [
   { label: 'Health', href: '/dashboard' },
   { label: 'Money', href: '/dashboard/money' },
   { label: 'Travel', href: '/dashboard/travel' },
-  { label: 'Wiki', href: '/' },
-] as const;
-```
-
-Update `MARKETING_NAV`:
-```ts
-const MARKETING_NAV = [
-  { label: 'Health', href: '/carve/health' },
-  { label: 'Money', href: '/carve/money' },
-  { label: 'Travel', href: '/carve/travel' },
   { label: 'Wiki', href: '/' },
 ] as const;
 ```
@@ -160,7 +151,7 @@ git commit -m "feat(travel): add navigation and sidebar integration for Carve Tr
 
 **Step 1: Create TravelCard component**
 
-Create `components/travel/shared/TravelCard.tsx` — follows exact MoneyCard pattern:
+Create `components/travel/shared/TravelCard.tsx` — follows MoneyCard pattern, includes `onClick` support from the start (used by DayTimeline in Task 9):
 
 ```tsx
 import { ReactNode } from "react"
@@ -169,9 +160,10 @@ import { cn } from "@/lib/utils"
 interface TravelCardProps {
   children: ReactNode
   className?: string
+  onClick?: () => void
 }
 
-export function TravelCard({ children, className }: TravelCardProps) {
+export function TravelCard({ children, className, onClick }: TravelCardProps) {
   return (
     <div
       className={cn(
@@ -180,6 +172,7 @@ export function TravelCard({ children, className }: TravelCardProps) {
         "border border-white/[0.06]",
         className
       )}
+      onClick={onClick}
     >
       {children}
     </div>
@@ -215,48 +208,39 @@ export default function TravelLayout({ children }: { children: React.ReactNode }
 
 **Step 4: Create travel dashboard page**
 
-Create `app/(protected)/dashboard/travel/page.tsx` — placeholder overview page:
+Create `app/(protected)/dashboard/travel/page.tsx` — server component placeholder (will be updated in Task 12 to list saved trips):
 
 ```tsx
-"use client"
-
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 import Link from "next/link"
-import { motion } from "framer-motion"
-import { TravelCard } from "@/components/travel/shared"
 
-export default function TravelPage() {
+export default async function TravelPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) redirect("/dashboard/login")
+
   return (
     <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
-      {/* Page header */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div>
         <h1 className="text-3xl font-bold text-white tracking-tight">
           Carve Travel
         </h1>
         <p className="text-[#9da6b9] mt-1">Your AI-powered travel planner</p>
-      </motion.div>
+      </div>
 
-      {/* Empty state / CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
-        <Link href="/dashboard/travel/new">
-          <TravelCard className="hover:border-[#b8d8e8]/30 transition-colors cursor-pointer group text-center py-16">
-            <div className="text-4xl mb-4">✈</div>
-            <h3 className="text-lg font-semibold text-white group-hover:text-[#b8d8e8] transition-colors">
-              Plan a new trip
-            </h3>
-            <p className="text-[#9da6b9] text-sm mt-1">
-              Tell the AI where you want to go and get a complete travel plan
-            </p>
-          </TravelCard>
-        </Link>
-      </motion.div>
+      <Link href="/dashboard/travel/new">
+        <div className="rounded-xl p-5 bg-[#1c1f27] border border-white/[0.06] hover:border-[#b8d8e8]/30 transition-colors cursor-pointer text-center py-16">
+          <div className="text-4xl mb-4">✈</div>
+          <h3 className="text-lg font-semibold text-white">
+            Plan a new trip
+          </h3>
+          <p className="text-[#9da6b9] text-sm mt-1">
+            Tell the AI where you want to go and get a complete travel plan
+          </p>
+        </div>
+      </Link>
     </div>
   )
 }
@@ -703,7 +687,8 @@ IMPORTANT RULES:
 BUDGET GUIDELINES:
 - Break down costs into: accommodation, food, activities, transport, other
 - Prices should reflect the destination's actual cost of living
-- Account for the accommodation preference when estimating costs`
+- Account for the accommodation preference when estimating costs
+- The budget_breakdown.accommodation should reflect the cost of ONE accommodation option (the mid-range suggestion) multiplied by the number of nights`
 
 export const REPLAN_SYSTEM_PROMPT = `You are Carve Travel. The user has an existing trip plan and wants to modify part of it.
 
@@ -711,7 +696,7 @@ RULES:
 - Only modify the specific day or activity the user mentions
 - Keep the rest of the plan intact
 - Respond in the same language the user writes in
-- Use the generate_trip_plan tool with only the modified days
+- Use the generate_trip_plan tool with the COMPLETE plan (all days), with your modifications applied
 - Explain briefly what you changed and why`
 ```
 
@@ -724,113 +709,51 @@ git commit -m "feat(travel): add AI system prompts and structured output schemas
 
 ---
 
-### Task 6: AI Chat API Route (Streaming)
+### Task 6: AI Chat API Route (Streaming) + saveTripPlan Helper
 
 **Files:**
+- Create: `lib/ai/save-trip-plan.ts`
 - Create: `app/api/travel/chat/route.ts`
 
-**Step 1: Create the streaming chat endpoint**
+> **Review fix [C4, C5, I1, I2, I7]:** saveTripPlan extracted to shared helper (reused by replan route). Includes error handling. Chat route validates messages input. Conversations are saved to trip_conversations table.
 
-Create `app/api/travel/chat/route.ts`:
+**Step 1: Create shared saveTripPlan helper**
+
+Create `lib/ai/save-trip-plan.ts`:
 
 ```ts
-import { streamText, tool } from "ai"
-import { anthropic } from "@ai-sdk/anthropic"
-import { createClient } from "@/lib/supabase/server"
-import { TRAVEL_SYSTEM_PROMPT } from "@/lib/ai/travel-prompts"
-import { tripPlanSchema } from "@/lib/ai/travel-schemas"
+import type { TripPlan } from "@/lib/ai/travel-schemas"
 
-export const maxDuration = 60
+type SupabaseClient = Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>
 
-export async function POST(req: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return new Response("Unauthorized", { status: 401 })
-  }
-
-  const { messages, tripId } = await req.json()
-
-  const result = streamText({
-    model: anthropic("claude-sonnet-4-20250514"),
-    system: TRAVEL_SYSTEM_PROMPT,
-    messages,
-    tools: {
-      generate_trip_plan: tool({
-        description: "Generate a complete trip plan with daily activities, accommodations, and budget breakdown. Call this when you have enough information to create the plan.",
-        parameters: tripPlanSchema,
-        execute: async (plan) => {
-          // Save trip to database if tripId provided
-          if (tripId) {
-            await saveTripPlan(supabase, tripId, plan)
-          }
-          return plan
-        },
-      }),
-    },
-    maxSteps: 2,
-  })
-
-  return result.toDataStreamResponse()
-}
-
-async function saveTripPlan(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+export async function saveTripPlan(
+  supabase: SupabaseClient,
   tripId: string,
-  plan: Record<string, unknown>
+  plan: TripPlan
 ) {
-  const typedPlan = plan as {
-    title: string
-    destination: string
-    days: Array<{
-      day_number: number
-      title: string
-      activities: Array<{
-        time_slot: string
-        title: string
-        description: string
-        location_name: string
-        latitude: number
-        longitude: number
-        estimated_cost: number
-        cost_category: string
-        duration_minutes: number
-      }>
-    }>
-    accommodations: Array<{
-      name: string
-      price_per_night: number
-      rating: number
-      price_tier: string
-      booking_url: string
-      latitude: number
-      longitude: number
-      distance_to_center: string
-    }>
-    budget_breakdown: {
-      total: number
-    }
-  }
-
   // Update trip metadata
-  await supabase
+  const { error: updateError } = await supabase
     .from("trips")
     .update({
-      title: typedPlan.title,
-      destination: typedPlan.destination,
-      total_budget: typedPlan.budget_breakdown.total,
+      title: plan.title,
+      destination: plan.destination,
+      total_budget: plan.budget_breakdown.total,
       status: "planned",
     })
     .eq("id", tripId)
+
+  if (updateError) {
+    console.error("Failed to update trip:", updateError)
+    throw new Error("Failed to save trip plan")
+  }
 
   // Delete existing days/activities for this trip (for replanning)
   await supabase.from("trip_days").delete().eq("trip_id", tripId)
   await supabase.from("trip_accommodations").delete().eq("trip_id", tripId)
 
   // Insert days and activities
-  for (const day of typedPlan.days) {
-    const { data: dayRow } = await supabase
+  for (const day of plan.days) {
+    const { data: dayRow, error: dayError } = await supabase
       .from("trip_days")
       .insert({
         trip_id: tripId,
@@ -840,7 +763,12 @@ async function saveTripPlan(
       .select("id")
       .single()
 
-    if (dayRow) {
+    if (dayError || !dayRow) {
+      console.error("Failed to insert day:", dayError)
+      continue
+    }
+
+    if (day.activities.length > 0) {
       const activities = day.activities.map((act, idx) => ({
         day_id: dayRow.id,
         time_slot: act.time_slot,
@@ -854,13 +782,15 @@ async function saveTripPlan(
         duration_minutes: act.duration_minutes,
         order_index: idx,
       }))
-      await supabase.from("trip_activities").insert(activities)
+
+      const { error: actError } = await supabase.from("trip_activities").insert(activities)
+      if (actError) console.error("Failed to insert activities:", actError)
     }
   }
 
   // Insert accommodations
-  if (typedPlan.accommodations.length > 0) {
-    const accommodations = typedPlan.accommodations.map((acc) => ({
+  if (plan.accommodations.length > 0) {
+    const accommodations = plan.accommodations.map((acc) => ({
       trip_id: tripId,
       name: acc.name,
       price_per_night: acc.price_per_night,
@@ -871,16 +801,102 @@ async function saveTripPlan(
       longitude: acc.longitude,
       distance_to_center: acc.distance_to_center,
     }))
-    await supabase.from("trip_accommodations").insert(accommodations)
+
+    const { error: accError } = await supabase.from("trip_accommodations").insert(accommodations)
+    if (accError) console.error("Failed to insert accommodations:", accError)
+  }
+}
+
+export async function saveConversation(
+  supabase: SupabaseClient,
+  tripId: string,
+  messages: Array<{ role: string; content: string }>
+) {
+  const toInsert = messages
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .filter((m) => m.content && m.content.trim().length > 0)
+    .map((m) => ({
+      trip_id: tripId,
+      role: m.role,
+      content: m.content,
+    }))
+
+  if (toInsert.length > 0) {
+    // Delete existing conversations for this trip first (overwrite)
+    await supabase.from("trip_conversations").delete().eq("trip_id", tripId)
+    await supabase.from("trip_conversations").insert(toInsert)
   }
 }
 ```
 
-**Step 2: Commit**
+**Step 2: Create the streaming chat endpoint**
+
+Create `app/api/travel/chat/route.ts`:
+
+```ts
+import { streamText, tool } from "ai"
+import { anthropic } from "@ai-sdk/anthropic"
+import { createClient } from "@/lib/supabase/server"
+import { TRAVEL_SYSTEM_PROMPT } from "@/lib/ai/travel-prompts"
+import { tripPlanSchema } from "@/lib/ai/travel-schemas"
+import { saveTripPlan, saveConversation } from "@/lib/ai/save-trip-plan"
+import { z } from "zod"
+
+export const maxDuration = 60
+
+const requestSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(["user", "assistant", "system"]),
+    content: z.string(),
+  })).min(1).max(50),
+  tripId: z.string().uuid().optional(),
+})
+
+export async function POST(req: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return new Response("Unauthorized", { status: 401 })
+  }
+
+  const body = await req.json()
+  const parsed = requestSchema.safeParse(body)
+  if (!parsed.success) {
+    return new Response("Invalid request body", { status: 400 })
+  }
+
+  const { messages, tripId } = parsed.data
+
+  const result = streamText({
+    model: anthropic("claude-sonnet-4-20250514"),
+    system: TRAVEL_SYSTEM_PROMPT,
+    messages,
+    tools: {
+      generate_trip_plan: tool({
+        description: "Generate a complete trip plan with daily activities, accommodations, and budget breakdown. Call this when you have enough information to create the plan.",
+        parameters: tripPlanSchema,
+        execute: async (plan) => {
+          if (tripId) {
+            await saveTripPlan(supabase, tripId, plan)
+            await saveConversation(supabase, tripId, messages)
+          }
+          return plan
+        },
+      }),
+    },
+    maxSteps: 2,
+  })
+
+  return result.toDataStreamResponse()
+}
+```
+
+**Step 3: Commit**
 
 ```bash
-git add app/api/travel/chat/route.ts
-git commit -m "feat(travel): add streaming AI chat API route with trip plan generation"
+git add lib/ai/save-trip-plan.ts app/api/travel/chat/route.ts
+git commit -m "feat(travel): add streaming AI chat API route with trip plan persistence"
 ```
 
 ---
@@ -890,6 +906,8 @@ git commit -m "feat(travel): add streaming AI chat API route with trip plan gene
 **Files:**
 - Create: `app/api/travel/trips/route.ts`
 
+> **Review fix [I3, M8]:** Added Zod input validation and DELETE support.
+
 **Step 1: Create trips CRUD endpoint**
 
 Create `app/api/travel/trips/route.ts`:
@@ -897,6 +915,12 @@ Create `app/api/travel/trips/route.ts`:
 ```ts
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { z } from "zod"
+
+const createTripSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  destination: z.string().min(1).max(200).optional(),
+})
 
 // GET /api/travel/trips — list user's trips
 export async function GET() {
@@ -930,7 +954,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { title, destination } = body
+  const parsed = createTripSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+  }
+
+  const { title, destination } = parsed.data
 
   const { data: trip, error } = await supabase
     .from("trips")
@@ -949,13 +978,40 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(trip, { status: 201 })
 }
+
+// DELETE /api/travel/trips — delete a trip by id (query param)
+export async function DELETE(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const tripId = req.nextUrl.searchParams.get("id")
+  if (!tripId) {
+    return NextResponse.json({ error: "Missing trip id" }, { status: 400 })
+  }
+
+  const { error } = await supabase
+    .from("trips")
+    .delete()
+    .eq("id", tripId)
+    .eq("user_id", user.id)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}
 ```
 
 **Step 2: Commit**
 
 ```bash
 git add app/api/travel/trips/route.ts
-git commit -m "feat(travel): add trips CRUD API route"
+git commit -m "feat(travel): add trips CRUD API route with input validation"
 ```
 
 ---
@@ -966,6 +1022,8 @@ git commit -m "feat(travel): add trips CRUD API route"
 - Create: `components/travel/chat/ChatMessage.tsx`
 - Create: `components/travel/chat/ChatInput.tsx`
 - Create: `components/travel/chat/TravelChat.tsx`
+
+> **Review fix [C5]:** TravelChat now accepts `tripId` and creates a draft trip via API when page loads if no tripId is provided. The `onTripCreated` callback passes the new tripId back to the parent.
 
 **Step 1: Create ChatMessage component**
 
@@ -1082,7 +1140,7 @@ Create `components/travel/chat/TravelChat.tsx`:
 "use client"
 
 import { useChat } from "ai/react"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChatMessage } from "./ChatMessage"
 import { ChatInput } from "./ChatInput"
 import type { TripPlan } from "@/lib/ai/travel-schemas"
@@ -1090,10 +1148,30 @@ import type { TripPlan } from "@/lib/ai/travel-schemas"
 interface TravelChatProps {
   tripId?: string
   onPlanGenerated?: (plan: TripPlan) => void
+  onTripCreated?: (tripId: string) => void
 }
 
-export function TravelChat({ tripId, onPlanGenerated }: TravelChatProps) {
+export function TravelChat({ tripId: initialTripId, onPlanGenerated, onTripCreated }: TravelChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [tripId, setTripId] = useState(initialTripId)
+
+  // Create a draft trip if none provided
+  useEffect(() => {
+    if (tripId) return
+    fetch("/api/travel/trips", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.id) {
+          setTripId(data.id)
+          onTripCreated?.(data.id)
+        }
+      })
+      .catch(console.error)
+  }, [tripId, onTripCreated])
 
   const { messages, append, isLoading } = useChat({
     api: "/api/travel/chat",
@@ -1150,7 +1228,7 @@ export function TravelChat({ tripId, onPlanGenerated }: TravelChatProps) {
         )}
       </div>
 
-      <ChatInput onSend={handleSend} disabled={isLoading} />
+      <ChatInput onSend={handleSend} disabled={isLoading || !tripId} />
     </div>
   )
 }
@@ -1160,7 +1238,7 @@ export function TravelChat({ tripId, onPlanGenerated }: TravelChatProps) {
 
 ```bash
 git add components/travel/chat/
-git commit -m "feat(travel): add chat interface components (ChatMessage, ChatInput, TravelChat)"
+git commit -m "feat(travel): add chat interface components with auto draft trip creation"
 ```
 
 ---
@@ -1172,6 +1250,8 @@ git commit -m "feat(travel): add chat interface components (ChatMessage, ChatInp
 - Create: `components/travel/widgets/BudgetOverview.tsx`
 - Create: `components/travel/widgets/AccommodationCard.tsx`
 - Create: `components/travel/widgets/TripMap.tsx`
+
+> **Review fix [C2, C3, M2, M5, I5]:** TripMap uses a stored module ref instead of repeated dynamic imports. Proper cleanup on unmount. Mapbox CSS imported. Currency passed through to budget display.
 
 **Step 1: Create DayTimeline component**
 
@@ -1188,6 +1268,7 @@ import type { TripDay } from "@/lib/ai/travel-schemas"
 
 interface DayTimelineProps {
   days: TripDay[]
+  currency?: string
   onActivityClick?: (dayIndex: number, activityIndex: number) => void
 }
 
@@ -1205,8 +1286,9 @@ const COST_CATEGORY_COLORS: Record<string, string> = {
   other: "#9da6b9",
 }
 
-export function DayTimeline({ days, onActivityClick }: DayTimelineProps) {
+export function DayTimeline({ days, currency = "EUR", onActivityClick }: DayTimelineProps) {
   const [activeDay, setActiveDay] = useState(0)
+  const currencySymbol = currency === "EUR" ? "\u20AC" : currency === "USD" ? "$" : currency === "GBP" ? "\u00A3" : currency
 
   if (!days.length) return null
 
@@ -1282,7 +1364,7 @@ export function DayTimeline({ days, onActivityClick }: DayTimelineProps) {
                               backgroundColor: `${COST_CATEGORY_COLORS[activity.cost_category] || COST_CATEGORY_COLORS.other}15`,
                             }}
                           >
-                            €{activity.estimated_cost}
+                            {currencySymbol}{activity.estimated_cost}
                           </span>
                         )}
                       </div>
@@ -1320,6 +1402,7 @@ interface BudgetBreakdown {
 interface BudgetOverviewProps {
   budget: BudgetBreakdown
   totalBudget?: number
+  currency?: string
 }
 
 const CATEGORIES = [
@@ -1330,9 +1413,10 @@ const CATEGORIES = [
   { key: "other", label: "Other", color: "#9da6b9" },
 ] as const
 
-export function BudgetOverview({ budget, totalBudget }: BudgetOverviewProps) {
+export function BudgetOverview({ budget, totalBudget, currency = "EUR" }: BudgetOverviewProps) {
   const limit = totalBudget || budget.total
   const overBudget = totalBudget ? budget.total > totalBudget : false
+  const currencySymbol = currency === "EUR" ? "\u20AC" : currency === "USD" ? "$" : currency === "GBP" ? "\u00A3" : currency
 
   return (
     <TravelCard>
@@ -1342,11 +1426,11 @@ export function BudgetOverview({ budget, totalBudget }: BudgetOverviewProps) {
       <div className="mb-4">
         <div className="flex items-baseline justify-between mb-1.5">
           <span className="text-2xl font-bold text-white">
-            €{budget.total.toFixed(0)}
+            {currencySymbol}{budget.total.toFixed(0)}
           </span>
           {totalBudget && (
             <span className="text-sm text-[#7a8299]">
-              / €{totalBudget.toFixed(0)}
+              / {currencySymbol}{totalBudget.toFixed(0)}
             </span>
           )}
         </div>
@@ -1361,7 +1445,7 @@ export function BudgetOverview({ budget, totalBudget }: BudgetOverviewProps) {
         </div>
         {overBudget && (
           <p className="text-xs text-red-400 mt-1">
-            €{(budget.total - totalBudget!).toFixed(0)} over budget
+            {currencySymbol}{(budget.total - totalBudget!).toFixed(0)} over budget
           </p>
         )}
       </div>
@@ -1381,7 +1465,7 @@ export function BudgetOverview({ budget, totalBudget }: BudgetOverviewProps) {
               />
               <span className="text-xs text-[#7a8299] flex-1">{label}</span>
               <span className="text-xs font-medium text-white">
-                €{value.toFixed(0)}
+                {currencySymbol}{value.toFixed(0)}
               </span>
               <span className="text-xs text-[#555d70] w-8 text-right">
                 {pct.toFixed(0)}%
@@ -1407,6 +1491,7 @@ import type { TripAccommodation } from "@/lib/ai/travel-schemas"
 
 interface AccommodationCardProps {
   accommodations: TripAccommodation[]
+  currency?: string
 }
 
 const TIER_LABELS: Record<string, string> = {
@@ -1415,8 +1500,9 @@ const TIER_LABELS: Record<string, string> = {
   luxury: "Luxury",
 }
 
-export function AccommodationCard({ accommodations }: AccommodationCardProps) {
+export function AccommodationCard({ accommodations, currency = "EUR" }: AccommodationCardProps) {
   if (!accommodations.length) return null
+  const currencySymbol = currency === "EUR" ? "\u20AC" : currency === "USD" ? "$" : currency === "GBP" ? "\u00A3" : currency
 
   return (
     <TravelCard>
@@ -1453,7 +1539,7 @@ export function AccommodationCard({ accommodations }: AccommodationCardProps) {
               </div>
               <div className="shrink-0 ml-3 text-right">
                 <p className="text-sm font-semibold text-white">
-                  €{acc.price_per_night}
+                  {currencySymbol}{acc.price_per_night}
                 </p>
                 <p className="text-xs text-[#555d70]">/ night</p>
               </div>
@@ -1474,12 +1560,13 @@ Create `components/travel/widgets/TripMap.tsx`:
 "use client"
 
 import { useEffect, useRef } from "react"
+import "mapbox-gl/dist/mapbox-gl.css"
 import type { TripDay } from "@/lib/ai/travel-schemas"
+import type mapboxgl from "mapbox-gl"
 
 interface TripMapProps {
   days: TripDay[]
   activeDay?: number
-  onMarkerClick?: (dayIndex: number, activityIndex: number) => void
 }
 
 const DAY_COLORS = [
@@ -1490,17 +1577,23 @@ const DAY_COLORS = [
 export function TripMap({ days, activeDay }: TripMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
+  const mapboxModule = useRef<typeof import("mapbox-gl") | null>(null)
+  const markersRef = useRef<mapboxgl.Marker[]>([])
 
+  // Initialize map once
   useEffect(() => {
-    if (!mapContainer.current || mapRef.current) return
+    if (!mapContainer.current) return
 
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
     if (!token) return
 
-    import("mapbox-gl").then((mapboxgl) => {
-      mapboxgl.default.accessToken = token
+    let map: mapboxgl.Map | undefined
 
-      const map = new mapboxgl.default.Map({
+    import("mapbox-gl").then((mod) => {
+      mapboxModule.current = mod
+      mod.default.accessToken = token
+
+      map = new mod.default.Map({
         container: mapContainer.current!,
         style: "mapbox://styles/mapbox/dark-v11",
         center: [0, 20],
@@ -1508,25 +1601,27 @@ export function TripMap({ days, activeDay }: TripMapProps) {
       })
 
       mapRef.current = map
-
-      return () => {
-        map.remove()
-        mapRef.current = null
-      }
     })
+
+    return () => {
+      map?.remove()
+      mapRef.current = null
+      mapboxModule.current = null
+    }
   }, [])
 
   // Update markers when days or activeDay changes
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
+    const mod = mapboxModule.current
+    if (!map || !mod) return
 
-    // Wait for map to be loaded
     const updateMarkers = () => {
       // Remove existing markers
-      document.querySelectorAll(".travel-marker").forEach((el) => el.remove())
+      markersRef.current.forEach((m) => m.remove())
+      markersRef.current = []
 
-      const bounds = new (window as unknown as { mapboxgl: typeof mapboxgl }).mapboxgl.LngLatBounds()
+      const bounds = new mod.default.LngLatBounds()
       let hasPoints = false
 
       const daysToShow = activeDay !== undefined ? [days[activeDay]] : days
@@ -1542,14 +1637,13 @@ export function TripMap({ days, activeDay }: TripMapProps) {
           bounds.extend([activity.longitude, activity.latitude])
 
           const el = document.createElement("div")
-          el.className = "travel-marker"
           el.style.cssText = `width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(0,0,0,0.3);cursor:pointer;`
 
-          import("mapbox-gl").then((mapboxgl) => {
-            new mapboxgl.default.Marker({ element: el })
-              .setLngLat([activity.longitude, activity.latitude])
-              .addTo(map)
-          })
+          const marker = new mod.default.Marker({ element: el })
+            .setLngLat([activity.longitude, activity.latitude])
+            .addTo(map)
+
+          markersRef.current.push(marker)
         })
       })
 
@@ -1606,9 +1700,10 @@ import type { TripPlan } from "@/lib/ai/travel-schemas"
 
 interface PlanDashboardProps {
   plan: TripPlan
+  currency?: string
 }
 
-export function PlanDashboard({ plan }: PlanDashboardProps) {
+export function PlanDashboard({ plan, currency = "EUR" }: PlanDashboardProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1632,14 +1727,15 @@ export function PlanDashboard({ plan }: PlanDashboardProps) {
       {/* Grid: Timeline + Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <DayTimeline days={plan.days} />
+          <DayTimeline days={plan.days} currency={currency} />
         </div>
         <div className="space-y-4">
           <BudgetOverview
             budget={plan.budget_breakdown}
             totalBudget={plan.budget_breakdown.total}
+            currency={currency}
           />
-          <AccommodationCard accommodations={plan.accommodations} />
+          <AccommodationCard accommodations={plan.accommodations} currency={currency} />
         </div>
       </div>
     </motion.div>
@@ -1726,8 +1822,11 @@ git commit -m "feat(travel): add new trip page with split-view chat and plan das
 
 **Files:**
 - Create: `app/(protected)/dashboard/travel/[id]/page.tsx`
+- Create: `app/(protected)/dashboard/travel/[id]/trip-detail-client.tsx`
 
-**Step 1: Create trip detail page**
+> **Review fix [I6]:** `toTripPlan` picks the mid-range accommodation (or first) for budget calculation instead of summing all.
+
+**Step 1: Create trip detail page (server)**
 
 Create `app/(protected)/dashboard/travel/[id]/page.tsx`:
 
@@ -1747,7 +1846,6 @@ export default async function TripDetailPage({ params }: PageProps) {
 
   if (!user) redirect("/dashboard/login")
 
-  // Fetch trip with all related data
   const { data: trip } = await supabase
     .from("trips")
     .select("*")
@@ -1767,18 +1865,11 @@ export default async function TripDetailPage({ params }: PageProps) {
     .select("*")
     .eq("trip_id", id)
 
-  const { data: conversations } = await supabase
-    .from("trip_conversations")
-    .select("*")
-    .eq("trip_id", id)
-    .order("created_at")
-
   return (
     <TripDetailClient
       trip={trip}
       days={days || []}
       accommodations={accommodations || []}
-      conversations={conversations || []}
     />
   )
 }
@@ -1803,6 +1894,7 @@ interface TripDetailClientProps {
     title: string
     destination: string
     total_budget: number | null
+    currency: string
   }
   days: Array<{
     day_number: number
@@ -1829,18 +1921,19 @@ interface TripDetailClientProps {
     longitude: number | null
     distance_to_center: string | null
   }>
-  conversations: Array<{
-    role: string
-    content: string
-  }>
 }
 
 function toTripPlan(props: TripDetailClientProps): TripPlan {
-  const totalFood = props.days.flatMap(d => d.trip_activities).filter(a => a.cost_category === "food").reduce((s, a) => s + (a.estimated_cost || 0), 0)
-  const totalActivity = props.days.flatMap(d => d.trip_activities).filter(a => a.cost_category === "activity").reduce((s, a) => s + (a.estimated_cost || 0), 0)
-  const totalTransport = props.days.flatMap(d => d.trip_activities).filter(a => a.cost_category === "transport").reduce((s, a) => s + (a.estimated_cost || 0), 0)
-  const totalOther = props.days.flatMap(d => d.trip_activities).filter(a => !["food", "activity", "transport"].includes(a.cost_category || "")).reduce((s, a) => s + (a.estimated_cost || 0), 0)
-  const accTotal = props.accommodations.reduce((s, a) => s + (a.price_per_night || 0), 0) * props.days.length
+  const allActivities = props.days.flatMap(d => d.trip_activities)
+  const totalFood = allActivities.filter(a => a.cost_category === "food").reduce((s, a) => s + (a.estimated_cost || 0), 0)
+  const totalActivity = allActivities.filter(a => a.cost_category === "activity").reduce((s, a) => s + (a.estimated_cost || 0), 0)
+  const totalTransport = allActivities.filter(a => a.cost_category === "transport").reduce((s, a) => s + (a.estimated_cost || 0), 0)
+  const totalOther = allActivities.filter(a => !["food", "activity", "transport"].includes(a.cost_category || "")).reduce((s, a) => s + (a.estimated_cost || 0), 0)
+
+  // Pick mid-range accommodation (or first available) for budget calc
+  const midRange = props.accommodations.find(a => a.price_tier === "mid-range")
+    || props.accommodations[0]
+  const accTotal = midRange ? (midRange.price_per_night || 0) * props.days.length : 0
 
   return {
     title: props.trip.title,
@@ -1906,14 +1999,13 @@ export function TripDetailClient(props: TripDetailClientProps) {
 
       {/* Plan dashboard */}
       <div className="flex-1 min-w-0 relative">
-        {/* Replan button */}
         <button
           onClick={() => setChatOpen(!chatOpen)}
           className="absolute top-4 right-4 z-10 px-3 py-1.5 text-xs font-medium text-[#b8d8e8] bg-[#b8d8e8]/10 hover:bg-[#b8d8e8]/20 rounded-lg transition-colors"
         >
           {chatOpen ? "Close chat" : "Replan with AI"}
         </button>
-        <PlanDashboard plan={plan} />
+        <PlanDashboard plan={plan} currency={props.trip.currency} />
       </div>
     </div>
   )
@@ -1933,6 +2025,7 @@ git commit -m "feat(travel): add trip detail page with replan support"
 
 **Files:**
 - Modify: `app/(protected)/dashboard/travel/page.tsx`
+- Create: `app/(protected)/dashboard/travel/travel-dashboard-client.tsx`
 - Create: `components/travel/widgets/TripCard.tsx`
 
 **Step 1: Create TripCard widget**
@@ -1970,6 +2063,7 @@ export function TripCard({
   totalBudget, currency, status, index,
 }: TripCardProps) {
   const statusColor = STATUS_COLORS[status] || STATUS_COLORS.draft
+  const currencySymbol = currency === "EUR" ? "\u20AC" : currency === "USD" ? "$" : currency === "GBP" ? "\u00A3" : currency
 
   return (
     <motion.div
@@ -1994,7 +2088,7 @@ export function TripCard({
             <div className="shrink-0 ml-4 text-right">
               {totalBudget && (
                 <p className="text-sm font-semibold text-white">
-                  {currency === "EUR" ? "€" : currency}{totalBudget.toFixed(0)}
+                  {currencySymbol}{totalBudget.toFixed(0)}
                 </p>
               )}
               <span
@@ -2015,32 +2109,7 @@ export function TripCard({
 }
 ```
 
-**Step 2: Update travel dashboard page to list trips**
-
-Replace `app/(protected)/dashboard/travel/page.tsx`:
-
-```tsx
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { TravelDashboardClient } from "./travel-dashboard-client"
-
-export default async function TravelPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) redirect("/dashboard/login")
-
-  const { data: trips } = await supabase
-    .from("trips")
-    .select("id, title, destination, start_date, end_date, total_budget, currency, status, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-
-  return <TravelDashboardClient trips={trips || []} />
-}
-```
-
-**Step 3: Create client component**
+**Step 2: Create dashboard client component**
 
 Create `app/(protected)/dashboard/travel/travel-dashboard-client.tsx`:
 
@@ -2067,7 +2136,6 @@ interface Trip {
 export function TravelDashboardClient({ trips }: { trips: Trip[] }) {
   return (
     <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
-      {/* Page header */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -2088,7 +2156,6 @@ export function TravelDashboardClient({ trips }: { trips: Trip[] }) {
         </Link>
       </motion.div>
 
-      {/* Trips list or empty state */}
       {trips.length > 0 ? (
         <div className="space-y-3">
           {trips.map((trip, idx) => (
@@ -2130,6 +2197,31 @@ export function TravelDashboardClient({ trips }: { trips: Trip[] }) {
 }
 ```
 
+**Step 3: Update travel dashboard page to server component with data fetching**
+
+Replace `app/(protected)/dashboard/travel/page.tsx`:
+
+```tsx
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import { TravelDashboardClient } from "./travel-dashboard-client"
+
+export default async function TravelPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) redirect("/dashboard/login")
+
+  const { data: trips } = await supabase
+    .from("trips")
+    .select("id, title, destination, start_date, end_date, total_budget, currency, status, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  return <TravelDashboardClient trips={trips || []} />
+}
+```
+
 **Step 4: Commit**
 
 ```bash
@@ -2144,6 +2236,8 @@ git commit -m "feat(travel): update dashboard with saved trips list and trip car
 **Files:**
 - Create: `app/api/travel/trips/[id]/replan/route.ts`
 
+> **Review fix [C4, M6]:** Replan endpoint now saves modified plan to database using shared saveTripPlan helper. System prompt updated (in Task 5) to generate the full plan with modifications applied.
+
 **Step 1: Create replan endpoint**
 
 Create `app/api/travel/trips/[id]/replan/route.ts`:
@@ -2154,8 +2248,17 @@ import { anthropic } from "@ai-sdk/anthropic"
 import { createClient } from "@/lib/supabase/server"
 import { REPLAN_SYSTEM_PROMPT } from "@/lib/ai/travel-prompts"
 import { tripPlanSchema } from "@/lib/ai/travel-schemas"
+import { saveTripPlan, saveConversation } from "@/lib/ai/save-trip-plan"
+import { z } from "zod"
 
 export const maxDuration = 60
+
+const requestSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(["user", "assistant", "system"]),
+    content: z.string(),
+  })).min(1).max(50),
+})
 
 export async function POST(
   req: Request,
@@ -2181,7 +2284,13 @@ export async function POST(
     return new Response("Trip not found", { status: 404 })
   }
 
-  const { messages } = await req.json()
+  const body = await req.json()
+  const parsed = requestSchema.safeParse(body)
+  if (!parsed.success) {
+    return new Response("Invalid request body", { status: 400 })
+  }
+
+  const { messages } = parsed.data
 
   // Load existing trip context
   const { data: days } = await supabase
@@ -2198,9 +2307,13 @@ export async function POST(
     messages,
     tools: {
       generate_trip_plan: tool({
-        description: "Generate a modified trip plan. Only include the days that have changed.",
+        description: "Generate the complete modified trip plan. Include ALL days (both changed and unchanged).",
         parameters: tripPlanSchema,
-        execute: async (plan) => plan,
+        execute: async (plan) => {
+          await saveTripPlan(supabase, tripId, plan)
+          await saveConversation(supabase, tripId, messages)
+          return plan
+        },
       }),
     },
     maxSteps: 2,
@@ -2214,63 +2327,20 @@ export async function POST(
 
 ```bash
 git add app/api/travel/trips/\[id\]/replan/route.ts
-git commit -m "feat(travel): add replan API route for modifying existing trips"
+git commit -m "feat(travel): add replan API route with plan persistence"
 ```
 
 ---
 
-### Task 14: Update TravelCard to Accept onClick
-
-The `DayTimeline` component passes `onClick` to `TravelCard`, but the current `TravelCard` doesn't support it.
-
-**Files:**
-- Modify: `components/travel/shared/TravelCard.tsx`
-
-**Step 1: Add onClick support**
-
-Update `components/travel/shared/TravelCard.tsx`:
-
-```tsx
-import { ReactNode } from "react"
-import { cn } from "@/lib/utils"
-
-interface TravelCardProps {
-  children: ReactNode
-  className?: string
-  onClick?: () => void
-}
-
-export function TravelCard({ children, className, onClick }: TravelCardProps) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl p-5",
-        "bg-[#1c1f27]",
-        "border border-white/[0.06]",
-        className
-      )}
-      onClick={onClick}
-    >
-      {children}
-    </div>
-  )
-}
-```
-
-**Step 2: Commit**
-
-```bash
-git add components/travel/shared/TravelCard.tsx
-git commit -m "fix(travel): add onClick prop to TravelCard component"
-```
-
----
-
-### Task 15: Add Carve Travel to Marketing Navigation
+### Task 14: Add Carve Travel to Marketing Navigation & Create Placeholder Page
 
 **Files:**
 - Modify: `lib/navigation/carve-navigation.ts`
 - Modify: `components/app/layout-wrapper.tsx`
+- Modify: `components/app/app-header.tsx` (add to MARKETING_NAV)
+- Create: `app/carve/travel/page.tsx`
+
+> **Review fix [M4]:** Creates a placeholder marketing page so `/carve/travel` doesn't 404.
 
 **Step 1: Add Travel to carve marketing navigation**
 
@@ -2293,21 +2363,51 @@ In `components/app/layout-wrapper.tsx`, add to the `isMarketingRoute` check:
 path === '/carve/travel' ||
 ```
 
-**Step 3: Commit**
+**Step 3: Add Travel to MARKETING_NAV in app-header**
 
-```bash
-git add lib/navigation/carve-navigation.ts components/app/layout-wrapper.tsx
-git commit -m "feat(travel): add Carve Travel to marketing navigation"
+In `components/app/app-header.tsx`, update `MARKETING_NAV`:
+
+```ts
+const MARKETING_NAV = [
+  { label: 'Health', href: '/carve/health' },
+  { label: 'Money', href: '/carve/money' },
+  { label: 'Travel', href: '/carve/travel' },
+  { label: 'Wiki', href: '/' },
+] as const;
 ```
 
----
+**Step 4: Create placeholder marketing page**
 
-Plan complete and saved to `docs/plans/2026-02-27-carve-travel-implementation.md`.
+Create `app/carve/travel/page.tsx`:
 
-Two execution options:
+```tsx
+import Link from "next/link"
 
-**1. Subagent-Driven (this session)** — I dispatch a fresh subagent per task, review between tasks, fast iteration
+export default function CarveTravelPage() {
+  return (
+    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center px-6">
+      <div className="text-center max-w-lg">
+        <h1 className="text-4xl font-bold text-white tracking-tight mb-4">
+          Carve Travel
+        </h1>
+        <p className="text-[#9da6b9] text-lg mb-8">
+          AI-powered travel planning for solo travelers. Describe your dream trip and get a complete plan in minutes.
+        </p>
+        <Link
+          href="/dashboard/travel"
+          className="inline-block px-6 py-3 text-sm font-medium text-white bg-[#b8d8e8]/20 hover:bg-[#b8d8e8]/30 rounded-xl transition-colors"
+        >
+          Start planning
+        </Link>
+      </div>
+    </div>
+  )
+}
+```
 
-**2. Parallel Session (separate)** — Open a new session in the worktree, batch execution with checkpoints
+**Step 5: Commit**
 
-Which approach?
+```bash
+git add lib/navigation/carve-navigation.ts components/app/layout-wrapper.tsx components/app/app-header.tsx app/carve/travel/
+git commit -m "feat(travel): add Carve Travel to marketing navigation with placeholder page"
+```
