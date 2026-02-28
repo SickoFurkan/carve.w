@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings, User, LogOut, Menu, X } from 'lucide-react';
+import { Settings, User, LogOut, Menu, X, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -33,13 +33,13 @@ function stripLocale(pathname: string): string {
 const APP_NAV = [
   { label: 'Health', href: '/dashboard' },
   { label: 'Money', href: '/dashboard/money' },
-  { label: 'Wiki', href: '/' },
+  { label: 'Travel', href: '/dashboard/travel' },
 ] as const;
 
 const MARKETING_NAV = [
   { label: 'Health', href: '/carve/health' },
   { label: 'Money', href: '/carve/money' },
-  { label: 'Wiki', href: '/' },
+  { label: 'Travel', href: '/carve/travel' },
 ] as const;
 
 export function AppHeader({
@@ -77,7 +77,7 @@ export function AppHeader({
   const isActive = (href: string) => {
     const itemPath = stripLocale(href);
     if (itemPath === '/') return path === '/' || path.startsWith('/wiki');
-    if (itemPath === '/dashboard') return path === '/dashboard' || (path.startsWith('/dashboard') && !path.startsWith('/dashboard/money'));
+    if (itemPath === '/dashboard') return path === '/dashboard' || (path.startsWith('/dashboard') && !path.startsWith('/dashboard/money') && !path.startsWith('/dashboard/travel'));
     return path === itemPath || path.startsWith(itemPath);
   };
 
@@ -127,7 +127,19 @@ export function AppHeader({
             </nav>
 
             {/* Right side - Desktop */}
-            <div className="hidden md:flex items-center">
+            <div className="hidden md:flex items-center gap-3">
+              <Link
+                href="/"
+                className={cn(
+                  'p-2 rounded-lg transition-colors',
+                  path === '/' || path.startsWith('/wiki')
+                    ? 'text-white bg-white/[0.08]'
+                    : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]'
+                )}
+                title="Wiki"
+              >
+                <BookOpen className="w-4 h-4" />
+              </Link>
               {isAuthenticated ? (
                 <div className="relative">
                   <button
@@ -258,7 +270,17 @@ export function AppHeader({
                   {item.label}
                 </Link>
               ))}
-              <div className="border-t border-white/[0.08] mt-4 pt-4">
+              <div className="border-t border-white/[0.08] mt-4 pt-4 flex flex-col gap-2">
+                <Link
+                  href="/"
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    'text-lg transition-colors',
+                    path === '/' || path.startsWith('/wiki') ? 'text-white' : 'text-white/30'
+                  )}
+                >
+                  Wiki
+                </Link>
                 {isAuthenticated ? (
                   <Link
                     href="/dashboard"
