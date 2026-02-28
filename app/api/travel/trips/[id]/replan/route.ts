@@ -1,4 +1,4 @@
-import { streamText, tool } from "ai"
+import { streamText, tool, stepCountIs } from "ai"
 import { anthropic } from "@ai-sdk/anthropic"
 import { createClient } from "@/lib/supabase/server"
 import { REPLAN_SYSTEM_PROMPT } from "@/lib/ai/travel-prompts"
@@ -63,7 +63,7 @@ export async function POST(
     tools: {
       generate_trip_plan: tool({
         description: "Generate the complete modified trip plan. Include ALL days (both changed and unchanged).",
-        parameters: tripPlanSchema,
+        inputSchema: tripPlanSchema,
         execute: async (plan) => {
           await saveTripPlan(supabase, tripId, plan)
           await saveConversation(supabase, tripId, messages)
@@ -71,8 +71,8 @@ export async function POST(
         },
       }),
     },
-    maxSteps: 2,
+    stopWhen: stepCountIs(2),
   })
 
-  return result.toDataStreamResponse()
+  return result.toTextStreamResponse()
 }
