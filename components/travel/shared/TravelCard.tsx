@@ -1,10 +1,10 @@
-import { ReactNode } from "react"
+import { ReactNode, MouseEvent } from "react"
 import { cn } from "@/lib/utils"
 
 interface TravelCardProps {
   children: ReactNode
   className?: string
-  onClick?: () => void
+  onClick?: (e?: MouseEvent<HTMLDivElement>) => void
 }
 
 export function TravelCard({ children, className, onClick }: TravelCardProps) {

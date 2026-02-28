@@ -5,6 +5,10 @@ import { z } from "zod"
 const createTripSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   destination: z.string().min(1).max(200).optional(),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
+  total_budget: z.number().optional(),
+  currency: z.string().optional(),
 })
 
 // GET /api/travel/trips — list user's trips
@@ -44,7 +48,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 })
   }
 
-  const { title, destination } = parsed.data
+  const { title, destination, start_date, end_date, total_budget, currency } = parsed.data
 
   const { data: trip, error } = await supabase
     .from("trips")
@@ -52,7 +56,11 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       title: title || "New Trip",
       destination: destination || "TBD",
-      status: "draft",
+      start_date: start_date || null,
+      end_date: end_date || null,
+      total_budget: total_budget || null,
+      currency: currency || "EUR",
+      status: "planned",
     })
     .select("id")
     .single()

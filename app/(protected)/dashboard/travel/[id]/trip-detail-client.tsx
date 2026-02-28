@@ -1,16 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { motion } from "framer-motion"
 import { TravelChat } from "@/components/travel/chat/TravelChat"
-import { PlanDashboard } from "@/components/travel/plan/PlanDashboard"
-import type { TripPlan } from "@/lib/ai/travel-schemas"
+import { ActivityEditForm } from "@/components/travel/widgets/ActivityEditForm"
+import { TravelCard } from "@/components/travel/shared"
+import { cn } from "@/lib/utils"
+import type { TripPlan, TripActivity } from "@/lib/ai/travel-schemas"
 
 interface TripDetailClientProps {
   trip: {
     id: string
     title: string
     destination: string
+    start_date: string | null
+    end_date: string | null
     total_budget: number | null
     currency: string
   }
@@ -42,36 +46,25 @@ interface TripDetailClientProps {
 }
 
 function toTripPlan(props: TripDetailClientProps): TripPlan {
-  const allActivities = props.days.flatMap(d => d.trip_activities)
-  const totalFood = allActivities.filter(a => a.cost_category === "food").reduce((s, a) => s + (a.estimated_cost || 0), 0)
-  const totalActivity = allActivities.filter(a => a.cost_category === "activity").reduce((s, a) => s + (a.estimated_cost || 0), 0)
-  const totalTransport = allActivities.filter(a => a.cost_category === "transport").reduce((s, a) => s + (a.estimated_cost || 0), 0)
-  const totalOther = allActivities.filter(a => !["food", "activity", "transport"].includes(a.cost_category || "")).reduce((s, a) => s + (a.estimated_cost || 0), 0)
-
-  // Pick mid-range accommodation (or first available) for budget calc
-  const midRange = props.accommodations.find(a => a.price_tier === "mid-range")
-    || props.accommodations[0]
-  const accTotal = midRange ? (midRange.price_per_night || 0) * props.days.length : 0
-
   return {
     title: props.trip.title,
     destination: props.trip.destination,
-    days: props.days.map(d => ({
+    days: props.days.map((d) => ({
       day_number: d.day_number,
       title: d.title || `Day ${d.day_number}`,
-      activities: d.trip_activities.map(a => ({
-        time_slot: a.time_slot as "morning" | "afternoon" | "evening",
+      activities: d.trip_activities.map((a) => ({
+        time_slot: (a.time_slot || "morning") as TripActivity["time_slot"],
         title: a.title,
         description: a.description || "",
         location_name: a.location_name || "",
         latitude: a.latitude || 0,
         longitude: a.longitude || 0,
         estimated_cost: a.estimated_cost || 0,
-        cost_category: (a.cost_category || "other") as "food" | "activity" | "transport" | "shopping" | "other",
+        cost_category: (a.cost_category || "other") as TripActivity["cost_category"],
         duration_minutes: a.duration_minutes || 60,
       })),
     })),
-    accommodations: props.accommodations.map(a => ({
+    accommodations: props.accommodations.map((a) => ({
       name: a.name,
       price_per_night: a.price_per_night || 0,
       rating: a.rating || 0,
@@ -81,24 +74,157 @@ function toTripPlan(props: TripDetailClientProps): TripPlan {
       longitude: a.longitude || 0,
       distance_to_center: a.distance_to_center || "",
     })),
-    budget_breakdown: {
-      accommodation: accTotal,
-      food: totalFood,
-      activities: totalActivity,
-      transport: totalTransport,
-      other: totalOther,
-      total: accTotal + totalFood + totalActivity + totalTransport + totalOther,
-    },
+    budget_breakdown: { accommodation: 0, food: 0, activities: 0, transport: 0, other: 0, total: 0 },
   }
+}
+
+// --- Inline editable text ---
+function InlineEdit({
+  value,
+  onSave,
+  className,
+}: {
+  value: string
+  onSave: (val: string) => void
+  className?: string
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+
+  if (editing) {
+    return (
+      <input
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => { onSave(draft); setEditing(false) }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { onSave(draft); setEditing(false) }
+          if (e.key === "Escape") { setDraft(value); setEditing(false) }
+        }}
+        className={cn("bg-transparent border-b border-[#b8d8e8]/30 outline-none", className)}
+        autoFocus
+      />
+    )
+  }
+
+  return (
+    <span
+      onClick={() => { setDraft(value); setEditing(true) }}
+      className={cn("cursor-pointer hover:text-[#b8d8e8] transition-colors", className)}
+      title="Click to edit"
+    >
+      {value || "Click to set"}
+    </span>
+  )
+}
+
+// --- Constants ---
+const CATEGORY_COLORS: Record<string, string> = {
+  food: "#10b981",
+  activity: "#b8d8e8",
+  transport: "#f59e0b",
+  shopping: "#a78bfa",
+  other: "#9da6b9",
+}
+
+const TIME_SLOT_ORDER = ["morning", "afternoon", "evening"] as const
+const TIME_SLOT_LABELS: Record<string, string> = {
+  morning: "Morning",
+  afternoon: "Afternoon",
+  evening: "Evening",
 }
 
 export function TripDetailClient(props: TripDetailClientProps) {
   const [plan, setPlan] = useState<TripPlan>(() => toTripPlan(props))
   const [chatOpen, setChatOpen] = useState(false)
+  const [activeDay, setActiveDay] = useState(0)
+  const [editingActivity, setEditingActivity] = useState<{ dayIdx: number; actIdx: number } | null>(null)
+  const [addingToDay, setAddingToDay] = useState<number | null>(null)
+
+  const currency = props.trip.currency
+  const currencySymbol = currency === "EUR" ? "\u20AC" : currency === "USD" ? "$" : currency === "GBP" ? "\u00A3" : currency
+
+  // --- Mutator functions (swap for API calls later) ---
+  const updateTitle = useCallback(async (title: string) => {
+    setPlan((p) => ({ ...p, title }))
+  }, [])
+
+  const updateDestination = useCallback(async (destination: string) => {
+    setPlan((p) => ({ ...p, destination }))
+  }, [])
+
+  const addDay = useCallback(async () => {
+    setPlan((p) => ({
+      ...p,
+      days: [
+        ...p.days,
+        { day_number: p.days.length + 1, title: `Day ${p.days.length + 1}`, activities: [] },
+      ],
+    }))
+  }, [])
+
+  const removeDay = useCallback(async (dayIdx: number) => {
+    setPlan((p) => ({
+      ...p,
+      days: p.days.filter((_, i) => i !== dayIdx).map((d, i) => ({ ...d, day_number: i + 1 })),
+    }))
+    setActiveDay((prev) => Math.max(0, prev - (dayIdx <= prev ? 1 : 0)))
+  }, [])
+
+  const updateDayTitle = useCallback(async (dayIdx: number, title: string) => {
+    setPlan((p) => ({
+      ...p,
+      days: p.days.map((d, i) => (i === dayIdx ? { ...d, title } : d)),
+    }))
+  }, [])
+
+  const addActivity = useCallback(async (dayIdx: number, activity: TripActivity) => {
+    setPlan((p) => ({
+      ...p,
+      days: p.days.map((d, i) => (i === dayIdx ? { ...d, activities: [...d.activities, activity] } : d)),
+    }))
+    setAddingToDay(null)
+  }, [])
+
+  const updateActivity = useCallback(async (dayIdx: number, actIdx: number, activity: TripActivity) => {
+    setPlan((p) => ({
+      ...p,
+      days: p.days.map((d, i) =>
+        i === dayIdx ? { ...d, activities: d.activities.map((a, j) => (j === actIdx ? activity : a)) } : d
+      ),
+    }))
+    setEditingActivity(null)
+  }, [])
+
+  const removeActivity = useCallback(async (dayIdx: number, actIdx: number) => {
+    setPlan((p) => ({
+      ...p,
+      days: p.days.map((d, i) =>
+        i === dayIdx ? { ...d, activities: d.activities.filter((_, j) => j !== actIdx) } : d
+      ),
+    }))
+    setEditingActivity(null)
+  }, [])
+
+  // --- Computed ---
+  const currentDay = plan.days[activeDay]
+  const totalEstimated = plan.days.flatMap((d) => d.activities).reduce((s, a) => s + a.estimated_cost, 0)
+
+  const newActivity: TripActivity = {
+    time_slot: "morning",
+    title: "",
+    description: "",
+    location_name: "",
+    latitude: 0,
+    longitude: 0,
+    estimated_cost: 0,
+    cost_category: "activity",
+    duration_minutes: 60,
+  }
 
   return (
     <div className="h-full flex">
-      {/* Chat panel (for replanning) */}
+      {/* Chat panel */}
       {chatOpen && (
         <motion.div
           initial={{ width: 0 }}
@@ -107,23 +233,192 @@ export function TripDetailClient(props: TripDetailClientProps) {
           className="shrink-0 border-r border-white/[0.06] overflow-hidden bg-[#0c0e14]"
         >
           <div className="w-[400px] h-full">
-            <TravelChat
-              tripId={props.trip.id}
-              onPlanGenerated={setPlan}
-            />
+            <TravelChat tripId={props.trip.id} onPlanGenerated={setPlan} />
           </div>
         </motion.div>
       )}
 
-      {/* Plan dashboard */}
-      <div className="flex-1 min-w-0 relative">
-        <button
-          onClick={() => setChatOpen(!chatOpen)}
-          className="absolute top-4 right-4 z-10 px-3 py-1.5 text-xs font-medium text-[#b8d8e8] bg-[#b8d8e8]/10 hover:bg-[#b8d8e8]/20 rounded-lg transition-colors"
-        >
-          {chatOpen ? "Close chat" : "Replan with AI"}
-        </button>
-        <PlanDashboard plan={plan} currency={props.trip.currency} />
+      {/* Main content */}
+      <div className="flex-1 min-w-0 overflow-y-auto p-6 lg:p-10 space-y-6 max-w-5xl">
+        {/* AI toggle */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => setChatOpen(!chatOpen)}
+            className="px-3 py-1.5 text-xs font-medium text-[#b8d8e8] bg-[#b8d8e8]/10 hover:bg-[#b8d8e8]/20 rounded-lg transition-colors"
+          >
+            {chatOpen ? "Close chat" : "Replan with AI"}
+          </button>
+        </div>
+
+        {/* Trip header — inline editable */}
+        <div>
+          <InlineEdit
+            value={plan.title}
+            onSave={updateTitle}
+            className="text-2xl font-bold text-white tracking-tight block"
+          />
+          <InlineEdit
+            value={plan.destination}
+            onSave={updateDestination}
+            className="text-[#9da6b9] text-sm mt-1 block"
+          />
+          <div className="flex items-center gap-4 mt-2 text-xs text-[#555d70]">
+            <span>{plan.days.length} days</span>
+            {props.trip.total_budget && (
+              <span>{currencySymbol}{props.trip.total_budget} budget</span>
+            )}
+            {totalEstimated > 0 && (
+              <span className="text-[#b8d8e8]">{currencySymbol}{totalEstimated.toFixed(0)} estimated</span>
+            )}
+          </div>
+        </div>
+
+        {/* Day tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {plan.days.map((day, idx) => (
+            <button
+              key={day.day_number}
+              onClick={() => setActiveDay(idx)}
+              className={cn(
+                "shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors group relative",
+                activeDay === idx
+                  ? "bg-[#b8d8e8]/20 text-[#b8d8e8]"
+                  : "text-[#7a8299] hover:text-white hover:bg-white/[0.04]"
+              )}
+            >
+              Day {day.day_number}
+              {plan.days.length > 1 && (
+                <span
+                  onClick={(e) => { e.stopPropagation(); removeDay(idx) }}
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500/80 text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  ×
+                </span>
+              )}
+            </button>
+          ))}
+          <button
+            onClick={addDay}
+            className="shrink-0 px-3 py-2 rounded-lg text-sm text-[#555d70] hover:text-[#b8d8e8] hover:bg-white/[0.04] transition-colors"
+          >
+            + Add day
+          </button>
+        </div>
+
+        {/* Current day content */}
+        {currentDay && (
+          <div className="space-y-4">
+            <InlineEdit
+              value={currentDay.title}
+              onSave={(val) => updateDayTitle(activeDay, val)}
+              className="text-lg font-semibold text-white block"
+            />
+
+            {/* Activities by time slot */}
+            {TIME_SLOT_ORDER.map((slot) => {
+              const slotActivities = currentDay.activities
+                .map((a, idx) => ({ ...a, _idx: idx }))
+                .filter((a) => a.time_slot === slot)
+
+              if (!slotActivities.length) return null
+
+              return (
+                <div key={slot}>
+                  <p className="text-xs uppercase tracking-wider text-[#555d70] mb-2">
+                    {TIME_SLOT_LABELS[slot]}
+                  </p>
+                  <div className="space-y-2">
+                    {slotActivities.map((activity) => {
+                      const isEditing =
+                        editingActivity?.dayIdx === activeDay &&
+                        editingActivity?.actIdx === activity._idx
+
+                      if (isEditing) {
+                        return (
+                          <ActivityEditForm
+                            key={activity._idx}
+                            activity={activity}
+                            onSave={(a) => updateActivity(activeDay, activity._idx, a)}
+                            onDelete={() => removeActivity(activeDay, activity._idx)}
+                            onCancel={() => setEditingActivity(null)}
+                            currency={currency}
+                          />
+                        )
+                      }
+
+                      return (
+                        <motion.div
+                          key={activity._idx}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                        >
+                          <TravelCard
+                            className="cursor-pointer hover:border-[#b8d8e8]/20 transition-colors"
+                            onClick={() => setEditingActivity({ dayIdx: activeDay, actIdx: activity._idx })}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-medium text-white truncate">{activity.title}</h4>
+                                {activity.location_name && (
+                                  <p className="text-xs text-[#7a8299] mt-0.5">{activity.location_name}</p>
+                                )}
+                                {activity.description && (
+                                  <p className="text-xs text-[#555d70] mt-1 line-clamp-2">{activity.description}</p>
+                                )}
+                              </div>
+                              {activity.estimated_cost > 0 && (
+                                <span
+                                  className="shrink-0 ml-3 text-xs font-medium px-2 py-0.5 rounded-full"
+                                  style={{
+                                    color: CATEGORY_COLORS[activity.cost_category] || CATEGORY_COLORS.other,
+                                    backgroundColor: `${CATEGORY_COLORS[activity.cost_category] || CATEGORY_COLORS.other}15`,
+                                  }}
+                                >
+                                  {currencySymbol}{activity.estimated_cost}
+                                </span>
+                              )}
+                            </div>
+                          </TravelCard>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Add activity */}
+            {addingToDay === activeDay ? (
+              <ActivityEditForm
+                activity={newActivity}
+                onSave={(a) => addActivity(activeDay, a)}
+                onDelete={() => setAddingToDay(null)}
+                onCancel={() => setAddingToDay(null)}
+                currency={currency}
+              />
+            ) : (
+              <button
+                onClick={() => setAddingToDay(activeDay)}
+                className="w-full py-3 rounded-xl border border-dashed border-white/[0.08] text-sm text-[#555d70] hover:text-[#b8d8e8] hover:border-[#b8d8e8]/20 transition-colors"
+              >
+                + Add activity
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Empty state — no days */}
+        {plan.days.length === 0 && (
+          <TravelCard className="text-center py-12">
+            <p className="text-[#555d70] text-sm mb-3">No days planned yet</p>
+            <button
+              onClick={addDay}
+              className="px-4 py-2 text-sm font-medium text-[#b8d8e8] bg-[#b8d8e8]/10 hover:bg-[#b8d8e8]/20 rounded-lg transition-colors"
+            >
+              Add your first day
+            </button>
+          </TravelCard>
+        )}
       </div>
     </div>
   )

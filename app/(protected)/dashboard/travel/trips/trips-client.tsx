@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { TripCard } from "@/components/travel/widgets/TripCard"
+import { CreateTripModal } from "@/components/travel/widgets/CreateTripModal"
 import { TravelCard } from "@/components/travel/shared"
 import { cn } from "@/lib/utils"
 
@@ -24,9 +26,11 @@ type Tab = "upcoming" | "past" | "all"
 export function TripsPageClient({ trips: initialTrips }: { trips: Trip[] }) {
   const [trips, setTrips] = useState(initialTrips)
   const [activeTab, setActiveTab] = useState<Tab>("upcoming")
+  const [modalOpen, setModalOpen] = useState(false)
+  const router = useRouter()
 
   const filtered = trips.filter((t) => {
-    if (activeTab === "upcoming") return t.status === "planned" || t.status === "active"
+    if (activeTab === "upcoming") return t.status === "planned" || t.status === "active" || t.status === "draft"
     if (activeTab === "past") return t.status === "completed"
     return true
   })
@@ -35,6 +39,26 @@ export function TripsPageClient({ trips: initialTrips }: { trips: Trip[] }) {
     if (!confirm("Delete this trip?")) return
     const res = await fetch(`/api/travel/trips?id=${id}`, { method: "DELETE" })
     if (res.ok) setTrips((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  const handleCreate = async (trip: {
+    destination: string
+    title: string
+    start_date: string
+    end_date: string
+    total_budget: number
+    currency: string
+  }) => {
+    const res = await fetch("/api/travel/trips", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(trip),
+    })
+    const data = await res.json()
+    if (data.id) {
+      setModalOpen(false)
+      router.push(`/dashboard/travel/${data.id}`)
+    }
   }
 
   const tabs: { key: Tab; label: string }[] = [
@@ -57,12 +81,20 @@ export function TripsPageClient({ trips: initialTrips }: { trips: Trip[] }) {
             {trips.length} {trips.length === 1 ? "trip" : "trips"}
           </p>
         </div>
-        <Link
-          href="/dashboard/travel/new"
-          className="px-4 py-2 text-sm font-medium text-[#b8d8e8] bg-[#b8d8e8]/10 hover:bg-[#b8d8e8]/20 rounded-lg transition-colors"
-        >
-          Plan a trip
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/travel/new"
+            className="px-4 py-2 text-sm font-medium text-[#7a8299] hover:text-white transition-colors"
+          >
+            Plan with AI
+          </Link>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="px-4 py-2 text-sm font-medium text-[#b8d8e8] bg-[#b8d8e8]/10 hover:bg-[#b8d8e8]/20 rounded-lg transition-colors"
+          >
+            Create trip
+          </button>
+        </div>
       </motion.div>
 
       {/* Tabs */}
@@ -103,18 +135,26 @@ export function TripsPageClient({ trips: initialTrips }: { trips: Trip[] }) {
           ))}
         </div>
       ) : (
-        <Link href="/dashboard/travel/new">
-          <TravelCard className="hover:border-[#b8d8e8]/30 transition-colors cursor-pointer group text-center py-16">
-            <div className="text-4xl mb-4 opacity-20">✈</div>
-            <h3 className="text-lg font-semibold text-white group-hover:text-[#b8d8e8] transition-colors">
-              {activeTab === "past" ? "No past trips yet" : "Plan your first trip"}
-            </h3>
-            <p className="text-[#7a8299] text-sm mt-1">
-              Tell the AI where you want to go and get a complete travel plan
-            </p>
-          </TravelCard>
-        </Link>
+        <TravelCard
+          className="cursor-pointer group text-center py-16 hover:border-[#b8d8e8]/30 transition-colors"
+          onClick={() => setModalOpen(true)}
+        >
+          <div className="text-4xl mb-4 opacity-20">✈</div>
+          <h3 className="text-lg font-semibold text-white group-hover:text-[#b8d8e8] transition-colors">
+            {activeTab === "past" ? "No past trips yet" : "Plan your first trip"}
+          </h3>
+          <p className="text-[#7a8299] text-sm mt-1">
+            Create a trip manually or plan with AI
+          </p>
+        </TravelCard>
       )}
+
+      {/* Create trip modal */}
+      <CreateTripModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onCreate={handleCreate}
+      />
     </div>
   )
 }
