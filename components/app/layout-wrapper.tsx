@@ -49,7 +49,8 @@ export function LayoutWrapper({
     path === '/carve/vision' ||
     path === '/carve/faq' ||
     path === '/carve/developer' ||
-    path === '/carve/contributing'
+    path === '/carve/contributing' ||
+    path === '/carve/travel'
 
   // Wiki pages render with header but no sidebar — full-width scrollable
   const isWikiRoute = path === '/' || path.startsWith('/wiki')

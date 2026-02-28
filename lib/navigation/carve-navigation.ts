@@ -22,6 +22,12 @@ export const carveNavigationGroups = [
         description: "Know where your money goes"
       },
       {
+        title: "Travel",
+        href: "/carve/travel",
+        icon: { name: 'GlobeIcon' },
+        description: "AI-powered travel planning"
+      },
+      {
         title: "Roadmap",
         href: "/carve/roadmap",
         icon: { name: 'ChartIcon' },
