@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { TravelCard } from "@/components/travel/shared"
 
@@ -14,40 +14,6 @@ const STYLES = [
 export default function TravelSettingsPage() {
   const [currency, setCurrency] = useState("EUR")
   const [style, setStyle] = useState("mid-range")
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-
-  useEffect(() => {
-    fetch("/api/travel/preferences")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.default_currency) setCurrency(data.default_currency)
-        if (data.travel_style) setStyle(data.travel_style)
-      })
-  }, [])
-
-  const save = useCallback(async (newCurrency: string, newStyle: string) => {
-    setSaving(true)
-    setSaved(false)
-    await fetch("/api/travel/preferences", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ default_currency: newCurrency, travel_style: newStyle }),
-    })
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }, [])
-
-  const handleCurrencyChange = (val: string) => {
-    setCurrency(val)
-    save(val, style)
-  }
-
-  const handleStyleChange = (val: string) => {
-    setStyle(val)
-    save(currency, val)
-  }
 
   return (
     <div className="p-6 lg:p-10 space-y-8 max-w-3xl mx-auto">
@@ -65,7 +31,7 @@ export default function TravelSettingsPage() {
             {CURRENCIES.map((c) => (
               <button
                 key={c}
-                onClick={() => handleCurrencyChange(c)}
+                onClick={() => setCurrency(c)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                   currency === c
                     ? "bg-[#b8d8e8]/20 text-[#b8d8e8]"
@@ -88,7 +54,7 @@ export default function TravelSettingsPage() {
             {STYLES.map((s) => (
               <button
                 key={s.value}
-                onClick={() => handleStyleChange(s.value)}
+                onClick={() => setStyle(s.value)}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                   style === s.value
                     ? "bg-[#b8d8e8]/10 border border-[#b8d8e8]/20"
@@ -104,17 +70,6 @@ export default function TravelSettingsPage() {
           </div>
         </TravelCard>
       </motion.div>
-
-      {/* Save indicator */}
-      {(saving || saved) && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-xs text-[#7a8299] text-center"
-        >
-          {saving ? "Saving..." : "Saved"}
-        </motion.p>
-      )}
     </div>
   )
 }
