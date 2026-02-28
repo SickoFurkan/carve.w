@@ -406,11 +406,10 @@ export function TripDetailClient(props: TripDetailClientProps) {
               </button>
             )}
 
-            {/* AI suggestions — show when day has no activities */}
+            {/* Suggestions — show when day has no activities */}
             {currentDay.activities.length === 0 && plan.destination && (
               <ActivitySuggestions
                 destination={plan.destination}
-                days={plan.days.length}
                 onAdd={(a) => addActivity(activeDay, a)}
                 currency={currency}
               />

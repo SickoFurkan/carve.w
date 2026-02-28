@@ -1,23 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { motion } from "framer-motion"
 import { TravelCard } from "@/components/travel/shared"
+import { getSuggestionsForDestination } from "@/lib/travel/city-suggestions"
 import type { TripActivity } from "@/lib/ai/travel-schemas"
-
-interface Suggestion {
-  title: string
-  description: string
-  time_slot: "morning" | "afternoon" | "evening"
-  location_name: string
-  estimated_cost: number
-  cost_category: "food" | "activity" | "transport" | "shopping" | "other"
-  duration_minutes: number
-}
 
 interface ActivitySuggestionsProps {
   destination: string
-  days: number
   onAdd: (activity: TripActivity) => void
   currency?: string
 }
@@ -30,58 +20,30 @@ const CATEGORY_COLORS: Record<string, string> = {
   other: "#9da6b9",
 }
 
-export function ActivitySuggestions({ destination, days, onAdd, currency = "EUR" }: ActivitySuggestionsProps) {
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
-  const [loading, setLoading] = useState(false)
+export function ActivitySuggestions({ destination, onAdd, currency = "EUR" }: ActivitySuggestionsProps) {
   const [added, setAdded] = useState<Set<number>>(new Set())
-  const [error, setError] = useState(false)
 
   const currencySymbol = currency === "EUR" ? "\u20AC" : currency === "USD" ? "$" : currency === "GBP" ? "\u00A3" : currency
 
-  useEffect(() => {
-    if (!destination) return
+  const suggestions = useMemo(() => getSuggestionsForDestination(destination), [destination])
 
-    setLoading(true)
-    setError(false)
-    fetch("/api/travel/suggestions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ destination, days }),
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error()
-        return r.json()
-      })
-      .then((data) => setSuggestions(data.activities || []))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-  }, [destination, days])
+  if (!suggestions.length) return null
 
-  const handleAdd = (suggestion: Suggestion, idx: number) => {
+  const handleAdd = (idx: number) => {
+    const s = suggestions[idx]
     onAdd({
-      ...suggestion,
+      title: s.title,
+      description: s.description,
+      time_slot: s.time_slot,
+      location_name: s.location_name,
+      estimated_cost: s.estimated_cost,
+      cost_category: s.cost_category,
+      duration_minutes: s.duration_minutes,
       latitude: 0,
       longitude: 0,
     })
     setAdded((prev) => new Set(prev).add(idx))
   }
-
-  if (loading) {
-    return (
-      <TravelCard className="py-8">
-        <div className="flex items-center justify-center gap-3">
-          <div className="flex gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#b8d8e8]/40 animate-pulse" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#b8d8e8]/40 animate-pulse [animation-delay:0.2s]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#b8d8e8]/40 animate-pulse [animation-delay:0.4s]" />
-          </div>
-          <p className="text-sm text-[#7a8299]">Getting suggestions for {destination}...</p>
-        </div>
-      </TravelCard>
-    )
-  }
-
-  if (error || !suggestions.length) return null
 
   return (
     <motion.div
@@ -111,7 +73,7 @@ export function ActivitySuggestions({ destination, days, onAdd, currency = "EUR"
                 className={`transition-all ${
                   isAdded
                     ? "opacity-40 border-[#b8d8e8]/10"
-                    : "hover:border-[#b8d8e8]/20 cursor-pointer"
+                    : "hover:border-[#b8d8e8]/20"
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -137,7 +99,7 @@ export function ActivitySuggestions({ destination, days, onAdd, currency = "EUR"
                     </div>
                   </div>
                   <button
-                    onClick={() => !isAdded && handleAdd(s, idx)}
+                    onClick={() => !isAdded && handleAdd(idx)}
                     disabled={isAdded}
                     className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-medium transition-colors ${
                       isAdded
