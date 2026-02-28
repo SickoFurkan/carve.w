@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import { motion } from "framer-motion"
 import { TravelChat } from "@/components/travel/chat/TravelChat"
 import { ActivityEditForm } from "@/components/travel/widgets/ActivityEditForm"
+import { ActivitySuggestions } from "@/components/travel/widgets/ActivitySuggestions"
 import { TravelCard } from "@/components/travel/shared"
 import { cn } from "@/lib/utils"
 import type { TripPlan, TripActivity } from "@/lib/ai/travel-schemas"
@@ -403,6 +404,16 @@ export function TripDetailClient(props: TripDetailClientProps) {
               >
                 + Add activity
               </button>
+            )}
+
+            {/* AI suggestions — show when day has no activities */}
+            {currentDay.activities.length === 0 && plan.destination && (
+              <ActivitySuggestions
+                destination={plan.destination}
+                days={plan.days.length}
+                onAdd={(a) => addActivity(activeDay, a)}
+                currency={currency}
+              />
             )}
           </div>
         )}
