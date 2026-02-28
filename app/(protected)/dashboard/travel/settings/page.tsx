@@ -1,0 +1,120 @@
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { motion } from "framer-motion"
+import { TravelCard } from "@/components/travel/shared"
+
+const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "JPY", "AUD", "CAD"] as const
+const STYLES = [
+  { value: "budget", label: "Budget", description: "Hostels, street food, public transport" },
+  { value: "mid-range", label: "Mid-range", description: "Hotels, restaurants, mix of transport" },
+  { value: "luxury", label: "Luxury", description: "Premium hotels, fine dining, private transport" },
+] as const
+
+export default function TravelSettingsPage() {
+  const [currency, setCurrency] = useState("EUR")
+  const [style, setStyle] = useState("mid-range")
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/travel/preferences")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.default_currency) setCurrency(data.default_currency)
+        if (data.travel_style) setStyle(data.travel_style)
+      })
+  }, [])
+
+  const save = useCallback(async (newCurrency: string, newStyle: string) => {
+    setSaving(true)
+    setSaved(false)
+    await fetch("/api/travel/preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ default_currency: newCurrency, travel_style: newStyle }),
+    })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }, [])
+
+  const handleCurrencyChange = (val: string) => {
+    setCurrency(val)
+    save(val, style)
+  }
+
+  const handleStyleChange = (val: string) => {
+    setStyle(val)
+    save(currency, val)
+  }
+
+  return (
+    <div className="p-6 lg:p-10 space-y-8 max-w-3xl mx-auto">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Settings</h1>
+        <p className="text-[#7a8299] text-sm mt-0.5">Travel preferences</p>
+      </motion.div>
+
+      {/* Currency */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+        <TravelCard>
+          <h3 className="text-sm font-semibold text-white mb-1">Default Currency</h3>
+          <p className="text-xs text-[#555d70] mb-4">Used for new trips and budget calculations</p>
+          <div className="flex flex-wrap gap-2">
+            {CURRENCIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => handleCurrencyChange(c)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  currency === c
+                    ? "bg-[#b8d8e8]/20 text-[#b8d8e8]"
+                    : "text-[#7a8299] bg-white/[0.04] hover:bg-white/[0.08]"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </TravelCard>
+      </motion.div>
+
+      {/* Travel style */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <TravelCard>
+          <h3 className="text-sm font-semibold text-white mb-1">Travel Style</h3>
+          <p className="text-xs text-[#555d70] mb-4">The AI uses this to tailor trip suggestions</p>
+          <div className="space-y-2">
+            {STYLES.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => handleStyleChange(s.value)}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                  style === s.value
+                    ? "bg-[#b8d8e8]/10 border border-[#b8d8e8]/20"
+                    : "bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08]"
+                }`}
+              >
+                <span className={`text-sm font-medium ${style === s.value ? "text-[#b8d8e8]" : "text-white"}`}>
+                  {s.label}
+                </span>
+                <p className="text-xs text-[#555d70] mt-0.5">{s.description}</p>
+              </button>
+            ))}
+          </div>
+        </TravelCard>
+      </motion.div>
+
+      {/* Save indicator */}
+      {(saving || saved) && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-xs text-[#7a8299] text-center"
+        >
+          {saving ? "Saving..." : "Saved"}
+        </motion.p>
+      )}
+    </div>
+  )
+}
