@@ -33,12 +33,14 @@ function stripLocale(pathname: string): string {
 const APP_NAV = [
   { label: 'Health', href: '/dashboard' },
   { label: 'Money', href: '/dashboard/money' },
+  { label: 'Travel', href: '/dashboard/travel' },
   { label: 'Wiki', href: '/' },
 ] as const;
 
 const MARKETING_NAV = [
   { label: 'Health', href: '/carve/health' },
   { label: 'Money', href: '/carve/money' },
+  { label: 'Travel', href: '/carve/travel' },
   { label: 'Wiki', href: '/' },
 ] as const;
 
@@ -77,7 +79,7 @@ export function AppHeader({
   const isActive = (href: string) => {
     const itemPath = stripLocale(href);
     if (itemPath === '/') return path === '/' || path.startsWith('/wiki');
-    if (itemPath === '/dashboard') return path === '/dashboard' || (path.startsWith('/dashboard') && !path.startsWith('/dashboard/money'));
+    if (itemPath === '/dashboard') return path === '/dashboard' || (path.startsWith('/dashboard') && !path.startsWith('/dashboard/money') && !path.startsWith('/dashboard/travel'));
     return path === itemPath || path.startsWith(itemPath);
   };
 

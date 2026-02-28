@@ -13,6 +13,7 @@ import { hiscoresNavigationGroups } from '@/lib/navigation/hiscores-navigation';
 import { carveNavigationGroups } from '@/lib/navigation/carve-navigation';
 import { supportNavigationGroups } from '@/lib/navigation/support-navigation';
 import { moneyNavigationGroups } from '@/lib/navigation/money-navigation';
+import { travelNavigationGroups } from '@/lib/navigation/travel-navigation';
 
 // Import icons
 import { iconMap } from '@/components/icons/sidebar-icons';
@@ -37,6 +38,7 @@ type SectionTheme = {
 
 const sectionThemes: Record<string, SectionTheme> = {
   money:   { accent: '#e8e0d4', accentBg: 'rgba(255,255,255,0.06)' },
+  travel:  { accent: '#b8d8e8', accentBg: 'rgba(184,216,232,0.06)' },
   health:  { accent: '#e2e8f0', accentBg: 'rgba(226,232,240,0.06)' },
   admin:   { accent: '#f59e0b', accentBg: 'rgba(245,158,11,0.10)' },
   default: { accent: '#e2e8f0', accentBg: 'rgba(226,232,240,0.08)' },
@@ -44,6 +46,7 @@ const sectionThemes: Record<string, SectionTheme> = {
 
 function getSectionKey(pathname: string): string {
   if (pathname.startsWith('/dashboard/money')) return 'money';
+  if (pathname.startsWith('/dashboard/travel')) return 'travel';
   if (pathname.startsWith('/dashboard')) return 'health';
   if (pathname.startsWith('/admin')) return 'admin';
   return 'default';
@@ -61,6 +64,9 @@ function getSidebarGroups(pathname: string, isAuthenticated: boolean, userRole?:
   }
   if (path.startsWith('/dashboard/money')) {
     return moneyNavigationGroups as NavigationGroup[];
+  }
+  if (path.startsWith('/dashboard/travel')) {
+    return travelNavigationGroups as NavigationGroup[];
   }
   if (path.startsWith('/dashboard')) {
     return isAuthenticated
