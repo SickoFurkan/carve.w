@@ -7,6 +7,7 @@ import { ActivityEditForm } from "@/components/travel/widgets/ActivityEditForm"
 import { ActivitySuggestions } from "@/components/travel/widgets/ActivitySuggestions"
 import { TravelCard } from "@/components/travel/shared"
 import { cn } from "@/lib/utils"
+import { getSuggestionsForDestination } from "@/lib/travel/city-suggestions"
 import type { TripPlan, TripActivity } from "@/lib/ai/travel-schemas"
 
 interface TripDetailClientProps {
@@ -47,24 +48,50 @@ interface TripDetailClientProps {
 }
 
 function toTripPlan(props: TripDetailClientProps): TripPlan {
+  let days = props.days.map((d) => ({
+    day_number: d.day_number,
+    title: d.title || `Day ${d.day_number}`,
+    activities: d.trip_activities.map((a) => ({
+      time_slot: (a.time_slot || "morning") as TripActivity["time_slot"],
+      title: a.title,
+      description: a.description || "",
+      location_name: a.location_name || "",
+      latitude: a.latitude || 0,
+      longitude: a.longitude || 0,
+      estimated_cost: a.estimated_cost || 0,
+      cost_category: (a.cost_category || "other") as TripActivity["cost_category"],
+      duration_minutes: a.duration_minutes || 60,
+    })),
+  }))
+
+  // Auto-populate Day 1 with city suggestions for new trips (no days yet)
+  if (days.length === 0 && props.trip.destination) {
+    const suggestions = getSuggestionsForDestination(props.trip.destination)
+    if (suggestions.length > 0) {
+      days = [{
+        day_number: 1,
+        title: "Day 1",
+        activities: suggestions.map((s) => ({
+          time_slot: s.time_slot as TripActivity["time_slot"],
+          title: s.title,
+          description: s.description,
+          location_name: s.location_name,
+          latitude: 0,
+          longitude: 0,
+          estimated_cost: s.estimated_cost,
+          cost_category: s.cost_category as TripActivity["cost_category"],
+          duration_minutes: s.duration_minutes,
+        })),
+      }]
+    } else {
+      days = [{ day_number: 1, title: "Day 1", activities: [] }]
+    }
+  }
+
   return {
     title: props.trip.title,
     destination: props.trip.destination,
-    days: props.days.map((d) => ({
-      day_number: d.day_number,
-      title: d.title || `Day ${d.day_number}`,
-      activities: d.trip_activities.map((a) => ({
-        time_slot: (a.time_slot || "morning") as TripActivity["time_slot"],
-        title: a.title,
-        description: a.description || "",
-        location_name: a.location_name || "",
-        latitude: a.latitude || 0,
-        longitude: a.longitude || 0,
-        estimated_cost: a.estimated_cost || 0,
-        cost_category: (a.cost_category || "other") as TripActivity["cost_category"],
-        duration_minutes: a.duration_minutes || 60,
-      })),
-    })),
+    days,
     accommodations: props.accommodations.map((a) => ({
       name: a.name,
       price_per_night: a.price_per_night || 0,
@@ -354,7 +381,7 @@ export function TripDetailClient(props: TripDetailClientProps) {
                           animate={{ opacity: 1, x: 0 }}
                         >
                           <TravelCard
-                            className="cursor-pointer hover:border-[#b8d8e8]/20 transition-colors"
+                            className="cursor-pointer hover:border-[#b8d8e8]/20 transition-colors group"
                             onClick={() => setEditingActivity({ dayIdx: activeDay, actIdx: activity._idx })}
                           >
                             <div className="flex items-start justify-between">
@@ -367,17 +394,25 @@ export function TripDetailClient(props: TripDetailClientProps) {
                                   <p className="text-xs text-[#555d70] mt-1 line-clamp-2">{activity.description}</p>
                                 )}
                               </div>
-                              {activity.estimated_cost > 0 && (
-                                <span
-                                  className="shrink-0 ml-3 text-xs font-medium px-2 py-0.5 rounded-full"
-                                  style={{
-                                    color: CATEGORY_COLORS[activity.cost_category] || CATEGORY_COLORS.other,
-                                    backgroundColor: `${CATEGORY_COLORS[activity.cost_category] || CATEGORY_COLORS.other}15`,
-                                  }}
+                              <div className="flex items-center gap-2 shrink-0 ml-3">
+                                {activity.estimated_cost > 0 && (
+                                  <span
+                                    className="text-xs font-medium px-2 py-0.5 rounded-full"
+                                    style={{
+                                      color: CATEGORY_COLORS[activity.cost_category] || CATEGORY_COLORS.other,
+                                      backgroundColor: `${CATEGORY_COLORS[activity.cost_category] || CATEGORY_COLORS.other}15`,
+                                    }}
+                                  >
+                                    {currencySymbol}{activity.estimated_cost}
+                                  </span>
+                                )}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); removeActivity(activeDay, activity._idx) }}
+                                  className="w-6 h-6 rounded-lg flex items-center justify-center text-[#555d70] hover:text-red-400 hover:bg-red-400/10 opacity-0 group-hover:opacity-100 transition-all"
                                 >
-                                  {currencySymbol}{activity.estimated_cost}
-                                </span>
-                              )}
+                                  ×
+                                </button>
+                              </div>
                             </div>
                           </TravelCard>
                         </motion.div>
@@ -406,8 +441,8 @@ export function TripDetailClient(props: TripDetailClientProps) {
               </button>
             )}
 
-            {/* Suggestions — show when day has no activities */}
-            {currentDay.activities.length === 0 && plan.destination && (
+            {/* Suggestions — always visible for supported destinations */}
+            {plan.destination && (
               <ActivitySuggestions
                 destination={plan.destination}
                 onAdd={(a) => addActivity(activeDay, a)}

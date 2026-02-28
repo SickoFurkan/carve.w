@@ -73,12 +73,20 @@ export default async function TravelPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
+  // Bucketlist items
+  const { data: bucketlistItems } = await supabase
+    .from("bucketlist_items")
+    .select("id, title, destination, completed")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
   return (
     <TravelDashboardClient
       trip={trip}
       days={days}
       todos={todos}
       allTrips={allTrips || []}
+      bucketlist={bucketlistItems || []}
     />
   )
 }

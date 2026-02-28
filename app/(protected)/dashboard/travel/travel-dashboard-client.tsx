@@ -10,6 +10,7 @@ import { TodosWidget } from "@/components/travel/widgets/TodosWidget"
 import { BudgetWidget } from "@/components/travel/widgets/BudgetWidget"
 import { ExperienceCard } from "@/components/travel/widgets/ExperienceCard"
 import { TripCard } from "@/components/travel/widgets/TripCard"
+import { BucketlistWidget } from "@/components/travel/widgets/BucketlistWidget"
 
 interface Trip {
   id: string
@@ -46,11 +47,19 @@ interface Todo {
   order_index: number
 }
 
+interface BucketlistItemSummary {
+  id: string
+  title: string
+  destination: string
+  completed: boolean
+}
+
 interface Props {
   trip: Trip | null
   days: Day[]
   todos: Todo[]
   allTrips: TripListItem[]
+  bucketlist: BucketlistItemSummary[]
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -61,7 +70,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   other: "#9da6b9",
 }
 
-export function TravelDashboardClient({ trip, days, todos, allTrips }: Props) {
+export function TravelDashboardClient({ trip, days, todos, allTrips, bucketlist }: Props) {
   const [trips, setTrips] = useState(allTrips)
 
   const handleDelete = async (id: string) => {
@@ -132,61 +141,68 @@ export function TravelDashboardClient({ trip, days, todos, allTrips }: Props) {
             />
           </motion.div>
 
-          {/* Widget Grid */}
+          {/* Widgets + Bucketlist side-by-side */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+            className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6"
           >
-            <CountdownWidget
-              startDate={trip.start_date}
-              tripTitle={trip.destination}
-              daysCount={days.length}
-            />
-            <TodosWidget
-              tripId={trip.id}
-              initialTodos={todos}
-            />
-            <BudgetWidget
-              totalBudget={trip.total_budget}
-              categories={budgetCategories}
-              currency={trip.currency}
-            />
-          </motion.div>
-
-          {/* Suggested Experiences */}
-          {experiences.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-            >
-              <h2 className="text-lg font-semibold text-white mb-4">Suggested Experiences</h2>
-              <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
-                {experiences.map((exp, i) => (
-                  <ExperienceCard
-                    key={i}
-                    title={exp.title}
-                    category={exp.cost_category || "other"}
-                    durationMinutes={exp.duration_minutes || 60}
-                  />
-                ))}
-                <Link
-                  href={`/dashboard/travel/${trip.id}`}
-                  className="w-[180px] shrink-0 h-[120px] rounded-xl border border-dashed border-white/[0.08] flex items-center justify-center hover:border-white/[0.16] transition-colors"
-                >
-                  <span className="text-sm text-[#555d70]">View All</span>
-                </Link>
+            {/* Left: trip widgets */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <CountdownWidget
+                  startDate={trip.start_date}
+                  tripTitle={trip.destination}
+                  daysCount={days.length}
+                />
+                <TodosWidget
+                  tripId={trip.id}
+                  initialTodos={todos}
+                />
+                <BudgetWidget
+                  totalBudget={trip.total_budget}
+                  categories={budgetCategories}
+                  currency={trip.currency}
+                />
               </div>
-            </motion.div>
-          )}
+
+              {/* Suggested Experiences */}
+              {experiences.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-semibold text-white mb-4">Suggested Experiences</h2>
+                  <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
+                    {experiences.map((exp, i) => (
+                      <ExperienceCard
+                        key={i}
+                        title={exp.title}
+                        category={exp.cost_category || "other"}
+                        durationMinutes={exp.duration_minutes || 60}
+                      />
+                    ))}
+                    <Link
+                      href={`/dashboard/travel/${trip.id}`}
+                      className="w-[180px] shrink-0 h-[120px] rounded-xl border border-dashed border-white/[0.08] flex items-center justify-center hover:border-white/[0.16] transition-colors"
+                    >
+                      <span className="text-sm text-[#555d70]">View All</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Bucketlist */}
+            <div>
+              <BucketlistWidget items={bucketlist} />
+            </div>
+          </motion.div>
         </>
       ) : (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
+          className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6"
         >
           <Link href="/dashboard/travel/new">
             <TravelCard className="hover:border-[#b8d8e8]/30 transition-colors cursor-pointer group text-center py-16">
@@ -199,6 +215,9 @@ export function TravelDashboardClient({ trip, days, todos, allTrips }: Props) {
               </p>
             </TravelCard>
           </Link>
+          <div>
+            <BucketlistWidget items={bucketlist} />
+          </div>
         </motion.div>
       )}
 

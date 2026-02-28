@@ -39,5 +39,21 @@ export default async function MapPage() {
     }
   })
 
-  return <TravelMapClient trips={tripsWithCoords} />
+  // Get homebase from travel_preferences (fallback to Amsterdam)
+  const { data: prefs } = await supabase
+    .from("travel_preferences")
+    .select("homebase")
+    .eq("user_id", user.id)
+    .single()
+
+  const homebase = prefs?.homebase || "Amsterdam"
+
+  // Fetch bucketlist items
+  const { data: bucketlistItems } = await supabase
+    .from("bucketlist_items")
+    .select("id, type, title, destination, description, completed, trip_id, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  return <TravelMapClient trips={tripsWithCoords} homebase={homebase} bucketlist={bucketlistItems || []} />
 }

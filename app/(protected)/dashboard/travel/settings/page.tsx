@@ -4,6 +4,13 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { TravelCard } from "@/components/travel/shared"
 
+const POPULAR_CITIES = [
+  "Amsterdam", "Barcelona", "Berlin", "Budapest", "London", "Paris",
+  "Rome", "Istanbul", "Lisbon", "Madrid", "Prague", "Vienna",
+  "Copenhagen", "Dublin", "Stockholm", "Munich", "Zurich",
+  "New York", "Tokyo", "Dubai", "Singapore", "Sydney", "Bangkok",
+] as const
+
 const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "JPY", "AUD", "CAD"] as const
 const STYLES = [
   { value: "budget", label: "Budget", description: "Hostels, street food, public transport" },
@@ -12,6 +19,7 @@ const STYLES = [
 ] as const
 
 export default function TravelSettingsPage() {
+  const [homebase, setHomebase] = useState("Amsterdam")
   const [currency, setCurrency] = useState("EUR")
   const [style, setStyle] = useState("mid-range")
 
@@ -20,6 +28,29 @@ export default function TravelSettingsPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h1 className="text-2xl font-bold text-white tracking-tight">Settings</h1>
         <p className="text-[#7a8299] text-sm mt-0.5">Travel preferences</p>
+      </motion.div>
+
+      {/* Homebase */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }}>
+        <TravelCard>
+          <h3 className="text-sm font-semibold text-white mb-1">Homebase</h3>
+          <p className="text-xs text-[#555d70] mb-4">Your home city — shown on the map as your starting point</p>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR_CITIES.map((city) => (
+              <button
+                key={city}
+                onClick={() => setHomebase(city)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  homebase === city
+                    ? "bg-[#b8d8e8]/20 text-[#b8d8e8]"
+                    : "text-[#7a8299] bg-white/[0.04] hover:bg-white/[0.08]"
+                }`}
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+        </TravelCard>
       </motion.div>
 
       {/* Currency */}
