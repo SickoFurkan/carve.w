@@ -1,205 +1,59 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin/auth";
 import { revalidatePath } from "next/cache";
+
+const ROLE_IDS: Record<string, string> = {
+  admin: "7171e054-3cd4-4cae-b552-f6c6ad2b9114",
+  moderator: "f4430f4d-a18d-4e54-a2fa-53293a90e365",
+  user: "1d341a14-9656-4857-b783-75fc47880aba",
+};
 
 export async function updateUserProfile(userId: string, data: {
   display_name?: string;
   username?: string;
   bio?: string;
-  role?: string;
 }) {
-  const supabase = await createClient();
+  const { supabase } = await requireAdmin();
 
-  // Check if current user is admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "Not authenticated" };
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
-    return { error: "Not authorized" };
-  }
-
-  // Update user profile
   const { error } = await supabase
     .from("profiles")
     .update({
       display_name: data.display_name,
       username: data.username,
       bio: data.bio,
-      role: data.role,
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
 
-  if (error) {
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
 
   revalidatePath("/admin/users");
   revalidatePath(`/admin/users/${userId}`);
-
   return { success: true };
 }
 
-export async function banUser(userId: string) {
-  const supabase = await createClient();
+export async function changeUserRole(userId: string, roleName: string) {
+  const { supabase, user } = await requireAdmin();
 
-  // Check if current user is admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "Not authenticated" };
+  if (user.id === userId && roleName !== "admin") {
+    return { error: "Cannot change your own admin role" };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const roleId = ROLE_IDS[roleName];
+  if (!roleId) return { error: `Unknown role: ${roleName}` };
 
-  if (profile?.role !== "admin") {
-    return { error: "Not authorized" };
-  }
-
-  // Ban user
   const { error } = await supabase
     .from("profiles")
     .update({
-      is_banned: true,
-      is_active: false,
+      user_role_id: roleId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
 
-  if (error) {
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
 
   revalidatePath("/admin/users");
   revalidatePath(`/admin/users/${userId}`);
-
   return { success: true };
-}
-
-export async function unbanUser(userId: string) {
-  const supabase = await createClient();
-
-  // Check if current user is admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "Not authenticated" };
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
-    return { error: "Not authorized" };
-  }
-
-  // Unban user
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      is_banned: false,
-      is_active: true,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", userId);
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath("/admin/users");
-  revalidatePath(`/admin/users/${userId}`);
-
-  return { success: true };
-}
-
-export async function changeUserRole(userId: string, newRole: string) {
-  const supabase = await createClient();
-
-  // Check if current user is admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "Not authenticated" };
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
-    return { error: "Not authorized" };
-  }
-
-  // Update user role
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      role: newRole,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", userId);
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath("/admin/users");
-  revalidatePath(`/admin/users/${userId}`);
-
-  return { success: true };
-}
-
-export async function deleteUser(userId: string) {
-  const supabase = await createClient();
-
-  // Check if current user is admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "Not authenticated" };
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
-    return { error: "Not authorized" };
-  }
-
-  // Don't allow deleting yourself
-  if (user.id === userId) {
-    return { error: "Cannot delete your own account" };
-  }
-
-  // Delete user (this will cascade delete related records due to foreign keys)
-  const { error } = await supabase
-    .from("profiles")
-    .delete()
-    .eq("id", userId);
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath("/admin/users");
-
-  return { success: true, redirect: "/admin/users" };
 }

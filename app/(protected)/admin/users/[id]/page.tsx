@@ -4,7 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { UserEditForm } from "@/components/admin/users/user-edit-form";
-import { UserActions } from "@/components/admin/users/user-actions";
 
 interface UserDetailPageProps {
   params: Promise<{ id: string }>;
@@ -14,7 +13,7 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
   const { id } = await params;
   const supabase = await createClient();
 
-  // Fetch user details
+  // Fetch user details with role join
   const { data: user, error } = await supabase
     .from("profiles")
     .select(
@@ -23,13 +22,12 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
       email,
       display_name,
       username,
-      role,
+      user_role_id,
       bio,
       created_at,
       updated_at,
       last_active_at,
-      is_active,
-      is_banned
+      user_roles(name)
     `
     )
     .eq("id", id)
@@ -39,6 +37,8 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
     notFound();
   }
 
+  const roleName = (user.user_roles as any)?.name || "user";
+
   // Fetch user stats
   const { data: stats } = await supabase
     .from("user_stats")
@@ -46,17 +46,17 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
     .eq("user_id", id)
     .single();
 
-  // Fetch recent workouts
+  // Fetch recent completed workouts
   const { data: workouts } = await supabase
-    .from("workouts")
-    .select("id, name, created_at, duration")
+    .from("completed_workouts")
+    .select("id, name, created_at, total_duration_minutes")
     .eq("user_id", id)
     .order("created_at", { ascending: false })
     .limit(5);
 
   // Fetch recent activity
   const { data: activities } = await supabase
-    .from("activity_log")
+    .from("activity_feed")
     .select("*")
     .eq("user_id", id)
     .order("created_at", { ascending: false })
@@ -81,43 +81,20 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
           </div>
         </div>
 
-        {/* User Status & Actions */}
+        {/* User Role Badge */}
         <div className="flex flex-wrap gap-4 items-center">
-          {/* Status Badges */}
           <div className="flex gap-2">
             <span
               className={`inline-flex px-3 py-1.5 text-sm font-semibold rounded-full ${
-                user.role === "admin"
+                roleName === "admin"
                   ? "bg-purple-500/20 text-purple-300"
-                  : user.role === "dedicated"
+                  : roleName === "moderator"
                   ? "bg-blue-500/20 text-blue-300"
                   : "bg-white/10 text-white/80"
               }`}
             >
-              {user.role}
+              {roleName}
             </span>
-            {user.is_banned ? (
-              <span className="inline-flex px-3 py-1.5 text-sm font-semibold rounded-full bg-red-500/20 text-red-300">
-                Banned
-              </span>
-            ) : user.is_active ? (
-              <span className="inline-flex px-3 py-1.5 text-sm font-semibold rounded-full bg-green-500/20 text-green-300">
-                Active
-              </span>
-            ) : (
-              <span className="inline-flex px-3 py-1.5 text-sm font-semibold rounded-full bg-white/10 text-white/60">
-                Inactive
-              </span>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="ml-auto">
-            <UserActions
-              userId={user.id}
-              isBanned={user.is_banned}
-              displayName={user.display_name || user.username || "this user"}
-            />
           </div>
         </div>
 
@@ -125,7 +102,7 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
           {/* Left Column - User Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Editable Profile Information */}
-            <UserEditForm user={user} />
+            <UserEditForm user={{ ...user, role: roleName }} />
 
             {/* Account Metadata */}
             <Card className="bg-[#1a1f2e] border-white/10 p-6">
@@ -207,7 +184,7 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
                         </div>
                       </div>
                       <div className="text-white/60 text-sm">
-                        {workout.duration} min
+                        {workout.total_duration_minutes} min
                       </div>
                     </div>
                   ))}
@@ -219,7 +196,7 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
               )}
             </Card>
 
-            {/* Activity Log */}
+            {/* Activity Feed */}
             <Card className="bg-[#1a1f2e] border-white/10 p-6">
               <h2 className="text-xl font-bold text-white mb-4">
                 Recent Activity
@@ -291,40 +268,22 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
               </div>
             </Card>
 
-            {/* Account Status */}
+            {/* Account Info */}
             <Card className="bg-[#1a1f2e] border-white/10 p-6">
               <h2 className="text-xl font-bold text-white mb-4">
-                Account Status
+                Account Info
               </h2>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                  <span className="text-sm text-white/60">Active</span>
-                  <span
-                    className={`text-sm font-semibold px-2 py-1 rounded ${
-                      user.is_active
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-white/10 text-white/60"
-                    }`}
-                  >
-                    {user.is_active ? "Yes" : "No"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                  <span className="text-sm text-white/60">Banned</span>
-                  <span
-                    className={`text-sm font-semibold px-2 py-1 rounded ${
-                      user.is_banned
-                        ? "bg-red-500/20 text-red-400"
-                        : "bg-white/10 text-white/60"
-                    }`}
-                  >
-                    {user.is_banned ? "Yes" : "No"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
                   <span className="text-sm text-white/60">Role</span>
                   <span className="text-sm font-semibold text-white capitalize">
-                    {user.role}
+                    {roleName}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                  <span className="text-sm text-white/60">User ID</span>
+                  <span className="text-xs font-mono text-white/80 truncate max-w-[180px]">
+                    {user.id}
                   </span>
                 </div>
               </div>

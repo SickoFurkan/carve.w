@@ -2,52 +2,35 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Ban, UserCheck, Trash2, AlertTriangle } from "lucide-react";
-import {
-  banUser,
-  unbanUser,
-  deleteUser,
-} from "@/app/actions/admin/users";
-import { useRouter } from "next/navigation";
+import { changeUserRole } from "@/app/actions/admin/users";
 
 interface UserActionsProps {
   userId: string;
-  isBanned: boolean;
+  currentRole: string;
   displayName: string;
 }
 
 export function UserActions({
   userId,
-  isBanned,
+  currentRole,
   displayName,
 }: UserActionsProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  async function handleBanToggle() {
+  async function handleRoleChange(newRole: string) {
     setError(null);
+    setSuccess(false);
 
     startTransition(async () => {
-      const result = isBanned ? await unbanUser(userId) : await banUser(userId);
+      const result = await changeUserRole(userId, newRole);
 
       if (result.error) {
         setError(result.error);
-      }
-    });
-  }
-
-  async function handleDelete() {
-    setError(null);
-
-    startTransition(async () => {
-      const result = await deleteUser(userId);
-
-      if (result.error) {
-        setError(result.error);
-      } else if (result.redirect) {
-        router.push(result.redirect);
+      } else {
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
       }
     });
   }
@@ -60,61 +43,42 @@ export function UserActions({
         </div>
       )}
 
+      {success && (
+        <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/30">
+          <p className="text-sm text-green-300">Role updated successfully!</p>
+        </div>
+      )}
+
       <div className="flex gap-2">
-        {isBanned ? (
+        {currentRole !== "admin" && (
           <Button
-            onClick={handleBanToggle}
+            onClick={() => handleRoleChange("admin")}
             disabled={isPending}
             size="sm"
-            className="bg-green-500/20 border border-green-500/30 text-green-300 hover:bg-green-500/30"
+            className="bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30"
           >
-            <UserCheck className="h-4 w-4 mr-2" />
-            {isPending ? "Processing..." : "Unban User"}
-          </Button>
-        ) : (
-          <Button
-            onClick={handleBanToggle}
-            disabled={isPending}
-            size="sm"
-            className="bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30"
-          >
-            <Ban className="h-4 w-4 mr-2" />
-            {isPending ? "Processing..." : "Ban User"}
+            {isPending ? "Processing..." : "Make Admin"}
           </Button>
         )}
-
-        {!showDeleteConfirm ? (
+        {currentRole !== "moderator" && (
           <Button
-            onClick={() => setShowDeleteConfirm(true)}
+            onClick={() => handleRoleChange("moderator")}
+            disabled={isPending}
             size="sm"
-            className="bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30"
+            className="bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-blue-500/30"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete Account
+            {isPending ? "Processing..." : "Make Moderator"}
           </Button>
-        ) : (
-          <div className="flex gap-2 items-center bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/30">
-            <AlertTriangle className="h-4 w-4 text-red-400" />
-            <span className="text-sm text-red-300">
-              Delete {displayName}?
-            </span>
-            <Button
-              onClick={handleDelete}
-              disabled={isPending}
-              size="sm"
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              {isPending ? "Deleting..." : "Confirm"}
-            </Button>
-            <Button
-              onClick={() => setShowDeleteConfirm(false)}
-              size="sm"
-              variant="outline"
-              className="bg-white/5 border-white/10 text-white hover:bg-white/10"
-            >
-              Cancel
-            </Button>
-          </div>
+        )}
+        {currentRole !== "user" && (
+          <Button
+            onClick={() => handleRoleChange("user")}
+            disabled={isPending}
+            size="sm"
+            className="bg-white/10 border border-white/20 text-white/80 hover:bg-white/20"
+          >
+            {isPending ? "Processing..." : "Make User"}
+          </Button>
         )}
       </div>
     </div>

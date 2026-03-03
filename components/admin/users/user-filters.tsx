@@ -9,17 +9,10 @@ type FilterOption = {
   value: string;
 };
 
-const STATUS_FILTERS: FilterOption[] = [
-  { label: "All", value: "all" },
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
-  { label: "Banned", value: "banned" },
-];
-
 const ROLE_FILTERS: FilterOption[] = [
   { label: "All Roles", value: "all" },
   { label: "Admin", value: "admin" },
-  { label: "Dedicated", value: "dedicated" },
+  { label: "Moderator", value: "moderator" },
   { label: "User", value: "user" },
 ];
 
@@ -29,7 +22,6 @@ export function UserFilters() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const currentStatus = searchParams.get("status") || "all";
   const currentRole = searchParams.get("role") || "all";
 
   function handleFilter(key: string, value: string) {
@@ -49,29 +41,6 @@ export function UserFilters() {
 
   return (
     <div className="flex flex-wrap gap-4">
-      {/* Status Filter */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-white/60">Status:</span>
-        <div className="flex gap-1">
-          {STATUS_FILTERS.map((filter) => (
-            <Button
-              key={filter.value}
-              variant={currentStatus === filter.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleFilter("status", filter.value)}
-              disabled={isPending}
-              className={
-                currentStatus === filter.value
-                  ? "bg-purple-500 hover:bg-purple-600 text-white"
-                  : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"
-              }
-            >
-              {filter.label}
-            </Button>
-          ))}
-        </div>
-      </div>
-
       {/* Role Filter */}
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-white/60">Role:</span>

@@ -7,7 +7,6 @@ import { Suspense } from "react";
 
 interface SearchParams {
   q?: string;
-  status?: string;
   role?: string;
   page?: string;
   sort?: string;
@@ -20,12 +19,17 @@ interface AdminUsersPageProps {
 
 const USERS_PER_PAGE = 50;
 
+const ROLE_IDS: Record<string, string> = {
+  admin: "7171e054-3cd4-4cae-b552-f6c6ad2b9114",
+  moderator: "f4430f4d-a18d-4e54-a2fa-53293a90e365",
+  user: "1d341a14-9656-4857-b783-75fc47880aba",
+};
+
 export default async function AdminUsersPage({
   searchParams,
 }: AdminUsersPageProps) {
   const params = await searchParams;
   const query = params.q || "";
-  const status = params.status || "all";
   const role = params.role || "all";
   const page = parseInt(params.page || "1");
   const sortBy = params.sort || "created_at";
@@ -46,11 +50,10 @@ export default async function AdminUsersPage({
       email,
       display_name,
       username,
-      role,
+      user_role_id,
       created_at,
       last_active_at,
-      is_active,
-      is_banned
+      user_roles(name)
     `,
       { count: "exact" }
     )
@@ -64,20 +67,12 @@ export default async function AdminUsersPage({
     );
   }
 
-  // Apply status filter
-  if (status !== "all") {
-    if (status === "banned") {
-      usersQuery = usersQuery.eq("is_banned", true);
-    } else if (status === "active") {
-      usersQuery = usersQuery.eq("is_active", true).eq("is_banned", false);
-    } else if (status === "inactive") {
-      usersQuery = usersQuery.eq("is_active", false).eq("is_banned", false);
-    }
-  }
-
   // Apply role filter
   if (role !== "all") {
-    usersQuery = usersQuery.eq("role", role);
+    const roleId = ROLE_IDS[role];
+    if (roleId) {
+      usersQuery = usersQuery.eq("user_role_id", roleId);
+    }
   }
 
   const { data: users, count } = await usersQuery;
@@ -149,75 +144,60 @@ export default async function AdminUsersPage({
                     Last Active
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
                 {users && users.length > 0 ? (
-                  users.map((user) => (
-                    <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="font-medium text-white">
-                            {user.display_name || user.username || "Anonymous"}
+                  users.map((user: any) => {
+                    const roleName = (user.user_roles as any)?.name || "user";
+                    return (
+                      <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="font-medium text-white">
+                              {user.display_name || user.username || "Anonymous"}
+                            </div>
+                            <div className="text-sm text-white/60">{user.email}</div>
                           </div>
-                          <div className="text-sm text-white/60">{user.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            user.role === "admin"
-                              ? "bg-purple-500/20 text-purple-300"
-                              : user.role === "dedicated"
-                              ? "bg-blue-500/20 text-blue-300"
-                              : "bg-white/10 text-white/80"
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white/60">
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white/60">
-                        {user.last_active_at
-                          ? new Date(user.last_active_at).toLocaleDateString()
-                          : "Never"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {user.is_banned ? (
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-500/20 text-red-300">
-                            Banned
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              roleName === "admin"
+                                ? "bg-purple-500/20 text-purple-300"
+                                : roleName === "moderator"
+                                ? "bg-blue-500/20 text-blue-300"
+                                : "bg-white/10 text-white/80"
+                            }`}
+                          >
+                            {roleName}
                           </span>
-                        ) : user.is_active ? (
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-300">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-white/10 text-white/60">
-                            Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          href={`/admin/users/${user.id}`}
-                          className="text-purple-400 hover:text-purple-300 transition-colors"
-                        >
-                          View Details
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-white/60">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-white/60">
+                          {user.last_active_at
+                            ? new Date(user.last_active_at).toLocaleDateString()
+                            : "Never"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <Link
+                            href={`/admin/users/${user.id}`}
+                            className="text-purple-400 hover:text-purple-300 transition-colors"
+                          >
+                            View Details
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={5}
                       className="px-6 py-12 text-center text-sm text-white/60"
                     >
                       No users found

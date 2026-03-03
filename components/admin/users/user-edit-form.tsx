@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { updateUserProfile } from "@/app/actions/admin/users";
+import { updateUserProfile, changeUserRole } from "@/app/actions/admin/users";
 import { Edit2, X, Check } from "lucide-react";
 
 interface User {
@@ -41,15 +41,30 @@ export function UserEditForm({ user }: UserEditFormProps) {
     setSuccess(false);
 
     startTransition(async () => {
-      const result = await updateUserProfile(user.id, formData);
+      // Update profile fields (without role)
+      const profileResult = await updateUserProfile(user.id, {
+        display_name: formData.display_name,
+        username: formData.username,
+        bio: formData.bio,
+      });
 
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setSuccess(true);
-        setIsEditing(false);
-        setTimeout(() => setSuccess(false), 3000);
+      if (profileResult.error) {
+        setError(profileResult.error);
+        return;
       }
+
+      // If role changed, update it separately
+      if (formData.role !== user.role) {
+        const roleResult = await changeUserRole(user.id, formData.role);
+        if (roleResult.error) {
+          setError(roleResult.error);
+          return;
+        }
+      }
+
+      setSuccess(true);
+      setIsEditing(false);
+      setTimeout(() => setSuccess(false), 3000);
     });
   }
 
@@ -77,11 +92,11 @@ export function UserEditForm({ user }: UserEditFormProps) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-sm text-white/60 mb-1">Username</div>
-            <div className="text-white">{user.username || "—"}</div>
+            <div className="text-white">{user.username || "\u2014"}</div>
           </div>
           <div>
             <div className="text-sm text-white/60 mb-1">Display Name</div>
-            <div className="text-white">{user.display_name || "—"}</div>
+            <div className="text-white">{user.display_name || "\u2014"}</div>
           </div>
           <div>
             <div className="text-sm text-white/60 mb-1">Email</div>
@@ -180,7 +195,7 @@ export function UserEditForm({ user }: UserEditFormProps) {
             className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value="user">User</option>
-            <option value="dedicated">Dedicated</option>
+            <option value="moderator">Moderator</option>
             <option value="admin">Admin</option>
           </select>
         </div>
