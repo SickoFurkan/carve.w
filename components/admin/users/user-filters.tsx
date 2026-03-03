@@ -43,7 +43,7 @@ export function UserFilters() {
     <div className="flex flex-wrap gap-4">
       {/* Role Filter */}
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-white/60">Role:</span>
+        <span className="text-sm font-medium text-[#9da6b9]">Role:</span>
         <div className="flex gap-1">
           {ROLE_FILTERS.map((filter) => (
             <Button
@@ -55,7 +55,7 @@ export function UserFilters() {
               className={
                 currentRole === filter.value
                   ? "bg-purple-500 hover:bg-purple-600 text-white"
-                  : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"
+                  : "bg-white/5 border-white/[0.06] text-white/80 hover:bg-white/10"
               }
             >
               {filter.label}

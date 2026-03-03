@@ -35,11 +35,11 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="border-b border-gray-200 pb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="mt-2 text-sm text-gray-600">
+        <div className="border-b border-white/[0.06] pb-4">
+          <h1 className="text-3xl font-bold text-white tracking-tight">Admin Dashboard</h1>
+          <p className="text-[#9da6b9] mt-1">
             Site analytics and management overview
           </p>
         </div>
@@ -88,8 +88,8 @@ export default async function AdminDashboardPage() {
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Workouts */}
-          <div className="rounded border border-gray-200 bg-white p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-[#1c1f27] border border-white/[0.06] rounded-xl p-5">
+            <h2 className="text-lg font-semibold text-white mb-4">
               Recent Workouts
             </h2>
             <div className="space-y-3">
@@ -97,13 +97,13 @@ export default async function AdminDashboardPage() {
                 recentWorkouts.map((workout) => (
                   <div
                     key={workout.id}
-                    className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0"
+                    className="flex items-center justify-between border-b border-white/[0.06] pb-3 last:border-0 last:pb-0"
                   >
                     <div>
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-white">
                         {workout.workout_name}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-[#9da6b9]">
                         {workout.total_duration_minutes} min •{" "}
                         {new Date(workout.completed_date).toLocaleDateString()}
                       </div>
@@ -111,14 +111,14 @@ export default async function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No workouts yet</p>
+                <p className="text-sm text-slate-500">No workouts yet</p>
               )}
             </div>
           </div>
 
           {/* Recent Users */}
-          <div className="rounded border border-gray-200 bg-white p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-[#1c1f27] border border-white/[0.06] rounded-xl p-5">
+            <h2 className="text-lg font-semibold text-white mb-4">
               Recent Signups
             </h2>
             <div className="space-y-3">
@@ -126,28 +126,28 @@ export default async function AdminDashboardPage() {
                 recentUsers.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0"
+                    className="flex items-center justify-between border-b border-white/[0.06] pb-3 last:border-0 last:pb-0"
                   >
                     <div>
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-white">
                         {user.display_name || user.email || "Anonymous"}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-[#9da6b9]">
                         {new Date(user.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No users yet</p>
+                <p className="text-sm text-slate-500">No users yet</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="rounded border border-gray-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-[#1c1f27] border border-white/[0.06] rounded-xl p-5">
+          <h2 className="text-lg font-semibold text-white mb-4">
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -190,12 +190,12 @@ function StatCard({
   alert?: boolean;
 }) {
   return (
-    <div className={`rounded border ${alert ? "border-orange-200 bg-orange-50" : "border-gray-200 bg-white"} p-6`}>
+    <div className={`bg-[#1c1f27] border border-white/[0.06] rounded-xl p-5 ${alert ? "ring-1 ring-amber-500/30" : ""}`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm text-gray-600">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
-          <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+          <p className="text-xs uppercase tracking-wider text-slate-500">{title}</p>
+          <p className="text-3xl font-bold text-white tracking-tight mt-2">{value}</p>
+          <p className="mt-1 text-sm text-[#9da6b9]">{subtitle}</p>
         </div>
         <div className="text-4xl">{icon}</div>
       </div>
@@ -217,13 +217,13 @@ function QuickAction({
   return (
     <a
       href={href}
-      className="block rounded border border-gray-200 bg-white p-4 hover:bg-gray-50 transition-colors"
+      className="block bg-[#1c1f27] border border-white/[0.06] rounded-xl p-4 hover:bg-white/5 transition-colors"
     >
       <div className="flex items-start gap-3">
         <span className="text-2xl">{icon}</span>
         <div>
-          <h3 className="font-medium text-gray-900">{title}</h3>
-          <p className="mt-1 text-sm text-gray-600">{description}</p>
+          <h3 className="font-medium text-white">{title}</h3>
+          <p className="mt-1 text-sm text-[#9da6b9]">{description}</p>
         </div>
       </div>
     </a>

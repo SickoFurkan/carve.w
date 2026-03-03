@@ -34,8 +34,8 @@ interface SettingsNavProps {
 
 export function SettingsNav({ activeSection, onNavigate }: SettingsNavProps) {
   return (
-    <nav className="sticky top-0 h-screen overflow-y-auto p-6 border-r border-gray-200 bg-white">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+    <nav className="sticky top-0 h-screen overflow-y-auto p-6 border-r border-white/[0.06]">
+      <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
 
       <ul className="space-y-1">
         {categories.map((category) => {
@@ -48,14 +48,14 @@ export function SettingsNav({ activeSection, onNavigate }: SettingsNavProps) {
                 onClick={() => onNavigate(category.id)}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors',
-                  'hover:bg-gray-50',
-                  isActive && 'bg-gray-100 font-semibold border-l-4 border-blue-600 -ml-[2px]',
-                  !isActive && 'text-gray-700'
+                  'hover:bg-white/5',
+                  isActive && 'bg-white/5 font-semibold border-l-2 border-amber-500',
+                  !isActive && 'text-[#9da6b9]'
                 )}
               >
                 <Icon className={cn(
                   'w-5 h-5',
-                  isActive ? 'text-blue-600' : 'text-gray-400'
+                  isActive ? 'text-amber-500' : 'text-slate-500'
                 )} />
                 <span>{category.label}</span>
               </button>

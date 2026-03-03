@@ -121,7 +121,7 @@ export default function AdminSettingsPage() {
 
       {/* Right Content */}
       <div className="overflow-y-auto">
-        <div className="p-6 max-w-4xl space-y-6">
+        <div className="p-6 lg:p-10 max-w-4xl space-y-6">
           {/* General Settings */}
           <SettingsSection
             id="general"
@@ -138,7 +138,7 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={siteName}
                 onChange={(e) => setSiteName(e.target.value)}
-                className="w-64"
+                className="w-64 bg-white/5 border-white/10 text-white"
               />
             </SettingItem>
 
@@ -181,7 +181,7 @@ export default function AdminSettingsPage() {
               htmlFor="default-role"
             >
               <Select value={defaultRole} onValueChange={setDefaultRole}>
-                <SelectTrigger className="w-64" id="default-role">
+                <SelectTrigger className="w-64 bg-white/5 border-white/10 text-white" id="default-role">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -247,7 +247,7 @@ export default function AdminSettingsPage() {
                 type="number"
                 value={minEditReputation}
                 onChange={(e) => setMinEditReputation(e.target.value)}
-                className="w-32"
+                className="w-32 bg-white/5 border-white/10 text-white"
               />
             </SettingItem>
 
@@ -327,7 +327,7 @@ export default function AdminSettingsPage() {
                 type="number"
                 value={sessionTimeout}
                 onChange={(e) => setSessionTimeout(e.target.value)}
-                className="w-32"
+                className="w-32 bg-white/5 border-white/10 text-white"
               />
             </SettingItem>
 
@@ -341,7 +341,7 @@ export default function AdminSettingsPage() {
                 type="number"
                 value={maxLoginAttempts}
                 onChange={(e) => setMaxLoginAttempts(e.target.value)}
-                className="w-32"
+                className="w-32 bg-white/5 border-white/10 text-white"
               />
             </SettingItem>
 
@@ -364,7 +364,7 @@ export default function AdminSettingsPage() {
                 type="number"
                 value={xpPerWorkout}
                 onChange={(e) => setXpPerWorkout(e.target.value)}
-                className="w-32"
+                className="w-32 bg-white/5 border-white/10 text-white"
               />
             </SettingItem>
 
@@ -378,7 +378,7 @@ export default function AdminSettingsPage() {
                 type="number"
                 value={xpPerMeal}
                 onChange={(e) => setXpPerMeal(e.target.value)}
-                className="w-32"
+                className="w-32 bg-white/5 border-white/10 text-white"
               />
             </SettingItem>
 
@@ -397,7 +397,7 @@ export default function AdminSettingsPage() {
               htmlFor="reset-day"
             >
               <Select value={weeklyResetDay} onValueChange={setWeeklyResetDay}>
-                <SelectTrigger className="w-64" id="reset-day">
+                <SelectTrigger className="w-64 bg-white/5 border-white/10 text-white" id="reset-day">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

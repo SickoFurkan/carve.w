@@ -15,11 +15,11 @@ export function SettingsSection({
 }: SettingsSectionProps) {
   return (
     <section id={id} className="scroll-mt-6">
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="bg-[#1c1f27] border border-white/[0.06] rounded-xl p-5">
         <div className="mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
+          <h2 className="text-2xl font-semibold text-white">{title}</h2>
           {description && (
-            <p className="mt-1 text-sm text-gray-600">{description}</p>
+            <p className="text-[#9da6b9] mt-1">{description}</p>
           )}
         </div>
 

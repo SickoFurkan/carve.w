@@ -32,7 +32,7 @@ export function UserSearch() {
       <Input
         type="text"
         placeholder="Search by email, username, or name..."
-        className="pl-10 w-full max-w-md bg-white/5 border-white/10 text-white placeholder:text-white/40"
+        className="pl-10 w-full max-w-md bg-white/5 border-white/[0.06] text-white placeholder:text-white/40"
         defaultValue={searchParams.get("q") || ""}
         onChange={(e) => handleSearch(e.target.value)}
       />

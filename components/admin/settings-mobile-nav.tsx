@@ -37,8 +37,8 @@ export function SettingsMobileNav({
   onNavigate
 }: SettingsMobileNavProps) {
   return (
-    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 lg:hidden">
-      <h1 className="text-xl font-bold text-gray-900 mb-3">Settings</h1>
+    <div className="sticky top-0 z-10 border-b border-white/[0.06] px-4 py-3 lg:hidden">
+      <h1 className="text-xl font-bold text-white mb-3">Settings</h1>
 
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
         {categories.map((category) => {
@@ -52,8 +52,8 @@ export function SettingsMobileNav({
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors flex-shrink-0',
                 isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-white/5 text-[#9da6b9] hover:bg-white/10'
               )}
             >
               <Icon className="w-4 h-4" />
