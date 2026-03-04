@@ -208,6 +208,51 @@ export async function getFeatureRequestStats(supabase: SupabaseClient) {
   };
 }
 
+// ─── Referral & Promo Stats ────────────────────────────
+
+export async function getReferralStats(supabase: SupabaseClient) {
+  const [
+    { count: totalReferrals },
+    { count: completedReferrals },
+    { count: pendingReferrals },
+    { data: promoCodes },
+  ] = await Promise.all([
+    supabase.from("referrals").select("*", { count: "exact", head: true }),
+    supabase.from("referrals").select("*", { count: "exact", head: true }).eq("status", "completed"),
+    supabase.from("referrals").select("*", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("promo_codes").select("current_redemptions, days_granted"),
+  ]);
+
+  const totalPromoRedemptions = (promoCodes || []).reduce((sum, pc) => sum + (pc.current_redemptions || 0), 0);
+  const totalProDaysGranted =
+    ((completedReferrals || 0) * 2 * 7) + // referrals: both parties get 7
+    (promoCodes || []).reduce((sum, pc) => sum + (pc.current_redemptions || 0) * (pc.days_granted || 0), 0);
+
+  return {
+    totalReferrals: totalReferrals || 0,
+    completedReferrals: completedReferrals || 0,
+    pendingReferrals: pendingReferrals || 0,
+    totalPromoRedemptions,
+    totalProDaysGranted,
+  };
+}
+
+export async function getReferralsList(supabase: SupabaseClient, limit = 50) {
+  const { data } = await supabase
+    .rpc("get_admin_referrals_list");
+
+  return data || [];
+}
+
+export async function getPromoCodesList(supabase: SupabaseClient) {
+  const { data } = await supabase
+    .from("promo_codes")
+    .select("code, influencer_name, days_granted, current_redemptions, max_redemptions, is_active, show_in_picker, created_at")
+    .order("current_redemptions", { ascending: false });
+
+  return data || [];
+}
+
 // ─── Subscription Stats ────────────────────────────────
 
 export async function getSubscriptionStats(supabase: SupabaseClient) {
