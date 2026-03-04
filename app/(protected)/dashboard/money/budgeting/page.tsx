@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { motion } from "motion/react"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { MoneyCard } from "@/components/money/shared"
 import { sampleCategoryBudgets } from "@/components/money/sample-data"

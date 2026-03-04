@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { motion } from 'framer-motion'
 import { iconMap, mockStatusPills, mockSuggestionChips, type SuggestionChip } from '../mock-data'
 
 interface CoachEmptyStateProps {
