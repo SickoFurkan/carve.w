@@ -59,7 +59,7 @@ export function LayoutWrapper({
 
   if (isMarketingRoute) {
     return (
-      <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="min-h-screen bg-[#0A0A0B]">
         <div className="fixed top-0 left-0 right-0 z-50">
           <AppHeader
             isAuthenticated={isAuthenticated}
