@@ -100,9 +100,13 @@ export function AppHeader({
             ? (scrolled
               ? 'bg-white/70 backdrop-blur-xl border-b border-gray-200/60 shadow-sm'
               : 'bg-transparent')
-            : (scrolled
-              ? 'bg-surface/90 backdrop-blur-xl'
-              : 'bg-surface')),
+            : isMarketing
+              ? (scrolled
+                ? 'bg-[#0A0A0B]/80 backdrop-blur-xl border-b border-white/[0.04]'
+                : 'bg-transparent')
+              : (scrolled
+                ? 'bg-surface/90 backdrop-blur-xl'
+                : 'bg-surface')),
           className
         )}
         role="banner"
