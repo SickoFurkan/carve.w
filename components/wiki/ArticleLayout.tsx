@@ -11,7 +11,6 @@ import { CitationEnhancer } from './CitationEnhancer';
 import { ExpertReviewBadge } from './ExpertReviewBadge';
 import { UpdateAlert } from './UpdateAlert';
 import { ReadingProgress } from './ReadingProgress';
-import { PostArticleQuiz } from '@/components/quiz/PostArticleQuiz';
 
 interface Article {
   slug: string;
@@ -152,7 +151,20 @@ export function ArticleLayout({ article, citations, html, category }: ArticleLay
               <RelatedArticles currentSlug={article.slug} category={category} />
             </div>
 
-            <PostArticleQuiz articleSlug={article.slug} category={article.category} />
+            <div className="mt-12 pt-8 border-t border-subtle">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-primary">Test your knowledge</p>
+                  <p className="text-xs text-secondary mt-0.5">Take a quiz on {article.category}</p>
+                </div>
+                <Link
+                  href={`/wiki/learn/${article.category.toLowerCase()}`}
+                  className="px-4 py-2 rounded-lg bg-[#c8b86e] text-[#0A0A0B] text-sm font-semibold hover:bg-[#d4c478] transition-colors"
+                >
+                  Start Quiz
+                </Link>
+              </div>
+            </div>
           </article>
 
           <aside className="hidden lg:block w-56 shrink-0">
