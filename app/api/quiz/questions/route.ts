@@ -51,13 +51,28 @@ export async function GET(req: NextRequest) {
     .select('id, article_slug, category, difficulty, question_text, options, article_link')
     .eq('category', category)
     .eq('difficulty', difficulty)
-    .eq('published', true)
+    .eq('is_published', true)
 
   if (articleSlug) {
     query = query.eq('article_slug', articleSlug)
   }
 
-  const { data: allQuestions, error } = await query
+  let { data: allQuestions, error } = await query
+
+  // Fallback: if article-specific query returned nothing, try category-wide
+  if (!error && (!allQuestions || allQuestions.length === 0) && articleSlug) {
+    const fallback = await supabase
+      .from('quiz_questions')
+      .select('id, article_slug, category, difficulty, question_text, options, article_link')
+      .eq('category', category)
+      .eq('difficulty', difficulty)
+      .eq('is_published', true)
+
+    if (!fallback.error) {
+      allQuestions = fallback.data
+      error = fallback.error
+    }
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
