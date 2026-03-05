@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -93,6 +94,90 @@ function getActivityDescription(activity: ActivityFeedItem): string {
   }
 }
 
+async function ActivityFeed({ userId }: { userId: string }) {
+  const activities = await getFriendActivityFeed(userId);
+
+  if (activities.length === 0) {
+    return (
+      <HealthCard className="py-12 text-center">
+        <div className="w-14 h-14 rounded-full bg-white/5 mx-auto mb-4 flex items-center justify-center">
+          <span className="text-2xl">👥</span>
+        </div>
+        <h3 className="text-lg font-semibold text-white mb-2">
+          No activity yet
+        </h3>
+        <p className="text-[#9da6b9] mb-4">
+          Add friends to see their fitness journey!
+        </p>
+        <Link
+          href="/dashboard/social/friends"
+          className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15 transition-colors"
+        >
+          Add Friends
+        </Link>
+      </HealthCard>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {activities.map((activity) => (
+        <HealthCard key={activity.id}>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">
+                {ACTIVITY_ICONS[activity.activity_type] || "💪"}
+              </span>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-white mb-1">
+                {getActivityDescription(activity)}
+              </p>
+
+              {activity.activity_data.xp_earned && (
+                <span className="inline-flex text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">
+                  +{activity.activity_data.xp_earned} XP
+                </span>
+              )}
+
+              <p className="text-xs text-slate-500 mt-2">
+                {formatDistanceToNow(new Date(activity.created_at), {
+                  addSuffix: true,
+                })}
+              </p>
+            </div>
+          </div>
+        </HealthCard>
+      ))}
+    </div>
+  );
+}
+
+function ActivityFeedSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          className="rounded-xl bg-[#1c1f27] border border-white/[0.06] p-5"
+        >
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-white/[0.06] animate-shimmer flex-shrink-0" />
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="h-3.5 w-3/4 rounded bg-white/[0.06] animate-shimmer" />
+              {i % 2 === 0 && (
+                <div className="h-5 w-14 rounded-full bg-emerald-500/10 animate-shimmer" />
+              )}
+              <div className="h-3 w-20 rounded bg-white/[0.06] animate-shimmer" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default async function SocialFeedPage() {
   const supabase = await createClient();
   const {
@@ -103,11 +188,9 @@ export default async function SocialFeedPage() {
     redirect("/login");
   }
 
-  const activities = await getFriendActivityFeed(user.id);
-
   return (
     <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* Header — renders immediately */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
@@ -128,58 +211,10 @@ export default async function SocialFeedPage() {
         </Link>
       </div>
 
-      {/* Activity Feed */}
-      {activities.length === 0 ? (
-        <HealthCard className="py-12 text-center">
-          <div className="w-14 h-14 rounded-full bg-white/5 mx-auto mb-4 flex items-center justify-center">
-            <span className="text-2xl">👥</span>
-          </div>
-          <h3 className="text-lg font-semibold text-white mb-2">
-            No activity yet
-          </h3>
-          <p className="text-[#9da6b9] mb-4">
-            Add friends to see their fitness journey!
-          </p>
-          <Link
-            href="/dashboard/social/friends"
-            className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15 transition-colors"
-          >
-            Add Friends
-          </Link>
-        </HealthCard>
-      ) : (
-        <div className="space-y-3">
-          {activities.map((activity) => (
-            <HealthCard key={activity.id}>
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
-                  <span className="text-lg">
-                    {ACTIVITY_ICONS[activity.activity_type] || "💪"}
-                  </span>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white mb-1">
-                    {getActivityDescription(activity)}
-                  </p>
-
-                  {activity.activity_data.xp_earned && (
-                    <span className="inline-flex text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">
-                      +{activity.activity_data.xp_earned} XP
-                    </span>
-                  )}
-
-                  <p className="text-xs text-slate-500 mt-2">
-                    {formatDistanceToNow(new Date(activity.created_at), {
-                      addSuffix: true,
-                    })}
-                  </p>
-                </div>
-              </div>
-            </HealthCard>
-          ))}
-        </div>
-      )}
+      {/* Activity Feed — streamed */}
+      <Suspense fallback={<ActivityFeedSkeleton />}>
+        <ActivityFeed userId={user.id} />
+      </Suspense>
     </div>
   );
 }
