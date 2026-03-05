@@ -3,19 +3,19 @@
 import { motion } from 'framer-motion'
 import { iconMap, mockStatusPills, mockSuggestionChips, type SuggestionChip } from '../mock-data'
 
-interface CoachEmptyStateProps {
+interface CarveEmptyStateProps {
   onChipClick: (label: string) => void
   subtitle?: string
   statusPills?: { icon: string; label: string }[]
   suggestionChips?: SuggestionChip[]
 }
 
-export function CoachEmptyState({
+export function CarveEmptyState({
   onChipClick,
-  subtitle = "Hey there, I'm your Carve coach. Ask me anything about your health, finances, or goals.",
+  subtitle = "Hey, I'm Carve AI — your personal coach for health, money, and travel.",
   statusPills = mockStatusPills,
   suggestionChips = mockSuggestionChips,
-}: CoachEmptyStateProps) {
+}: CarveEmptyStateProps) {
   return (
     <div className="flex flex-1 items-center justify-center">
       <div className="flex flex-col items-center gap-6 max-w-sm px-4">
@@ -37,7 +37,7 @@ export function CoachEmptyState({
           className="text-center"
         >
           <p className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#7a8299] mb-2">
-            Carve Coach
+            Carve AI
           </p>
           <p className="text-[15px] text-[#9da6b9]">
             {subtitle}

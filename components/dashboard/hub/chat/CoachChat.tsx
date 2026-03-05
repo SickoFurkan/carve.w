@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { CoachEmptyState } from './CoachEmptyState'
+import { CarveEmptyState } from './CarveEmptyState'
 import { ChatBubble } from './ChatBubble'
 import { SuggestionChips } from './SuggestionChips'
 import { CoachInputBar } from './CoachInputBar'
@@ -94,7 +94,7 @@ export function CoachChat({ config = healthConfig }: CoachChatProps) {
           </div>
         </div>
       ) : (
-        <CoachEmptyState
+        <CarveEmptyState
           onChipClick={handleSend}
           subtitle={config.subtitle}
           statusPills={config.statusPills}
