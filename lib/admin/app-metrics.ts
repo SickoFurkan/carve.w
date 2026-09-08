@@ -107,9 +107,23 @@ export async function getAppMetrics(
     previous: options.previous,
   })
 
-  const { data: profiles } = await supabase
+  const { data: profiles, error } = await supabase
     .from('profiles')
     .select('id, is_test, created_at')
+
+  // @ai-why: De fout expliciet doorgooien in plaats van `data ?? []` te gebruiken.
+  // supabase-js gooit niet: bij een ontbrekende kolom komt er `{ data: null, error }`
+  // terug, en dan toonde dit scherm rustig nul echte accounts terwijl er veertien
+  // profielen staan. Een verkeerd cijfer dat er goed uitziet is erger dan een lege kaart,
+  // want je gaat er beslissingen op nemen. `fetchSource` maakt hier een leesbaar blok van.
+  // @ai-sync: lib/admin/sources/source.ts
+  if (error) {
+    throw new Error(
+      error.message.includes('is_test')
+        ? `De kolom profiles.is_test bestaat nog niet. Draai supabase/migrations/20260908000001_add_is_test_to_profiles.sql. (${error.message})`
+        : `Profielen ophalen mislukte: ${error.message}`,
+    )
+  }
 
   const { realIds, testCount } = splitAccounts((profiles ?? []) as AccountRow[])
 

@@ -6,6 +6,7 @@ import { ChatSidebar } from './ChatSidebar'
 import { CarveChat } from '@/components/dashboard/hub/chat/CarveChat'
 import { ChatContextPanel } from './ChatContextPanel'
 import { WikiMetadataProvider } from '@/components/wiki/chat/WikiMetadataProvider'
+import { AdminOverviewPane } from '@/components/admin/chat/AdminOverviewPane'
 import { WikiArticleView } from '@/components/wiki/chat/WikiArticleView'
 import { WikiCategoryView } from '@/components/wiki/chat/WikiCategoryView'
 import { type SectionConfig, healthConfig, moneyConfig, homeConfig, lifeConfig, inboxConfig, breinConfig } from '@/components/dashboard/hub/mock-data'
@@ -34,9 +35,18 @@ const defaultCards: Record<AppId, string[]> = {
 interface ChatLayoutProps {
   userId: string
   userName?: string
+  /**
+   * Toont de Admin-modus in de zijbalk. Komt van `isAdmin()` op de server.
+   *
+   * @ai-gotcha: Dit is presentatie, geen beveiliging. De cijfers worden opgehaald door
+   * een server action die zelf `requireAdmin()` doet.
+   * @ai-sync: app/actions/admin/overview.ts
+   */
+  isAdmin?: boolean
 }
 
-export function ChatLayout({ userId, userName = 'User' }: ChatLayoutProps) {
+export function ChatLayout({ userId, userName = 'User', isAdmin = false }: ChatLayoutProps) {
+  const [adminSection, setAdminSection] = useState('overview')
   const [activeApp, setActiveApp] = useState<AppId>('home')
   const [activeMode, setActiveMode] = useState<AppMode>('carve')
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -207,6 +217,9 @@ export function ChatLayout({ userId, userName = 'User' }: ChatLayoutProps) {
         onNewChat={handleNewChat}
         wikiCategory={wikiCategory}
         onWikiCategoryChange={handleWikiCategoryChange}
+        isAdmin={isAdmin}
+        adminSection={adminSection}
+        onAdminSectionChange={setAdminSection}
       />
 
       <WikiMetadataProvider>
@@ -271,6 +284,13 @@ export function ChatLayout({ userId, userName = 'User' }: ChatLayoutProps) {
                 onBackToChat={handleBackToChat}
               />
             )}
+          </div>
+        )}
+
+        {/* Admin mode: het overzicht uit TDR-0006, in hetzelfde venster */}
+        {activeMode === 'admin' && isAdmin && (
+          <div className="flex-1 min-w-0">
+            <AdminOverviewPane />
           </div>
         )}
 

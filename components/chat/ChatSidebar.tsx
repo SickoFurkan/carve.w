@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, LogOut, Settings, PanelLeftClose, PanelLeft, Dumbbell, Wallet, Plane, Brain, BookOpen, Flame, MessageSquare, User, BookMarked, Archive } from 'lucide-react'
+import { Plus, LogOut, Settings, PanelLeftClose, PanelLeft, Dumbbell, Wallet, Plane, Brain, BookOpen, Flame, MessageSquare, User, BookMarked, Archive, Shield, LayoutDashboard, ArrowUpRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -26,6 +26,10 @@ interface ChatSidebarProps {
   onNewChat?: () => void
   wikiCategory?: string | null
   onWikiCategoryChange?: (category: string | null) => void
+  /** Toont de Admin-modus. De echte controle zit in de server action, niet hier. */
+  isAdmin?: boolean
+  adminSection?: string
+  onAdminSectionChange?: (section: string) => void
 }
 
 // @ai-why: Top-level modes — each changes what appears below in the sidebar.
@@ -34,6 +38,30 @@ const modes: { id: AppMode; label: string; icon: React.ElementType }[] = [
   { id: 'carve', label: 'Carve', icon: Flame },
   { id: 'wiki', label: 'Wiki', icon: BookOpen },
   { id: 'brein', label: 'Brein', icon: Brain },
+]
+
+// @ai-why: Admin staat los van `modes` omdat hij er alleen voor een beheerder bij komt.
+// In de lijst zetten met een filter erop leest alsof iedereen hem heeft en er iets
+// weggehaald wordt; dit leest zoals het werkt.
+//
+// @ai-gotcha: Dit verbergt alleen de knop. De poort is `requireAdmin()` in
+// app/actions/admin/overview.ts; een server action is een endpoint dat iedereen die de
+// naam kent kan aanroepen, dus daar hoort de controle en niet hier.
+// @ai-sync: app/actions/admin/overview.ts
+const adminMode: { id: AppMode; label: string; icon: React.ElementType } = {
+  id: 'admin',
+  label: 'Admin',
+  icon: Shield,
+}
+
+// Sub-nav in de Admin-modus. Alleen Overzicht rendert in het chatvenster; de rest
+// staat nog op de eigen routes.
+// @ai-sync: components/admin/chat/AdminOverviewPane.tsx
+const adminItems: { id: string; label: string; icon: React.ElementType; href?: string }[] = [
+  { id: 'overview', label: 'Overzicht', icon: LayoutDashboard },
+  { id: 'users', label: 'Gebruikers', icon: User, href: '/admin/users' },
+  { id: 'content', label: 'Inhoud', icon: BookOpen, href: '/admin/content' },
+  { id: 'feedback', label: 'Feedback', icon: MessageSquare, href: '/admin/feedback' },
 ]
 
 // Domain apps shown when in Carve mode
@@ -140,6 +168,9 @@ export function ChatSidebar({
   onNewChat,
   wikiCategory,
   onWikiCategoryChange,
+  isAdmin = false,
+  adminSection = 'overview',
+  onAdminSectionChange,
 }: ChatSidebarProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -181,7 +212,7 @@ export function ChatSidebar({
         </button>
 
         {/* Modes */}
-        {modes.map((mode) => {
+        {(isAdmin ? [...modes, adminMode] : modes).map((mode) => {
           const isActive = activeMode === mode.id
           const Icon = mode.icon
           return (
@@ -276,7 +307,7 @@ export function ChatSidebar({
 
       {/* Modes — top-level, Perplexity-style */}
       <div className="px-2 py-1 flex flex-col gap-0.5">
-        {modes.map((mode) => {
+        {(isAdmin ? [...modes, adminMode] : modes).map((mode) => {
           const isActive = activeMode === mode.id
           const Icon = mode.icon
           return (
@@ -308,6 +339,55 @@ export function ChatSidebar({
 
       {/* Mode-specific content */}
       <div className="flex-1 overflow-y-auto px-2 py-1">
+        {activeMode === 'admin' && (
+          <>
+            {adminItems.map((item) => {
+              const Icon = item.icon
+              const isActive = !item.href && adminSection === item.id
+
+              // @ai-why: Alleen Overzicht rendert in dit venster; de andere drie leunen
+              // op searchParams, filters en formulieren die hier opnieuw bedraad zouden
+              // moeten worden. Tot dat gebeurt is een link eerlijker dan een tab die
+              // half werkt, en het pijltje zegt dat je het venster verlaat.
+              if (item.href) {
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors w-full hover:bg-white/[0.05] group"
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0 text-white/40" />
+                    <span className="text-[13px] font-medium text-white/55">{item.label}</span>
+                    <ArrowUpRight className="w-3 h-3 ml-auto text-white/20 group-hover:text-white/40" />
+                  </Link>
+                )
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onAdminSectionChange?.(item.id)}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all w-full',
+                    isActive ? 'bg-white/[0.08]' : 'hover:bg-white/[0.05]'
+                  )}
+                >
+                  <Icon
+                    className="w-[18px] h-[18px] shrink-0"
+                    style={{ color: isActive ? '#D4A843' : 'rgba(255,255,255,0.4)' }}
+                  />
+                  <span className={cn(
+                    'text-[13px] font-medium',
+                    isActive ? 'text-white/90' : 'text-white/55'
+                  )}>
+                    {item.label}
+                  </span>
+                </button>
+              )
+            })}
+          </>
+        )}
+
         {activeMode === 'carve' && (
           <>
             {/* New chat + domain apps */}
