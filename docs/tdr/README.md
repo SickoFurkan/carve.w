@@ -11,6 +11,7 @@
 | [0003](./0003-carve-is-de-app-pagina.md) | `/carve` is de pagina van de iOS-app | De bestaande `/carve` is de app-pagina; `/how-it-works` blijft van het web-platform. Wat achter een uitgezette vlag staat, staat niet op de pagina. | Voorgesteld 2026-09-05 |
 | [0004](./0004-de-site-verkoopt-nog-een-product.md) | De site verkoopt nog één product | `DOMAINS` houdt Workouts en Food over, allebei `appId: 'health'`. Money en Life zijn uit de aanbieding; hun routes en componenten blijven staan. Overruled de premisse van TDR-0001. | Voorgesteld 2026-09-05 |
 | [0005](./0005-carve-wiki-is-een-marketingpagina.md) | carve.wiki is een marketingpagina | `/` toont de app-pagina; het web-platform staat achter `SHOW_WEB_APP` en is in productie uit. Inloggen blijft, signup dicht. Vervangt TDR-0001. | Voorgesteld 2026-09-05 |
+| [0006](./0006-admin-is-de-cockpit.md) | `/admin` is de cockpit | Eén overzicht met de trechter bezoek → App Store-klik → install → account → eerste log, over GA4, App Store Connect, Meta en Supabase. Live ophalen, geen metrics-tabel. Referrals verdwijnt. | Voorgesteld 2026-09-08 |
 
 ## Wanneer schrijf je een TDR?
 
