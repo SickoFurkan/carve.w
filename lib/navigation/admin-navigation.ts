@@ -32,12 +32,6 @@ export const adminNavigationGroups = [
         href: "/admin/feedback",
         icon: { name: 'MailIcon' },
         description: "User feedback"
-      },
-      {
-        title: "Referrals",
-        href: "/admin/referrals",
-        icon: { name: 'GiftIcon' },
-        description: "Referrals & promo codes"
       }
     ]
   },

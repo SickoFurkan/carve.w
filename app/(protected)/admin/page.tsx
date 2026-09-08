@@ -1,196 +1,169 @@
-import { createClient } from "@/lib/supabase/server";
-import {
-  getAdminDashboardStats,
-  getUserGrowthData,
-  getActivityTrends,
-  getGamificationStats,
-  getRoleDistribution,
-  getRecentSignups,
-  getRecentWorkouts,
-} from "@/lib/admin/queries";
-import { StatsCard } from "@/components/admin/stats-card";
-import {
-  UserGrowthChart,
-  ActivityChart,
-  RoleDistributionChart,
-  LevelDistributionChart,
-} from "@/components/admin/dashboard-charts";
-import { UserPlus, Dumbbell, Clock } from "lucide-react";
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import { getOverview } from '@/lib/admin/overview'
+import { Funnel } from '@/components/admin/funnel'
+import { SourceNote } from '@/components/admin/source-note'
+import { StatsCard } from '@/components/admin/stats-card'
 
-export default async function AdminDashboardPage() {
-  const supabase = await createClient();
+/**
+ * @ai-why: Geen statische render. Elk cijfer op dit scherm komt live uit een externe
+ * bron (TDR-0006 beslissing 3); een gecachete pagina zou een uur oude trechter tonen
+ * zonder dat je dat ziet. De cache zit één laag lager, op de dagrapporten van Apple.
+ */
+export const dynamic = 'force-dynamic'
 
-  // Fetch all dashboard data in parallel
-  const [
-    stats,
-    userGrowthData,
-    activityData,
-    gamificationStats,
-    roleDistribution,
-    recentSignups,
-    recentWorkoutsList,
-  ] = await Promise.all([
-    getAdminDashboardStats(supabase),
-    getUserGrowthData(supabase),
-    getActivityTrends(supabase),
-    getGamificationStats(supabase),
-    getRoleDistribution(supabase),
-    getRecentSignups(supabase),
-    getRecentWorkouts(supabase),
-  ]);
+const PERIODES = [7, 30] as const
+
+function getal(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '—'
+  return new Intl.NumberFormat('nl-NL').format(value)
+}
+
+function euro(value: number | null): string {
+  if (value === null) return '—'
+  return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(value)
+}
+
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ dagen?: string }>
+}) {
+  const params = await searchParams
+  const days = PERIODES.includes(Number(params.dagen) as (typeof PERIODES)[number])
+    ? Number(params.dagen)
+    : 7
+
+  const supabase = await createClient()
+  const overview = await getOverview(supabase, days)
+
+  const app = overview.app.ok ? overview.app.data : null
+  const vorige = overview.appPrevious.ok ? overview.appPrevious.data : null
+  const store = overview.appstore.ok ? overview.appstore.data : null
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="border-b border-white/[0.06] pb-4">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Admin Dashboard
-          </h1>
-          <p className="text-[#9da6b9] mt-1">
-            Platform analytics and activity overview
-          </p>
-        </div>
+      <div className="mx-auto max-w-7xl space-y-5 p-6 lg:p-10">
+        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-subtle pb-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-ink">Overzicht</h1>
+            <p className="mt-1 text-[13px] text-ink-secondary">
+              Van bezoeker tot eerste log, over GA4, App Store Connect, Meta en Supabase.
+              {app ? ` ${app.testAccounts} testaccounts tellen niet mee.` : ''}
+            </p>
+          </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <nav className="flex rounded-lg border border-subtle bg-surface p-0.5">
+            {PERIODES.map((p) => (
+              <Link
+                key={p}
+                href={`/admin?dagen=${p}`}
+                className={`rounded-md px-3 py-1 text-[12.5px] transition-colors ${
+                  p === days ? 'bg-white/[0.07] text-ink' : 'text-ink-tertiary hover:text-ink-secondary'
+                }`}
+              >
+                {p} dagen
+              </Link>
+            ))}
+          </nav>
+        </header>
+
+        <Funnel steps={overview.funnel} failures={overview.failures} />
+
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {overview.meta.ok ? (
+            <StatsCard
+              title={`Advertentie-uitgaven, ${days} dagen`}
+              value={euro(overview.meta.data.spend)}
+              icon="Zap"
+              description={`${getal(overview.meta.data.clicks)} klikken`}
+              index={0}
+            />
+          ) : (
+            <SourceNote failure={overview.meta.failure} title="Advertentie-uitgaven" />
+          )}
+
           <StatsCard
-            title="Total Users"
-            value={stats.totalUsers}
+            title="Kosten per download"
+            value={euro(overview.costPerDownload)}
+            icon="Activity"
+            description={`Per account ${euro(overview.costPerAccount)}`}
+            index={1}
+          />
+
+          {overview.appstore.ok ? (
+            <StatsCard
+              title="App Store"
+              value={store?.averageRating === null ? '—' : `${store?.averageRating} ★`}
+              icon="BookOpen"
+              description={`${getal(store?.ratingCount)} beoordelingen · ${getal(store?.unanswered)} reviews zonder antwoord`}
+              index={2}
+            />
+          ) : (
+            <SourceNote failure={overview.appstore.failure} title="App Store" />
+          )}
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <StatsCard
+            title="Echte accounts"
+            value={getal(app?.totalRealAccounts)}
             icon="Users"
-            description={`${stats.activeUsers7d} active this week`}
+            description={`${getal(app?.testAccounts)} testaccounts uitgesloten`}
             index={0}
           />
           <StatsCard
-            title="Active Users"
-            value={stats.activeUsers7d}
-            previousValue={stats.activeUsersPrev}
+            title="Actief"
+            value={getal(app?.activeUsers)}
+            previousValue={vorige?.activeUsers}
             icon="Activity"
-            description="Last 7 days"
+            description={`Laatste ${days} dagen`}
             index={1}
           />
           <StatsCard
-            title="New Users"
-            value={stats.newUsers7d}
-            previousValue={stats.newUsersPrev}
-            icon="UserPlus"
-            description="Last 7 days"
+            title="Maaltijden gelogd"
+            value={getal(app?.meals)}
+            previousValue={vorige?.meals}
+            icon="UtensilsCrossed"
+            description={`Laatste ${days} dagen`}
             index={2}
           />
           <StatsCard
-            title="Total Workouts"
-            value={stats.totalWorkouts}
-            previousValue={stats.workoutsPrev}
+            title="Workouts"
+            value={getal(app?.workouts)}
+            previousValue={vorige?.workouts}
             icon="Dumbbell"
-            description="All-time logged"
+            description={`Laatste ${days} dagen`}
             index={3}
           />
-          <StatsCard
-            title="Total Meals"
-            value={stats.totalMeals}
-            previousValue={stats.mealsPrev}
-            icon="UtensilsCrossed"
-            description="All-time logged"
-            index={4}
-          />
-          <StatsCard
-            title="Wiki Articles"
-            value={stats.totalArticles}
-            icon="BookOpen"
-            description="Published articles"
-            index={5}
-          />
-        </div>
+        </section>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <UserGrowthChart data={userGrowthData} />
-          <ActivityChart data={activityData} />
-          <RoleDistributionChart data={roleDistribution} />
-          <LevelDistributionChart
-            data={gamificationStats.levelDistribution}
-            avgLevel={gamificationStats.avgLevel}
-          />
-        </div>
+        {!overview.app.ok && (
+          <SourceNote failure={overview.app.failure} title="Cijfers uit de eigen database" />
+        )}
 
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Signups */}
-          <div className="bg-[#1c1f27] border border-white/[0.06] rounded-xl p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <UserPlus className="h-4 w-4 text-slate-500" />
-              <h2 className="text-lg font-semibold text-white">
-                Recent Signups
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {recentSignups.length > 0 ? (
-                recentSignups.map((user: any) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between border-b border-white/[0.06] pb-3 last:border-0 last:pb-0"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium text-white truncate">
-                        {user.display_name || user.email || "Anonymous"}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-[#9da6b9]">
-                        <span className="capitalize">
-                          {user.user_roles?.name || "user"}
-                        </span>
-                        <span className="text-slate-600">--</span>
-                        <span>{new Date(user.created_at).toLocaleDateString()}</span>
-                      </div>
-                    </div>
+        {store && store.reviews.length > 0 && (
+          <section className="rounded-xl border border-subtle bg-surface-raised p-5">
+            <h2 className="text-lg font-semibold text-ink">Laatste reviews</h2>
+            <ul className="mt-3 space-y-3">
+              {store.reviews.slice(0, 5).map((review) => (
+                <li key={review.id} className="border-b border-subtle pb-3 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-health">{'★'.repeat(review.rating)}</span>
+                    <span className="font-medium text-ink">{review.title}</span>
+                    {!review.answered && (
+                      <span className="rounded border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10.5px] text-warning">
+                        geen antwoord
+                      </span>
+                    )}
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">No signups yet</p>
-              )}
-            </div>
-          </div>
-
-          {/* Recent Workouts */}
-          <div className="bg-[#1c1f27] border border-white/[0.06] rounded-xl p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Dumbbell className="h-4 w-4 text-slate-500" />
-              <h2 className="text-lg font-semibold text-white">
-                Recent Workouts
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {recentWorkoutsList.length > 0 ? (
-                recentWorkoutsList.map((workout: any) => (
-                  <div
-                    key={workout.id}
-                    className="flex items-center justify-between border-b border-white/[0.06] pb-3 last:border-0 last:pb-0"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium text-white truncate">
-                        {workout.name || "Untitled Workout"}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-[#9da6b9]">
-                        {workout.total_duration_minutes && (
-                          <>
-                            <Clock className="h-3 w-3" />
-                            <span>{workout.total_duration_minutes} min</span>
-                            <span className="text-slate-600">--</span>
-                          </>
-                        )}
-                        <span>
-                          {new Date(workout.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">No workouts yet</p>
-              )}
-            </div>
-          </div>
-        </div>
+                  <p className="mt-1 line-clamp-2 text-[13px] text-ink-secondary">{review.body}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </div>
-  );
+  )
 }

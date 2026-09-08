@@ -25,9 +25,15 @@ export async function middleware(request: NextRequest) {
   // Redirect authenticated users away from auth pages
   if (pathname === '/login' || pathname === '/signup') {
     if (user) {
-      // @ai-why: Met het platform uit is /chat een 404, dus stuur ingelogde bezoekers
-      // naar de marketingpagina in plaats van tegen een muur.
-      return NextResponse.redirect(new URL(SHOW_WEB_APP ? '/chat' : '/', request.url))
+      // @ai-why: Naar /admin en niet naar /chat. Sinds TDR-0006 is /admin de cockpit en
+      // is het web-platform het product dat niemand gebruikt; wie hier inlogt is de
+      // beheerder, niet een gebruiker die wil chatten. Valt de rolcontrole tegen, dan
+      // stuurt lib/admin/auth.ts alsnog weg, dus dit opent niets voor een ander.
+      // @ai-why: Met het platform uit is /admin in productie nog een 404 (zie de
+      // openstaande beslissing in TDR-0006), dus daar blijft de marketingpagina de
+      // bestemming tot dat besloten is.
+      // @ai-sync: docs/tdr/0006-admin-is-de-cockpit.md
+      return NextResponse.redirect(new URL(SHOW_WEB_APP ? '/admin' : '/', request.url))
     }
   }
 
@@ -39,7 +45,7 @@ export async function middleware(request: NextRequest) {
   // @ai-sync: next.config.ts (redirects)
   if (pathname === '/' && SHOW_WEB_APP) {
     if (user) {
-      return NextResponse.redirect(new URL('/chat', request.url))
+      return NextResponse.redirect(new URL('/admin', request.url))
     }
   }
 
