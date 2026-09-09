@@ -41,10 +41,12 @@ export function LayoutWrapper({
   // Lab has its own shell — bypass all app chrome
   const isLabRoute = path.startsWith('/lab')
 
-  // Chat route — full viewport, only header, no sidebar
-  // Note: usePathname() returns URL path, not file-system path.
-  // Route groups like (protected) are invisible in URLs, so /chat is correct.
-  const isChatRoute = path.startsWith('/chat')
+  // @ai-why: De cockpit staat sinds TDR-0008 op de wortel en draagt zijn eigen volledige
+  // venster, dus geen AppHeader en geen zijbalk eromheen. /chat stuurt in next.config.ts
+  // permanent hierheen en komt hier niet meer langs.
+  // @ai-sync: app/page.tsx
+  // @ai-sync: next.config.ts (redirects)
+  const isChatRoute = path === '/'
   // @ai-why: /app is sinds TDR-0007 de marketingpagina en draagt zijn eigen dunne balk
   // (MarketingHeader), dus geen AppHeader erboven. / en /carve sturen in next.config.ts
   // door naar /app en komen hier niet meer langs. /demo hoort hier om dezelfde reden

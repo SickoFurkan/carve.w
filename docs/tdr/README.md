@@ -12,7 +12,8 @@
 | [0004](./0004-de-site-verkoopt-nog-een-product.md) | De site verkoopt nog één product | `DOMAINS` houdt Workouts en Food over, allebei `appId: 'health'`. Money en Life zijn uit de aanbieding; hun routes en componenten blijven staan. Overruled de premisse van TDR-0001. | Voorgesteld 2026-09-05 |
 | [0005](./0005-carve-wiki-is-een-marketingpagina.md) | carve.wiki is een marketingpagina | `/` toont de app-pagina; het web-platform staat achter `SHOW_WEB_APP` en is in productie uit. Inloggen blijft, signup dicht. Vervangt TDR-0001. | Voorgesteld 2026-09-05 |
 | [0006](./0006-admin-is-de-cockpit.md) | De cockpit | Eén overzicht met de trechter bezoek → App Store-klik → download → account → eerste log, over GA4, App Store Connect, Meta en Supabase. Live ophalen, geen metrics-tabel. De losse `/admin`-routes zijn opgegaan in de Admin-modus van `/chat`. | Voorgesteld 2026-09-08 |
-| [0007](./0007-de-marketingpagina-verhuist-naar-app.md) | De marketingpagina staat op `/app` | `/` en `/carve` sturen permanent door naar `/app`. Overrulet beslissing 1 van TDR-0005; de prijs is een extra hop voor advertentieverkeer. | Voorgesteld 2026-09-09 |
+| [0007](./0007-de-marketingpagina-verhuist-naar-app.md) | De marketingpagina staat op `/app` | `/carve` stuurt permanent door naar `/app`. Overrulet beslissing 1 van TDR-0005. De `/`-redirect uit deze TDR is een dag later vervangen door TDR-0008. | Voorgesteld 2026-09-09 |
+| [0008](./0008-de-cockpit-is-de-homepage.md) | De cockpit is de homepage | `/` toont de cockpit aan wie is ingelogd en stuurt bezoekers tijdelijk (307) door naar `/app`. `/chat` bestaat niet meer. De cockpit valt niet langer onder `SHOW_WEB_APP`. | Voorgesteld 2026-09-09 |
 
 ## Wanneer schrijf je een TDR?
 

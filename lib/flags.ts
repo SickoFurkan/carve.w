@@ -72,9 +72,14 @@ export const SHOW_WIKI =
   process.env.NEXT_PUBLIC_SHOW_WIKI === 'true' || process.env.NODE_ENV !== 'production'
 
 /**
- * Het web-platform: de ingelogde app (`/chat`, `/dashboard`, `/workouts`, `/food`,
- * `/social`, `/profile`, `/settings`, `/health`, `/travel`), plus `/hiscores`, `/demo`
- * en `/lab`.
+ * Het web-platform: de ingelogde app (`/dashboard`, `/workouts`, `/food`, `/social`,
+ * `/profile`, `/settings`, `/health`, `/travel`), plus `/hiscores`, `/demo` en `/lab`.
+ *
+ * @ai-why: `/chat` valt hier sinds TDR-0008 níét meer onder. De cockpit is de homepage
+ * geworden en staat op `/`, buiten de `(protected)`-groep; achter deze vlag zou hij in
+ * productie een 404 geven. De grens daar is de sessie plus de rolcontrole in
+ * lib/admin/auth.ts.
+ * @ai-sync: app/page.tsx
  *
  * @ai-why: Uit sinds 2026-09-05. carve.wiki is vanaf nu een marketingpagina voor de
  * iOS-app, en niets anders. Het platform is niet stuk — het is 68 bestanden die niemand

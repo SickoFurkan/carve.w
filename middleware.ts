@@ -6,8 +6,23 @@ export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request)
   const pathname = request.nextUrl.pathname
 
+  // @ai-why: De wortel is sinds TDR-0008 de cockpit. Zonder sessie ga je naar /app en
+  // niet naar /login: `carve.wiki` is het adres in advertenties, in de App Store-listing
+  // en in de bio-link, en een bezoeker die daar een formulier ziet is weg.
+  //
+  // @ai-gotcha: 307 en niet 308. Een permanente redirect blijft in de browsercache staan,
+  // en dan komt dezelfde persoon ná het inloggen nog steeds op /app uit. Dat is niet te
+  // debuggen zonder de cache te legen, want er is niets aan de code te zien.
+  //
+  // @ai-sync: app/page.tsx
+  // @ai-sync: next.config.ts (geen config-redirect op /, die zou hier vóór komen)
+  // @ai-sync: docs/tdr/0008-de-cockpit-is-de-homepage.md
+  if (pathname === '/' && !user) {
+    return NextResponse.redirect(new URL('/app', request.url))
+  }
+
   // Redirect unauthenticated users away from protected routes
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/chat') || pathname.startsWith('/money') || pathname.startsWith('/travel') || pathname.startsWith('/workouts') || pathname.startsWith('/food') || pathname.startsWith('/social') || pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/health') || pathname.startsWith('/inbox')) {
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/money') || pathname.startsWith('/travel') || pathname.startsWith('/workouts') || pathname.startsWith('/food') || pathname.startsWith('/social') || pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/health') || pathname.startsWith('/inbox')) {
     if (!user) {
       const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirect', pathname)
@@ -25,13 +40,11 @@ export async function middleware(request: NextRequest) {
   // Redirect authenticated users away from auth pages
   if (pathname === '/login' || pathname === '/signup') {
     if (user) {
-      // @ai-why: Naar /chat, want daar zit sinds TDR-0006 de cockpit in. De losse
-      // /admin-routes bestaan niet meer; erheen sturen geeft een 404.
-      // @ai-why: Met het platform uit is /chat in productie nog een 404 (zie de
-      // openstaande beslissing in TDR-0006), dus daar blijft de marketingpagina de
-      // bestemming tot dat besloten is.
-      // @ai-sync: docs/tdr/0006-admin-is-de-cockpit.md
-      return NextResponse.redirect(new URL(SHOW_WEB_APP ? '/chat' : '/app', request.url))
+      // @ai-why: Naar de wortel, want daar zit sinds TDR-0008 de cockpit. Niet meer
+      // afhankelijk van SHOW_WEB_APP: die vlag dekt het web-platform en niet de cockpit,
+      // en de grens is hier de sessie die we net hebben vastgesteld.
+      // @ai-sync: docs/tdr/0008-de-cockpit-is-de-homepage.md
+      return NextResponse.redirect(new URL('/', request.url))
     }
   }
 
