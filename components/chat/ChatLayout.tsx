@@ -7,6 +7,9 @@ import { CarveChat } from '@/components/dashboard/hub/chat/CarveChat'
 import { ChatContextPanel } from './ChatContextPanel'
 import { WikiMetadataProvider } from '@/components/wiki/chat/WikiMetadataProvider'
 import { AdminOverviewPane } from '@/components/admin/chat/AdminOverviewPane'
+import { AdminUsersPane } from '@/components/admin/chat/AdminUsersPane'
+import { AdminContentPane } from '@/components/admin/chat/AdminContentPane'
+import { AdminFeedbackPane } from '@/components/admin/chat/AdminFeedbackPane'
 import { WikiArticleView } from '@/components/wiki/chat/WikiArticleView'
 import { WikiCategoryView } from '@/components/wiki/chat/WikiCategoryView'
 import { type SectionConfig, healthConfig, moneyConfig, homeConfig, lifeConfig, inboxConfig, breinConfig } from '@/components/dashboard/hub/mock-data'
@@ -287,10 +290,14 @@ export function ChatLayout({ userId, userName = 'User', isAdmin = false }: ChatL
           </div>
         )}
 
-        {/* Admin mode: het overzicht uit TDR-0006, in hetzelfde venster */}
+        {/* Admin mode: de cockpit uit TDR-0006, alle vier de secties in dit venster.
+            @ai-sync: components/chat/ChatSidebar.tsx — adminItems levert deze ids */}
         {activeMode === 'admin' && isAdmin && (
           <div className="flex-1 min-w-0">
-            <AdminOverviewPane />
+            {adminSection === 'overview' && <AdminOverviewPane />}
+            {adminSection === 'users' && <AdminUsersPane />}
+            {adminSection === 'content' && <AdminContentPane />}
+            {adminSection === 'feedback' && <AdminFeedbackPane />}
           </div>
         )}
 

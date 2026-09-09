@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { fetchOverview } from '@/app/actions/admin/overview'
 import type { Overview } from '@/lib/admin/overview'
 import { Funnel } from '@/components/admin/funnel'
@@ -215,13 +214,6 @@ export function AdminOverviewPane() {
                 </section>
               )}
 
-              <p className="pt-1 text-[12px] text-white/30">
-                Gebruikers, Inhoud en Feedback staan nog op{' '}
-                <Link href="/admin" className="text-white/50 underline underline-offset-2">
-                  /admin
-                </Link>
-                .
-              </p>
             </div>
           </div>
         )}
