@@ -211,7 +211,7 @@ export function AppHeader({
 
                         <div className="py-1">
                           <Link
-                            href="/chat"
+                            href="/"
                             onClick={() => setIsDropdownOpen(false)}
                             className={cn("flex items-center px-3 py-2 text-sm transition-colors", isWikiRoute ? "text-ink-secondary hover:bg-surface hover:text-ink" : "text-slate-400 hover:bg-white/[0.04] hover:text-white")}
                           >
@@ -343,7 +343,7 @@ export function AppHeader({
                 </Link>
                 {isAuthenticated ? (
                   <Link
-                    href="/chat"
+                    href="/"
                     onClick={() => setMobileOpen(false)}
                     className="text-lg text-white/40"
                   >

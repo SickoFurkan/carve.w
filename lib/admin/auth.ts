@@ -76,7 +76,9 @@ export async function requireAdminOrRedirect() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
-  if (!(await hasAdminRole(supabase, user.id))) redirect("/chat");
+  // @ai-why: Naar de wortel, want daar zit sinds TDR-0008 de cockpit. Wie geen adminrol
+  // heeft ziet daar de chat maar niet de Admin-modus.
+  if (!(await hasAdminRole(supabase, user.id))) redirect("/");
 
   return { supabase, user };
 }

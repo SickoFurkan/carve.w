@@ -13,7 +13,8 @@ import { InlineAuth, type AuthMode } from './InlineAuth'
 export function AuthCard({ initialMode }: { initialMode: AuthMode }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/chat'
+  // @ai-sync: app/auth/callback/route.ts (dezelfde standaardbestemming)
+  const redirect = searchParams.get('redirect') || '/'
   const [mode, setMode] = useState<AuthMode>(initialMode)
 
   // @ai-why: Wie al ingelogd is hoort hier niet te staan. Stond op de oude

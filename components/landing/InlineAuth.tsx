@@ -32,7 +32,7 @@ interface InlineAuthProps {
 // @ai-sync: app/(auth)/signup/page.tsx doet dezelfde signUp-aanroep. /login rendert
 // dit component (via AuthCard), dus daar is geen tweede kopie meer.
 export function InlineAuth({
-  mode, onModeChange, domain, accent, promise, redirect = '/chat', onCancel,
+  mode, onModeChange, domain, accent, promise, redirect = '/', onCancel,
 }: InlineAuthProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -97,7 +97,7 @@ export function InlineAuth({
         setError(error.message)
         return
       }
-      router.push(isSignup && domain ? `/chat?start=${domain}` : redirect)
+      router.push(isSignup && domain ? `/?start=${domain}` : redirect)
       router.refresh()
     } catch {
       setError('Something went wrong. Try again.')
