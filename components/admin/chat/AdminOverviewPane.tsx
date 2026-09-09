@@ -182,6 +182,58 @@ export function AdminOverviewPane() {
                 />
               </section>
 
+
+              <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {overview.subscriptions.ok ? (
+                  <StatsCard
+                    title="Betalend"
+                    value={getal(overview.subscriptions.data.betalend)}
+                    icon="Zap"
+                    description={`${getal(overview.subscriptions.data.proef)} in proef · ${getal(overview.subscriptions.data.opzeggend)} opzeggend`}
+                    index={0}
+                  />
+                ) : (
+                  <SourceNote failure={overview.subscriptions.failure} title="Abonnementen" />
+                )}
+
+                {overview.ai.ok ? (
+                  <StatsCard
+                    title={`AI-kosten, ${days} dagen`}
+                    value={euro(overview.ai.data.total)}
+                    previousValue={overview.aiPrevious.ok ? overview.aiPrevious.data.total : undefined}
+                    icon="Activity"
+                    description={`${getal(overview.ai.data.calls)} aanroepen`}
+                    index={1}
+                  />
+                ) : (
+                  <SourceNote failure={overview.ai.failure} title="AI-kosten" />
+                )}
+
+                {overview.ai.ok && overview.ai.data.byModel.length > 0 ? (
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+                    <h3 className="text-[12.5px] font-medium text-white/45">Kosten per model</h3>
+                    <ul className="mt-3 space-y-1.5">
+                      {overview.ai.data.byModel.slice(0, 4).map((m) => (
+                        <li key={m.model} className="flex items-baseline justify-between gap-3">
+                          <span className="truncate font-mono text-[11.5px] text-white/55">
+                            {m.model}
+                          </span>
+                          <span className="shrink-0 text-[12.5px] tabular-nums text-white/80">
+                            {euro(m.cost)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] p-5">
+                    <p className="text-[12.5px] text-white/30">
+                      Geen AI-verbruik in deze periode.
+                    </p>
+                  </div>
+                )}
+              </section>
+
               {!overview.app.ok && (
                 <SourceNote
                   failure={overview.app.failure}

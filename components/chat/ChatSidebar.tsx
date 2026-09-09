@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, LogOut, Settings, PanelLeftClose, PanelLeft, Dumbbell, Wallet, Plane, Brain, BookOpen, Flame, MessageSquare, User, BookMarked, Archive, Shield, LayoutDashboard } from 'lucide-react'
+import { Plus, LogOut, Settings, PanelLeftClose, PanelLeft, Dumbbell, Wallet, Plane, Brain, BookOpen, Flame, MessageSquare, User, BookMarked, Archive, Shield, LayoutDashboard, Trophy, Smartphone, ArrowUpRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -37,6 +37,7 @@ interface ChatSidebarProps {
 const modes: { id: AppMode; label: string; icon: React.ElementType }[] = [
   { id: 'carve', label: 'Carve', icon: Flame },
   { id: 'wiki', label: 'Wiki', icon: BookOpen },
+  { id: 'hiscores', label: 'Hiscores', icon: Trophy },
   { id: 'brein', label: 'Brein', icon: Brain },
 ]
 
@@ -66,6 +67,7 @@ const adminItems: { id: string; label: string; icon: React.ElementType }[] = [
   { id: 'users', label: 'Gebruikers', icon: User },
   { id: 'content', label: 'Inhoud', icon: BookOpen },
   { id: 'feedback', label: 'Feedback', icon: MessageSquare },
+  { id: 'money', label: 'Geld', icon: Wallet },
 ]
 
 // Domain apps shown when in Carve mode
@@ -107,9 +109,11 @@ function WikiSidebarContent({
   if (loading) {
     return (
       <div className="px-3 py-4 space-y-2">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-8 bg-white/[0.04] rounded-lg animate-pulse" />
-        ))}
+        <div className="space-y-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-8 bg-white/[0.04] rounded-lg animate-pulse" />
+          ))}
+        </div>
       </div>
     )
   }
@@ -464,6 +468,21 @@ export function ChatSidebar({
             onCategoryChange={onWikiCategoryChange}
           />
         )}
+      </div>
+
+      {/* @ai-why: De app-pagina onderaan en buiten de modi. Het is geen werkoppervlak
+          maar de plek waar je heen gaat om te zien wat een bezoeker ziet; tussen Carve
+          en Brein zou hij als vijfde werkmodus lezen.
+          @ai-sync: app/app/page.tsx */}
+      <div className="px-2 pb-1">
+        <Link
+          href="/app"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors w-full hover:bg-white/[0.05] group"
+        >
+          <Smartphone className="w-[18px] h-[18px] shrink-0 text-white/40" />
+          <span className="text-[13px] font-medium text-white/55">App</span>
+          <ArrowUpRight className="w-3 h-3 ml-auto text-white/20 group-hover:text-white/40" />
+        </Link>
       </div>
 
       {/* User */}

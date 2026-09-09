@@ -10,6 +10,7 @@ import { AdminOverviewPane } from '@/components/admin/chat/AdminOverviewPane'
 import { AdminUsersPane } from '@/components/admin/chat/AdminUsersPane'
 import { AdminContentPane } from '@/components/admin/chat/AdminContentPane'
 import { AdminFeedbackPane } from '@/components/admin/chat/AdminFeedbackPane'
+import { AdminMoneyPane } from '@/components/admin/chat/AdminMoneyPane'
 import { WikiArticleView } from '@/components/wiki/chat/WikiArticleView'
 import { WikiCategoryView } from '@/components/wiki/chat/WikiCategoryView'
 import { type SectionConfig, healthConfig, moneyConfig, homeConfig, lifeConfig, inboxConfig, breinConfig } from '@/components/dashboard/hub/mock-data'
@@ -264,7 +265,16 @@ export function ChatLayout({ userId, userName = 'User', isAdmin = false }: ChatL
           </AnimatePresence>
         </div>
 
-        {/* Wiki mode: article or category view */}
+        {/* Hiscores: eigen modus tussen Wiki en Brein.
+            @ai-todo: Leeg op verzoek. Furkan vult de inhoud later in; de ingang staat er
+            nu zodat de plek vastligt. De oude route /hiscores draait op
+            monthly_leaderboard_snapshots (1696 rijen) en is het startpunt. */}
+        {activeMode === 'hiscores' && (
+          <div className="flex-1 min-w-0 flex items-center justify-center">
+            <p className="text-[13px] text-white/25">Hiscores — nog leeg</p>
+          </div>
+        )}
+
         {activeMode === 'wiki' && (
           <div className="flex-1 min-w-0">
             {wikiArticleSlug ? (
@@ -298,6 +308,7 @@ export function ChatLayout({ userId, userName = 'User', isAdmin = false }: ChatL
             {adminSection === 'users' && <AdminUsersPane />}
             {adminSection === 'content' && <AdminContentPane />}
             {adminSection === 'feedback' && <AdminFeedbackPane />}
+            {adminSection === 'money' && <AdminMoneyPane />}
           </div>
         )}
 

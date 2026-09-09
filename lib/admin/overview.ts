@@ -11,6 +11,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { buildFunnel, type FunnelStep } from './funnel'
 import { getAppMetrics, type AppMetrics } from './app-metrics'
+import {
+  getAiCosts,
+  getSubscriptions,
+  type AiCostSummary,
+  type SubscriptionSummary,
+} from './business-metrics'
 import { fetchSource, type SourceFailure, type SourceResult } from './sources/source'
 import { ga4Missing, loadGa4, type Ga4Data } from './sources/ga4'
 import { metaMissing, loadMeta, type MetaData } from './sources/meta'
@@ -24,6 +30,10 @@ export interface Overview {
   appstore: SourceResult<AppStoreData>
   app: SourceResult<AppMetrics>
   appPrevious: SourceResult<AppMetrics>
+  /** Wat de AI deze periode kostte, en de periode ervoor ter vergelijking. */
+  ai: SourceResult<AiCostSummary>
+  aiPrevious: SourceResult<AiCostSummary>
+  subscriptions: SourceResult<SubscriptionSummary>
   /** Alle bronnen die niets gaven, voor de melding onder de trechter. */
   failures: SourceFailure[]
   /** Uitgaven gedeeld door downloads, als beide er zijn. */
@@ -39,7 +49,7 @@ export async function getOverview(
   supabase: SupabaseClient,
   days: number,
 ): Promise<Overview> {
-  const [ga4, meta, appstore, app, appPrevious] = await Promise.all([
+  const [ga4, meta, appstore, app, appPrevious, ai, aiPrevious, subscriptions] = await Promise.all([
     fetchSource('ga4', () => loadGa4(days), { missing: ga4Missing() }),
     fetchSource('meta', () => loadMeta(days), { missing: metaMissing() }),
     // @ai-gotcha: Ruimer budget dan de rest. Dertig dagrapporten bij Apple zijn dertig
@@ -54,6 +64,9 @@ export async function getOverview(
     // scherm beter dan een pagina die valt.
     fetchSource('supabase', () => getAppMetrics(supabase, days)),
     fetchSource('supabase', () => getAppMetrics(supabase, days, { previous: true })),
+    fetchSource('supabase', () => getAiCosts(supabase, days)),
+    fetchSource('supabase', () => getAiCosts(supabase, days, { previous: true })),
+    fetchSource('supabase', () => getSubscriptions(supabase)),
   ])
 
   const funnel = buildFunnel({
@@ -76,6 +89,9 @@ export async function getOverview(
     appstore,
     app,
     appPrevious,
+    ai,
+    aiPrevious,
+    subscriptions,
     failures: [ga4, meta, appstore, app].flatMap((r) => (r.ok ? [] : [r.failure])),
     // @ai-why: Delen door nul geeft `null`, niet Infinity. Zie de reden in lib/admin/funnel.ts.
     costPerDownload: spend !== null && downloads ? Math.round((spend / downloads) * 100) / 100 : null,
