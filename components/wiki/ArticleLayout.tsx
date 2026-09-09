@@ -84,7 +84,7 @@ export function ArticleLayout({ article, citations, html, category }: ArticleLay
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Breadcrumbs */}
         <nav className="mb-8 text-sm text-ink-tertiary">
-          <Link href="/" className="hover:text-ink-secondary transition-colors">Wiki</Link>
+          <Link href="/wiki" className="hover:text-ink-secondary transition-colors">Wiki</Link>
           <span className="mx-2">/</span>
           <Link href={`/wiki/${category}`} className="hover:text-ink-secondary transition-colors capitalize">
             {category.replace(/-/g, ' ')}

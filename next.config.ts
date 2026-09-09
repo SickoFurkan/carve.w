@@ -1,15 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // @ai-why: /carve was de app-pagina (TDR-0003) en rendert sinds TDR-0005 dezelfde
-  // component als /. Twee URL's voor één pagina is dubbele content en een tweede
-  // plek om chrome en metadata bij te houden, dus /carve stuurt door. Permanent
-  // (308), want de URL komt terug in oude links en in de App Store-omgeving, en
-  // die mogen blijven werken. /carve/* (roadmap, faq, ...) blijft ongemoeid.
-  // @ai-sync: middleware.ts (redirects naar de marketingpagina wijzen naar /)
-  // @ai-sync: app/sitemap.ts (/carve staat er niet meer in)
+  // @ai-why: De marketingpagina woont sinds TDR-0007 op /app. Zowel / als /carve
+  // sturen daar permanent (308) heen: allebei komen ze terug in oude links, in
+  // advertenties en in de App Store-omgeving, en die mogen blijven werken.
+  //
+  // @ai-gotcha: /carve wijst rechtstreeks naar /app en niet naar /. Een redirect die op
+  // een redirect uitkomt kost een tweede hop, en Google waardeert de laatste in de
+  // keten. /carve/* (roadmap, faq, ...) blijft ongemoeid.
+  //
+  // @ai-sync: app/app/page.tsx
+  // @ai-sync: app/sitemap.ts (/ staat er niet meer in, /app wel)
+  // @ai-sync: docs/tdr/0007-de-marketingpagina-verhuist-naar-app.md
   async redirects() {
-    return [{ source: '/carve', destination: '/', permanent: true }];
+    return [
+      { source: '/', destination: '/app', permanent: true },
+      { source: '/carve', destination: '/app', permanent: true },
+    ];
   },
   // @ai-tried: transpilePackages voor @celikerstudio/ui — breekt Turbopack subpath exports resolution.
   // Niet nodig: package shipt compiled JS in dist/ sinds v0.2.0.

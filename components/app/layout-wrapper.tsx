@@ -45,14 +45,14 @@ export function LayoutWrapper({
   // Note: usePathname() returns URL path, not file-system path.
   // Route groups like (protected) are invisible in URLs, so /chat is correct.
   const isChatRoute = path.startsWith('/chat')
-  // @ai-why: / is sinds TDR-0005 de marketingpagina en draagt zijn eigen dunne balk
-  // (MarketingHeader), dus geen AppHeader erboven. /carve stuurt in next.config.ts
-  // door naar / en komt hier niet meer langs. /demo hoort hier om dezelfde reden
+  // @ai-why: /app is sinds TDR-0007 de marketingpagina en draagt zijn eigen dunne balk
+  // (MarketingHeader), dus geen AppHeader erboven. / en /carve sturen in next.config.ts
+  // door naar /app en komen hier niet meer langs. /demo hoort hier om dezelfde reden
   // als vroeger: eigen nav, geen wiki-chrome.
   // @ai-sync: components/carve/MarketingHeader.tsx
   // @ai-sync: next.config.ts (redirects)
   // @ai-sync: app/demo/page.tsx
-  const isLandingRoute = path === '/' || path === '/demo'
+  const isLandingRoute = path === '/app' || path === '/demo'
 
   if (isChatRoute) {
     return (

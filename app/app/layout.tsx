@@ -1,4 +1,4 @@
-export default function LandingLayout({
+export default function AppPageLayout({
   children,
 }: {
   children: React.ReactNode

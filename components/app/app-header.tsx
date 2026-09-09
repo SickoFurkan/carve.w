@@ -153,7 +153,7 @@ export function AppHeader({
             <div className="hidden md:flex items-center gap-3 ml-auto">
               <SearchBar variant="header" theme={isWikiRoute ? 'light' : 'dark'} />
               <Link
-                href="/"
+                href="/app"
                 className={cn(
                   'p-2 rounded-lg transition-colors',
                   isWikiRoute
@@ -332,7 +332,7 @@ export function AppHeader({
               ))}
               <div className="border-t border-white/[0.08] mt-4 pt-4 flex flex-col gap-2">
                 <Link
-                  href="/"
+                  href="/app"
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     'text-lg transition-colors',

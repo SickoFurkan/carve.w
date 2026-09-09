@@ -25,7 +25,10 @@ const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://carve.wiki'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
-    { path: '',                  priority: 1.0,  changeFrequency: 'weekly'  as const },
+    // @ai-gotcha: /app en niet ''. De wortel stuurt sinds TDR-0007 door, en een URL
+    // die doorstuurt hoort niet in een sitemap: Google volgt hem wel, maar rapporteert
+    // hem als fout en het kost een crawl die je elders nodig hebt.
+    { path: '/app',              priority: 1.0,  changeFrequency: 'weekly'  as const },
     { path: '/support',          priority: 0.4,  changeFrequency: 'monthly' as const },
     { path: '/login',            priority: 0.3,  changeFrequency: 'yearly'  as const },
     { path: '/privacy',          priority: 0.2,  changeFrequency: 'yearly'  as const },

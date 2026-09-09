@@ -30,10 +30,10 @@ export function AuthCard({ initialMode }: { initialMode: AuthMode }) {
   return (
     <div className="min-h-[100dvh] bg-[#0A0A0B] text-white">
       <nav className="flex items-center justify-between border-b border-white/[0.03] px-6 py-4 md:px-10">
-        <Link href="/" className="text-[12px] font-bold uppercase tracking-[0.35em] text-white/85">
+        <Link href="/app" className="text-[12px] font-bold uppercase tracking-[0.35em] text-white/85">
           CARVE
         </Link>
-        <Link href="/" className="text-[12.5px] text-white/30 transition-colors hover:text-white/60">
+        <Link href="/app" className="text-[12.5px] text-white/30 transition-colors hover:text-white/60">
           See the demo
         </Link>
       </nav>

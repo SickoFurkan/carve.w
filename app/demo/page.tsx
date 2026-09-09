@@ -40,7 +40,7 @@ export default async function DemoPage({
       <main className="pt-28 pb-20">
         <header className="max-w-[1100px] mx-auto px-4 md:px-6 mb-8">
           <Link
-            href="/"
+            href="/app"
             className="text-[12.5px] text-white/30 hover:text-white/60 transition-colors
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded"
           >

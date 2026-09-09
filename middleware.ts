@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
   // wél werken: een bestaand account moet erin kunnen en de cockpit in /chat hangt eraan.
   // @ai-sync: lib/flags.ts (SHOW_WEB_APP)
   if (pathname === '/signup' && !SHOW_WEB_APP) {
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.redirect(new URL('/app', request.url))
   }
 
   // Redirect authenticated users away from auth pages
@@ -31,21 +31,17 @@ export async function middleware(request: NextRequest) {
       // openstaande beslissing in TDR-0006), dus daar blijft de marketingpagina de
       // bestemming tot dat besloten is.
       // @ai-sync: docs/tdr/0006-admin-is-de-cockpit.md
-      return NextResponse.redirect(new URL(SHOW_WEB_APP ? '/chat' : '/', request.url))
+      return NextResponse.redirect(new URL(SHOW_WEB_APP ? '/chat' : '/app', request.url))
     }
   }
 
-  // @ai-why: Deze redirect stuurde ingelogde bezoekers van de marketingpagina naar de
-  // chat. Sinds carve.wiki een marketingsite is, is dat precies verkeerd om: jij bent
-  // ingelogd en zou je eigen pagina nooit meer zien. Alleen nog van kracht als het
-  // platform aanstaat. /carve hoeft hier niet meer bij: die stuurt in next.config.ts
-  // permanent door naar / en komt dus nooit tot hier.
+  // @ai-why: Hier stond tot 2026-09-09 een redirect van / naar /chat voor ingelogde
+  // bezoekers. Die is weg omdat `next.config.ts` sinds TDR-0007 / permanent naar /app
+  // stuurt, en config-redirects komen vóór de middleware. De regel zou dus nooit meer
+  // vuren, en een redirect die er wel staat maar nooit werkt is erger dan geen: hij
+  // leest als een garantie. Wil je ingelogde bezoekers weghouden van de marketingpagina,
+  // dan is /app de plek en niet /.
   // @ai-sync: next.config.ts (redirects)
-  if (pathname === '/' && SHOW_WEB_APP) {
-    if (user) {
-      return NextResponse.redirect(new URL('/chat', request.url))
-    }
-  }
 
   return response
 }

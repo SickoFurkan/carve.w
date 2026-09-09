@@ -33,7 +33,7 @@ export default function LabLayout({ children }: { children: React.ReactNode }) {
         <Link href="/lab" className={className}>{content}</Link>
       )}
       renderBackLink={({ className, children: content }) => (
-        <Link href="/" className={className}>{content}</Link>
+        <Link href="/app" className={className}>{content}</Link>
       )}
       sidebar={
         <LabSidebar

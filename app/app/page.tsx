@@ -3,11 +3,11 @@ import { APP_STORE_URL } from '@/lib/utils'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://carve.wiki'
 
-// @ai-why: De homepage wás het domein-keuzescherm (TDR-0001). Sinds TDR-0005 is
-// carve.wiki een marketingpagina voor de iOS-app en niets anders, dus `/` toont wat
-// `/carve` toont. Geen redirect maar dezelfde component: `/` is de URL die mensen
-// intikken en waar advertenties en de bio-link naartoe wijzen, en een redirect kost
-// daar zowel snelheid als duidelijkheid.
+// @ai-why: Deze pagina stond tot 2026-09-09 op `/` (TDR-0005) en woont sinds TDR-0007
+// op `/app`; `/` stuurt er permanent heen. De reden is een adres dat zegt wat het is,
+// nu `/chat` de cockpit is en daar een ingang naar deze pagina hoort. De prijs is een
+// extra hop voor advertentieverkeer; dat was in TDR-0005 juist het argument om te
+// blijven, en het staat als consequentie in TDR-0007.
 // @ai-gotcha: `LandingPage`, `DomainPicker`, `DomainCardLink` en `lib/domains.ts`
 // hebben hiermee geen lezer meer. Bewust niet verwijderd; zie TDR-0005.
 //
@@ -19,7 +19,8 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://carve.wiki'
 // want een ontbrekende voorvertoning geeft geen fout. Zet hier dus geen `openGraph`-object
 // neer zonder `images` mee te nemen; de belofte staat al in de root-layout.
 // @ai-sync: app/layout.tsx (title, description, openGraph)
-// @ai-sync: next.config.ts (/carve stuurt hierheen door)
+// @ai-sync: next.config.ts (/ en /carve sturen hierheen door)
+// @ai-sync: docs/tdr/0007-de-marketingpagina-verhuist-naar-app.md
 export const metadata = {
   title: 'Carve AI — Fitness Coach',
   description: 'Logs your food from a photo. Tracks the muscles you are skipping. Built by someone who lost 50kg using it.',
@@ -50,7 +51,7 @@ const JSON_LD = {
   alternateName: 'Carve',
   applicationCategory: 'HealthAndFitnessApplication',
   operatingSystem: 'iOS',
-  url: SITE_URL,
+  url: `${SITE_URL}/app`,
   installUrl: APP_STORE_URL,
   sameAs: [APP_STORE_URL],
   image: `${SITE_URL}/opengraph-image`,
@@ -63,12 +64,12 @@ const JSON_LD = {
   author: {
     '@type': 'Organization',
     name: 'Carve AI',
-    url: SITE_URL,
+    url: `${SITE_URL}/app`,
     address: { '@type': 'PostalAddress', addressLocality: 'Amsterdam', addressCountry: 'NL' },
   },
 }
 
-export default function Landing() {
+export default function AppPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
