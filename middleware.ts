@@ -2,6 +2,28 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { SHOW_WEB_APP } from '@/lib/flags'
 
+/**
+ * Een omleiding die de sessiecookies van `updateSession` meeneemt.
+ *
+ * @ai-why: `updateSession` ververst een verlopen access token en zet het nieuwe token
+ * op zijn eigen response. Een kale `NextResponse.redirect()` draagt die Set-Cookie-
+ * headers niet, dus dan houdt de browser het oude token. Bij het volgende verzoek is
+ * dat token verlopen én is de refresh token al verbruikt: `getUser()` geeft null, en
+ * je wordt opnieuw omgeleid. Wie op / staat wordt dan telkens naar /app gestuurd
+ * terwijl hij gewoon is ingelogd, en aan de code van de pagina is niets te zien.
+ *
+ * @ai-gotcha: Elke `return` hieronder die niet `response` is, moet hier langs. Een
+ * nieuwe omleiding erbij zetten zonder deze helper brengt het lek meteen terug.
+ *
+ * @ai-sync: lib/supabase/middleware.ts (zet de cookies op `response`)
+ * @ai-sync: middleware.test.ts (legt dit per omleiding vast)
+ */
+function redirectMetSessie(url: URL, response: NextResponse) {
+  const redirect = NextResponse.redirect(url)
+  response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+  return redirect
+}
+
 export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request)
   const pathname = request.nextUrl.pathname
@@ -12,13 +34,16 @@ export async function middleware(request: NextRequest) {
   //
   // @ai-gotcha: 307 en niet 308. Een permanente redirect blijft in de browsercache staan,
   // en dan komt dezelfde persoon ná het inloggen nog steeds op /app uit. Dat is niet te
-  // debuggen zonder de cache te legen, want er is niets aan de code te zien.
+  // debuggen zonder de cache te legen, want er is niets aan de code te zien. Dat is op
+  // 2026-09-09 ook echt gebeurd: `next.config.ts` heeft die dag een half uur een 308 van
+  // / naar /app gehad. Browsers die daar toen langskwamen sloegen hem op en gingen ook
+  // daarna naar /app, zonder de server nog aan te raken. Alleen de cache legen hielp.
   //
   // @ai-sync: app/page.tsx
   // @ai-sync: next.config.ts (geen config-redirect op /, die zou hier vóór komen)
   // @ai-sync: docs/tdr/0008-de-cockpit-is-de-homepage.md
   if (pathname === '/' && !user) {
-    return NextResponse.redirect(new URL('/app', request.url))
+    return redirectMetSessie(new URL('/app', request.url), response)
   }
 
   // Redirect unauthenticated users away from protected routes
@@ -26,7 +51,7 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(redirectUrl)
+      return redirectMetSessie(redirectUrl, response)
     }
   }
 
@@ -34,7 +59,7 @@ export async function middleware(request: NextRequest) {
   // wél werken: een bestaand account moet erin kunnen en de cockpit in /chat hangt eraan.
   // @ai-sync: lib/flags.ts (SHOW_WEB_APP)
   if (pathname === '/signup' && !SHOW_WEB_APP) {
-    return NextResponse.redirect(new URL('/app', request.url))
+    return redirectMetSessie(new URL('/app', request.url), response)
   }
 
   // Redirect authenticated users away from auth pages
@@ -44,7 +69,7 @@ export async function middleware(request: NextRequest) {
       // afhankelijk van SHOW_WEB_APP: die vlag dekt het web-platform en niet de cockpit,
       // en de grens is hier de sessie die we net hebben vastgesteld.
       // @ai-sync: docs/tdr/0008-de-cockpit-is-de-homepage.md
-      return NextResponse.redirect(new URL('/', request.url))
+      return redirectMetSessie(new URL('/', request.url), response)
     }
   }
 
