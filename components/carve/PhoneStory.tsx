@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FIGURE_HEIGHT, FIGURE_SRC, FIGURE_WIDTH, LANDING_DAY, REGIONS, WEEK } from '@/components/carve/muscle-week';
+import { FIGURE_HEIGHT, FIGURE_SRC, FIGURE_WIDTH, LANDING_DAY, REGIONS, WEEK, weekDemoAction } from '@/components/carve/muscle-week';
 
 interface Screen {
   eyebrow: string;
@@ -123,7 +123,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
  * stuurt het nog steeds, er loopt nergens een timer behalve de week-demo, en
  * die staat dan uit.
  *
- * @ai-sync: components/carve/muscle-week.ts (weekschema en spierregio's van het figuur)
+ * @ai-sync: components/carve/muscle-week.ts (weekschema, spierregio's en de regel die de weekdemo stilzet of weer aanzet)
  * @ai-sync: components/carve/CarveMarketingPage.tsx (de hero erboven, de bewijssectie eronder)
  */
 export function PhoneStory() {
@@ -135,6 +135,8 @@ export function PhoneStory() {
 
   const [day, setDay] = useState(0);
   const autoTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** De dag die de bezoeker zelf aanwees, of null zolang de demo draait. */
+  const pickedRef = useRef<number | null>(null);
 
   const stopAuto = useCallback(() => {
     if (autoTimer.current) {
@@ -143,19 +145,26 @@ export function PhoneStory() {
     }
   }, []);
 
-  useEffect(() => {
+  // @ai-gotcha: De enige plek die de cyclus start. De reduced-motion-check hoort
+  // hier en niet bij de aanroepers, anders zet de resume bij terugscrollen alsnog
+  // een timer aan bij iemand die om stilstand vroeg.
+  const startAuto = useCallback(() => {
+    if (autoTimer.current) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const start = setTimeout(() => {
-      autoTimer.current = setInterval(() => setDay((d) => (d + 1) % WEEK.length), 1700);
-    }, 1200);
+    autoTimer.current = setInterval(() => setDay((d) => (d + 1) % WEEK.length), 1700);
+  }, []);
+
+  useEffect(() => {
+    const start = setTimeout(startAuto, 1200);
     return () => {
       clearTimeout(start);
       stopAuto();
     };
-  }, [stopAuto]);
+  }, [startAuto, stopAuto]);
 
   const pick = useCallback(
     (i: number) => {
+      pickedRef.current = i;
       stopAuto();
       setDay(i);
     },
@@ -224,12 +233,15 @@ export function PhoneStory() {
       col.style.opacity = String(seg(p, 0.7, 0.95));
 
       const landed = p > 0.25;
-      if (landed !== holdingRef.current) {
-        holdingRef.current = landed;
-        if (landed) {
-          stopAuto();
-          setDay(LANDING_DAY);
-        }
+      const action = weekDemoAction({ was: holdingRef.current, now: landed, visitorPicked: pickedRef.current !== null });
+      holdingRef.current = landed;
+      if (action === 'hold') {
+        stopAuto();
+        setDay(LANDING_DAY);
+      } else if (action === 'resume') {
+        startAuto();
+      } else if (action === 'restore') {
+        setDay(pickedRef.current!);
       }
 
       // Schermen: laag 0 is het Muscle Groups-scherm, daarna de screenshots.
@@ -285,7 +297,7 @@ export function PhoneStory() {
       window.removeEventListener('resize', layout);
       html.style.scrollSnapType = prevSnap;
     };
-  }, [stopAuto]);
+  }, [startAuto, stopAuto]);
 
   const lit = new Set(WEEK[day].muscles);
 

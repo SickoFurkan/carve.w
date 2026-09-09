@@ -48,3 +48,41 @@ export const REGIONS: MuscleRegion[] = [
 export const FIGURE_SRC = '/muscle-front.png';
 export const FIGURE_WIDTH = 360;
 export const FIGURE_HEIGHT = 1100;
+
+/**
+ * Wat er met de weekstrip moet gebeuren als de landing van staat wisselt.
+ * `hold` zet de cyclus stil op LANDING_DAY, `resume` laat hem weer lopen,
+ * `restore` zet de dag terug die de bezoeker zelf koos (cyclus blijft uit),
+ * `none` niets.
+ *
+ * @ai-why: De strip liep tot 2026-09-08 eenmalig vast. `hold` was er wel (het
+ * reizende figuur moet tijdens de landing op LANDING_DAY staan, anders wisselt
+ * het van spieren terwijl het de telefoon in vliegt), maar de tegenhanger niet:
+ * wie terugscrollde naar de hero zag de strip voor altijd op Legs staan.
+ *
+ * @ai-why: `restore` en niet gewoon `resume` voor wie zelf een dag aanwees. Die
+ * klik zet de cyclus bewust stil, dus opnieuw laten lopen overschrijft een keuze
+ * die iemand net maakte. Maar op LANDING_DAY blijven staan is net zo fout: dat is
+ * Legs, en dat koos hij niet. Dus terug naar zijn eigen dag, cyclus uit.
+ *
+ * De regel woont hier als pure functie omdat de vitest-opstelling van deze repo
+ * node is, zonder DOM; zo is het vastlopen met een test te pinnen.
+ *
+ * @ai-sync: components/carve/PhoneStory.tsx (de enige aanroeper, in de rAF-handler)
+ */
+export type WeekDemoAction = 'hold' | 'resume' | 'restore' | 'none';
+
+export interface WeekDemoState {
+  /** Stond de landing de vorige frame al voorbij het omslagpunt? */
+  was: boolean;
+  /** En nu? */
+  now: boolean;
+  /** Heeft de bezoeker zelf een dag aangewezen (klik of hover)? */
+  visitorPicked: boolean;
+}
+
+export function weekDemoAction({ was, now, visitorPicked }: WeekDemoState): WeekDemoAction {
+  if (was === now) return 'none';
+  if (now) return 'hold';
+  return visitorPicked ? 'restore' : 'resume';
+}
