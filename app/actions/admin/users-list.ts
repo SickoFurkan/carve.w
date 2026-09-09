@@ -30,7 +30,8 @@ export async function fetchUsers(query: UsersQuery = {}): Promise<UsersResult> {
   // kolom. Zo blijft de lijst bruikbaar vóór de migratie, terwijl de UI wel kan zeggen
   // dat het aanvinken nog niet kan.
   // @ai-sync: supabase/migrations/20260908000001_add_is_test_to_profiles.sql
-  const velden = 'id, email, display_name, username, created_at, last_active_at, user_roles(name)'
+  const velden =
+    'id, email, display_name, username, bio, created_at, last_active_at, user_roles(name)'
 
   async function haal(metIsTest: boolean) {
     let q = supabase
@@ -77,6 +78,7 @@ export async function fetchUsers(query: UsersQuery = {}): Promise<UsersResult> {
         email: (row.email as string) ?? null,
         display_name: (row.display_name as string) ?? null,
         username: (row.username as string) ?? null,
+        bio: (row.bio as string) ?? null,
         role,
         created_at: (row.created_at as string) ?? null,
         last_active_at: (row.last_active_at as string) ?? null,
@@ -112,4 +114,63 @@ export async function setUserIsTest(userId: string, isTest: boolean): Promise<vo
         : `Opslaan mislukte: ${error.message}`,
     )
   }
+}
+
+/**
+ * Werkt naam, gebruikersnaam en bio bij.
+ *
+ * @ai-sync: components/admin/chat/AdminUsersPane.tsx
+ */
+export async function updateUserDetails(
+  userId: string,
+  data: { display_name?: string; username?: string; bio?: string },
+): Promise<void> {
+  const { supabase } = await requireAdmin()
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', userId)
+
+  if (error) throw new Error(`Opslaan mislukte: ${error.message}`)
+}
+
+/**
+ * Zet de rol van een gebruiker, of haalt hem weg.
+ *
+ * @ai-why: De rol-id komt uit `user_roles` en niet uit een tabel met UUID's in code.
+ * De oude `app/actions/admin/users.ts` had er drie hardgecodeerd, waaronder een
+ * admin-UUID die niet meer bestaat. Iemand admin maken zette daar dus een rol-id dat
+ * nergens naar wijst: geen foutmelding, en die persoon kon er alsnog niet in.
+ *
+ * @ai-gotcha: Jezelf je eigen adminrol afnemen wordt geweigerd. Er is één adminaccount;
+ * lukt dat wel, dan kan niemand meer bij /admin en is er geen weg terug via de UI.
+ *
+ * @ai-sync: lib/admin/auth.ts
+ */
+export async function changeUserRole(userId: string, roleName: string | null): Promise<void> {
+  const { supabase, user } = await requireAdmin()
+
+  if (user.id === userId && roleName !== 'admin') {
+    throw new Error('Je kunt je eigen adminrol niet afnemen.')
+  }
+
+  let roleId: string | null = null
+  if (roleName) {
+    const { data: rol } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('name', roleName)
+      .single()
+
+    if (!rol) throw new Error(`De rol "${roleName}" bestaat niet in user_roles.`)
+    roleId = rol.id
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ user_role_id: roleId, updated_at: new Date().toISOString() })
+    .eq('id', userId)
+
+  if (error) throw new Error(`Rol wijzigen mislukte: ${error.message}`)
 }

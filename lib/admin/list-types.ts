@@ -21,6 +21,7 @@ export interface AdminUserRow {
   email: string | null
   display_name: string | null
   username: string | null
+  bio: string | null
   role: string | null
   created_at: string | null
   last_active_at: string | null

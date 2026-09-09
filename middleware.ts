@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Redirect unauthenticated users away from protected routes
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/admin') || pathname.startsWith('/chat') || pathname.startsWith('/money') || pathname.startsWith('/travel') || pathname.startsWith('/workouts') || pathname.startsWith('/food') || pathname.startsWith('/social') || pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/health') || pathname.startsWith('/inbox')) {
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/chat') || pathname.startsWith('/money') || pathname.startsWith('/travel') || pathname.startsWith('/workouts') || pathname.startsWith('/food') || pathname.startsWith('/social') || pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/health') || pathname.startsWith('/inbox')) {
     if (!user) {
       const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirect', pathname)
@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // @ai-why: Geen nieuwe web-accounts zolang het platform uit staat. Inloggen blijft
-  // wél werken: een bestaand account moet erin kunnen en /admin hangt eraan.
+  // wél werken: een bestaand account moet erin kunnen en de cockpit in /chat hangt eraan.
   // @ai-sync: lib/flags.ts (SHOW_WEB_APP)
   if (pathname === '/signup' && !SHOW_WEB_APP) {
     return NextResponse.redirect(new URL('/', request.url))
@@ -25,15 +25,13 @@ export async function middleware(request: NextRequest) {
   // Redirect authenticated users away from auth pages
   if (pathname === '/login' || pathname === '/signup') {
     if (user) {
-      // @ai-why: Naar /admin en niet naar /chat. Sinds TDR-0006 is /admin de cockpit en
-      // is het web-platform het product dat niemand gebruikt; wie hier inlogt is de
-      // beheerder, niet een gebruiker die wil chatten. Valt de rolcontrole tegen, dan
-      // stuurt lib/admin/auth.ts alsnog weg, dus dit opent niets voor een ander.
-      // @ai-why: Met het platform uit is /admin in productie nog een 404 (zie de
+      // @ai-why: Naar /chat, want daar zit sinds TDR-0006 de cockpit in. De losse
+      // /admin-routes bestaan niet meer; erheen sturen geeft een 404.
+      // @ai-why: Met het platform uit is /chat in productie nog een 404 (zie de
       // openstaande beslissing in TDR-0006), dus daar blijft de marketingpagina de
       // bestemming tot dat besloten is.
       // @ai-sync: docs/tdr/0006-admin-is-de-cockpit.md
-      return NextResponse.redirect(new URL(SHOW_WEB_APP ? '/admin' : '/', request.url))
+      return NextResponse.redirect(new URL(SHOW_WEB_APP ? '/chat' : '/', request.url))
     }
   }
 
@@ -45,7 +43,7 @@ export async function middleware(request: NextRequest) {
   // @ai-sync: next.config.ts (redirects)
   if (pathname === '/' && SHOW_WEB_APP) {
     if (user) {
-      return NextResponse.redirect(new URL('/admin', request.url))
+      return NextResponse.redirect(new URL('/chat', request.url))
     }
   }
 

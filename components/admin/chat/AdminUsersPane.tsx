@@ -1,9 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useDebounce } from 'use-debounce'
-import { Search, FlaskConical } from 'lucide-react'
-import { fetchUsers, setUserIsTest } from '@/app/actions/admin/users-list'
+import { Search, FlaskConical, Pencil } from 'lucide-react'
+import {
+  fetchUsers,
+  setUserIsTest,
+  updateUserDetails,
+  changeUserRole,
+} from '@/app/actions/admin/users-list'
 import type { AdminUserRow, UsersResult } from '@/lib/admin/list-types'
 
 function datum(waarde: string | null): string {
@@ -35,6 +40,63 @@ export function AdminUsersPane() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [bezig, setBezig] = useState<string | null>(null)
+  const [bewerkId, setBewerkId] = useState<string | null>(null)
+  const [formulier, setFormulier] = useState({ display_name: '', username: '', bio: '', role: '' })
+
+  function openBewerken(user: AdminUserRow) {
+    setBewerkId(user.id)
+    setFormulier({
+      display_name: user.display_name ?? '',
+      username: user.username ?? '',
+      bio: user.bio ?? '',
+      role: user.role ?? '',
+    })
+  }
+
+  async function opslaan(user: AdminUserRow) {
+    setBezig(user.id)
+    setError(null)
+
+    try {
+      await updateUserDetails(user.id, {
+        display_name: formulier.display_name,
+        username: formulier.username,
+        bio: formulier.bio,
+      })
+
+      // @ai-why: De rol alleen aanraken als hij echt verandert. Een overbodige update
+      // op user_role_id loopt tegen de zelf-degradatie-check aan wanneer je je eigen
+      // profiel bewerkt, en dan zou opslaan van een bio falen op een rol die je niet
+      // wijzigde.
+      if ((formulier.role || null) !== (user.role || null)) {
+        await changeUserRole(user.id, formulier.role || null)
+      }
+
+      setData((huidig) =>
+        huidig
+          ? {
+              ...huidig,
+              users: huidig.users.map((u) =>
+                u.id === user.id
+                  ? {
+                      ...u,
+                      display_name: formulier.display_name || null,
+                      username: formulier.username || null,
+                      bio: formulier.bio || null,
+                      role: formulier.role || null,
+                    }
+                  : u,
+              ),
+            }
+          : huidig,
+      )
+      setBewerkId(null)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBezig(null)
+    }
+  }
 
   useEffect(() => {
     let afgebroken = false
@@ -87,6 +149,7 @@ export function AdminUsersPane() {
   }
 
   const testAantal = data?.users.filter((u) => u.is_test).length ?? 0
+  const bewerkte = data?.users.find((u) => u.id === bewerkId) ?? null
 
   return (
     <div className="h-full overflow-y-auto">
@@ -160,14 +223,19 @@ export function AdminUsersPane() {
               </thead>
               <tbody>
                 {data?.users.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]"
-                  >
+                  <Fragment key={user.id}>
+                  <tr className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
                     <td className="px-4 py-2.5">
-                      <div className="text-[13px] text-white">
-                        {user.display_name || user.username || 'Naamloos'}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => (bewerkId === user.id ? setBewerkId(null) : openBewerken(user))}
+                        className="group flex items-center gap-2 text-left"
+                      >
+                        <span className="text-[13px] text-white">
+                          {user.display_name || user.username || 'Naamloos'}
+                        </span>
+                        <Pencil className="h-3 w-3 text-white/20 transition-colors group-hover:text-white/55" />
+                      </button>
                       <div className="text-[11.5px] text-white/30">{user.email ?? '—'}</div>
                     </td>
                     <td className="px-4 py-2.5 text-[12.5px] text-white/45">
@@ -196,6 +264,78 @@ export function AdminUsersPane() {
                       </button>
                     </td>
                   </tr>
+                  {bewerkte?.id === user.id && (
+                                  <tr className="border-b border-white/[0.04]">
+                    <td colSpan={5} className="bg-white/[0.02] px-4 py-4">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="text-[11px] uppercase tracking-[0.1em] text-white/30">
+                          Naam
+                          <input
+                            value={formulier.display_name}
+                            onChange={(e) =>
+                              setFormulier({ ...formulier, display_name: e.target.value })
+                            }
+                            className="mt-1 w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[13px] normal-case tracking-normal text-white focus:border-white/25 focus:outline-none"
+                          />
+                        </label>
+
+                        <label className="text-[11px] uppercase tracking-[0.1em] text-white/30">
+                          Gebruikersnaam
+                          <input
+                            value={formulier.username}
+                            onChange={(e) => setFormulier({ ...formulier, username: e.target.value })}
+                            className="mt-1 w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[13px] normal-case tracking-normal text-white focus:border-white/25 focus:outline-none"
+                          />
+                        </label>
+
+                        <label className="text-[11px] uppercase tracking-[0.1em] text-white/30">
+                          Rol
+                          <select
+                            value={formulier.role}
+                            onChange={(e) => setFormulier({ ...formulier, role: e.target.value })}
+                            className="mt-1 w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[13px] normal-case tracking-normal text-white focus:border-white/25 focus:outline-none"
+                          >
+                            <option value="">geen rol</option>
+                            {data?.roles.map((r) => (
+                              <option key={r} value={r}>
+                                {r}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label className="text-[11px] uppercase tracking-[0.1em] text-white/30 sm:col-span-2">
+                          Bio
+                          <textarea
+                            value={formulier.bio}
+                            rows={2}
+                            onChange={(e) => setFormulier({ ...formulier, bio: e.target.value })}
+                            className="mt-1 w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[13px] normal-case tracking-normal text-white focus:border-white/25 focus:outline-none"
+                          />
+                        </label>
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={bezig === bewerkte.id}
+                          onClick={() => opslaan(bewerkte)}
+                          className="rounded-lg border border-[#D4A843]/40 bg-[#D4A843]/10 px-3 py-1.5 text-[12.5px] text-[#D4A843] disabled:opacity-40"
+                        >
+                          {bezig === bewerkte.id ? 'Bezig' : 'Opslaan'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBewerkId(null)}
+                          className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-[12.5px] text-white/45 hover:text-white/70"
+                        >
+                          Annuleren
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  )}
+                  </Fragment>
                 ))}
 
                 {data && data.users.length === 0 && (

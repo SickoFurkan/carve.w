@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 // Import navigation configs
 import { wikiNavigationGroups } from '@/lib/navigation/wiki-navigation';
 import { loginNavigationGroups } from '@/lib/navigation/dashboard-navigation';
-import { adminNavigationGroups } from '@/lib/navigation/admin-navigation';
 import { hiscoresNavigationGroups } from '@/lib/navigation/hiscores-navigation';
 import { carveNavigationGroups } from '@/lib/navigation/carve-navigation';
 import { supportNavigationGroups } from '@/lib/navigation/support-navigation';
@@ -59,10 +58,9 @@ function getSidebarGroups(pathname: string, isAuthenticated: boolean, userRole?:
   if (path === '/' || path.startsWith('/wiki')) {
     return wikiNavigationGroups as NavigationGroup[];
   }
-  if (path.startsWith('/admin')) {
-    if (userRole !== 'admin') return null;
-    return adminNavigationGroups as NavigationGroup[];
-  }
+  // @ai-why: Geen admin-tak meer. /admin is sinds TDR-0006 de Admin-modus in /chat en
+  // die draagt zijn eigen zijbalk; de route en zijn navigatiedefinitie zijn weg.
+  // @ai-sync: components/chat/ChatSidebar.tsx
   if (path.startsWith('/chat') || path.startsWith('/money') || path.startsWith('/travel') || path.startsWith('/workouts') || path.startsWith('/food') || path.startsWith('/social') || path.startsWith('/profile') || path.startsWith('/settings') || path.startsWith('/health') || path.startsWith('/inbox')) {
     return isAuthenticated
       ? (unifiedNavigationGroups as NavigationGroup[])
